@@ -64,6 +64,7 @@ namespace clustering
 
 		void hash_construct_grid(const ClusterData & cl_d);
 		void determine_core_point_grid(const ClusterData& cl_d);
+		void merge_clusters(const ClusterData& cl_d);
 	};
 
 	std::ostream& operator<<(std::ostream& o, DBSCAN & d);
