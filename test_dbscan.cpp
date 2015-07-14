@@ -10,7 +10,6 @@ int main()
 	DBSCAN dbs(20000, 5);
 	dbs.fit_distance_matrix( cl_d );
     dbs.output_result(cl_d, "output");
-	//std::cout << dbs << std::endl;
 
 	return 0;
 }

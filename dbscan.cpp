@@ -271,7 +271,7 @@ namespace clustering
 		m_is_core.resize(cl_d.size1());
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
 			// TODO: > or >=
-			if(iter->second.size() > m_min_elems){
+			if(iter->second.size() >= m_min_elems){
 				for(unsigned int i=0; i<iter->second.size(); i++){
 					int which = iter->second.at(i);
 					m_is_core[which] = true;
@@ -288,8 +288,72 @@ namespace clustering
 		}
 	}
 
-	void DBSCAN::merge_clusters(const DBSCAN::ClusterData& cl_d){
+	int DBSCAN::merge_in_neighbour(const DBSCAN::ClusterData& cl_d, int point_id, int center_id){
+		static const int num_neighbour = 21;
+		int cell_iter = center_id - 2 * m_n_rows - 1;
 
+		// iterate on core points only
+		for(int i=0; i<num_neighbour; i++){
+			std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
+			if(got != m_hash_grid.end()){
+				for(int j=0; j<got->second.size(); j++){
+					int which = got->second.at(j);
+					if(!m_is_core[which])
+						continue;
+
+					double dist_sqr = 0.0;
+					for(int k=0; k<cl_d.size2(); k++){
+						double diff = cl_d(which, k) - cl_d(point_id, k);
+						dist_sqr += diff * diff;
+					}
+					if(dist_sqr < m_eps_sqr)
+						return cell_iter;
+				}
+			}
+
+			cell_iter = cell_iter + 1;
+			if(i == 2)			cell_iter = center_id - m_n_rows - 2;
+			else if(i == 7)		cell_iter = center_id - 2;
+			else if(i == 12)	cell_iter = center_id + m_n_rows - 2;
+			else if(i == 17)	cell_iter = center_id +m_n_rows * 2 - 1;
+		}
+		return center_id;
+	}
+
+	int DBSCAN::find(int i){
+		while(i != m_union_find[i])
+			i = m_union_find[i];
+		return i;
+	}
+
+	void DBSCAN::cell_to_point_label(const std::vector<int>& keyvec){
+
+	}
+
+	void DBSCAN::merge_clusters(const DBSCAN::ClusterData& cl_d){
+		// TODO: dimension related function
+		std::vector<int> keyvec;
+		keyvec.resize(m_hash_grid.size());
+		int num_iter = 0;
+		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter)
+			keyvec[num_iter++] = iter->first;
+
+		m_union_find.resize(m_hash_grid.size());
+		for(int i=0; i<m_union_find.size(); i++)
+			m_union_find[i] = i;
+		
+		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+			int cell_id = iter->first;
+			for(unsigned int i=0; i<iter->second.size(); i++){
+				int point_id = iter->second[i];
+				if(!m_is_core[point_id])
+					continue;
+				int belong = merge_in_neighbour(cl_d, point_id, cell_id);
+				if(belong != cell_id)
+					break;
+			}
+		}
+		cell_to_point_label(keyvec);
 	}
 
 	// two public fit interface 
@@ -302,7 +366,7 @@ namespace clustering
 	void DBSCAN::fit_grid_based(const DBSCAN::ClusterData& C){
 		hash_construct_grid(C);
 		determine_core_point_grid(C);
-
+		merge_clusters(C);
 	}
 
 }

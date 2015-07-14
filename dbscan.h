@@ -55,13 +55,19 @@ namespace clustering
 		double m_cell_width;
 		int m_n_rows;
 		int m_n_cols;
+
+		std::vector<int> m_union_find;
 		std::vector<bool> m_is_core;
 		std::unordered_map<int, std::vector<int> > m_hash_grid;
 
+		int find(int i);	// union set function
 		void grid_init(const int features_num);
 		void getMinMax_grid(const ClusterData& cl_d, double* min_x, double* min_y, double* max_x, double* max_y );
+		void cell_to_point_label(const std::vector<int>& keyvec);
+		// check in neighbour function, only check the adjacent cells which is possible
 		bool search_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
-
+		int merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
+		
 		void hash_construct_grid(const ClusterData & cl_d);
 		void determine_core_point_grid(const ClusterData& cl_d);
 		void merge_clusters(const ClusterData& cl_d);
