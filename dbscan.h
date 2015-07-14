@@ -72,6 +72,8 @@ namespace clustering
 		double m_cell_width;
 		int m_n_rows;
 		int m_n_cols;
+		double m_min_x;
+		double m_min_y;
 		std::vector<bool> m_is_core;
 		std::unordered_map<int, std::vector<int> > m_hash_grid;
 
@@ -81,6 +83,7 @@ namespace clustering
 		// check in neighbour function, only check the adjacent cells which is possible
 		bool search_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
 		int merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
+		int find_nearest_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
 		
 		void hash_construct_grid(const ClusterData & cl_d);
 		void determine_core_point_grid(const ClusterData& cl_d);

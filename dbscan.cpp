@@ -252,6 +252,8 @@ namespace clustering
 
 		double min_x, min_y, max_x, max_y;
 		getMinMax_grid(cl_d, &min_x, &min_y, &max_x, &max_y);
+		m_min_x = min_x;
+		m_min_y = min_y;
 		int nRows = int((max_x - min_x) / m_cell_width) + 1;
 		int nCols = int((max_y - min_y) / m_cell_width) + 1;
 
@@ -437,8 +439,57 @@ namespace clustering
 		cell_label_to_point_label(reverse_find, uf);
 	}
 
-	void DBSCAN::determine_boarder_point(const DBSCAN::ClusterData& cl_d){
+	int DBSCAN::find_nearest_in_neighbour(const DBSCAN::ClusterData& cl_d, int point_id, int center_id){
+		// TODO: dimension related function
+		// return the proper label of a un-clustered point
+		// return -1 if this is a noise
+		static const int num_neighbour = 21;
+		int cell_iter = center_id - 2 * m_n_rows - 1;
 
+		// iterate on core points only
+		double min_distance = std::numeric_limits<double>::max();
+		double which_label = -1;
+		for(int i=0; i<num_neighbour; i++){
+			std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
+			if(got != m_hash_grid.end()){
+				for(unsigned int j=0; j<got->second.size(); j++){
+					int which = got->second.at(j);
+					if(!m_is_core[which])
+						continue;
+
+					double dist_sqr = 0.0;
+					for(unsigned int k=0; k<cl_d.size2(); k++){
+						double diff = cl_d(which, k) - cl_d(point_id, k);
+						dist_sqr += diff * diff;
+					}
+					if(dist_sqr < min_distance){
+						min_distance = dist_sqr;
+						which_label = m_labels[which];
+					}
+				}
+			}
+
+			cell_iter = cell_iter + 1;
+			if(i == 2)			cell_iter = center_id - m_n_rows - 2;
+			else if(i == 7)		cell_iter = center_id - 2;
+			else if(i == 12)	cell_iter = center_id + m_n_rows - 2;
+			else if(i == 17)	cell_iter = center_id +m_n_rows * 2 - 1;
+		}
+		return which_label;
+	}
+
+	void DBSCAN::determine_boarder_point(const DBSCAN::ClusterData& cl_d){
+		for(unsigned int i=0; i<m_labels.size(); i++){
+			if(m_labels[i] == -1){
+				// calculate which cell is this point in
+				int dx = int((cl_d(i,0) - m_min_x) / m_cell_width) + 1;
+				int dy = int((cl_d(i,1) - m_min_y) / m_cell_width) + 1;
+				int key = dx * (m_n_cols + 1) + dy;
+
+				int label = find_nearest_in_neighbour(cl_d, i, key);
+				m_labels[i] = label;
+			}
+		}
 	}
 
 	// two public fit interface 
@@ -458,6 +509,6 @@ namespace clustering
 	}
 
 	void DBSCAN::test(){
-
+		return;
 	}
 }
