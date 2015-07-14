@@ -56,7 +56,9 @@ namespace clustering
 		int m_n_rows;
 		int m_n_cols;
 
-		std::vector<int> m_union_find;
+		// use union_find to record which cells belong to the same cluster
+		// first : pointer to parent node, second : size of union_find node
+		std::vector<std::pair<int, int> > m_union_find;
 		std::vector<bool> m_is_core;
 		std::unordered_map<int, std::vector<int> > m_hash_grid;
 

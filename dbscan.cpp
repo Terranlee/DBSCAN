@@ -321,9 +321,23 @@ namespace clustering
 	}
 
 	int DBSCAN::find(int i){
-		while(i != m_union_find[i])
-			i = m_union_find[i];
+		while(i != m_union_find[i].first)
+			i = m_union_find[i].first;
 		return i;
+	}
+
+	void DBSCAN::union(int p, int q){
+		int i = find(p);
+		int q = find(q);
+		if(i == j)	return;
+		if(m_union_find[i].second < m_union_find[j].second){
+			m_union_find[i].first = j;
+			m_union_find[i].second += m_union_find[j].second;
+		}
+		else{
+			m_union_find[j].first = i;
+			m_union_find[j].second += m_union_find[i].second;
+		}
 	}
 
 	void DBSCAN::cell_to_point_label(const std::vector<int>& keyvec){
@@ -339,9 +353,11 @@ namespace clustering
 			keyvec[num_iter++] = iter->first;
 
 		m_union_find.resize(m_hash_grid.size());
-		for(int i=0; i<m_union_find.size(); i++)
-			m_union_find[i] = i;
-		
+		for(int i=0; i<m_union_find.size(); i++){
+			m_union_find[i].first = i;
+			m_union_find[i].second = 1;
+		}
+
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
 			int cell_id = iter->first;
 			for(unsigned int i=0; i<iter->second.size(); i++){
