@@ -52,6 +52,15 @@ namespace clustering
 		}
 	}
 
+    void DBSCAN::UnionFind::show(){
+        // this function should be called after merge_clusters
+        cout<<"-----------print union find information-----------"<<endl;
+        for(unsigned int i=0; i<union_find.size(); i++){
+            cout<<i<<" "<<union_find[i].first<<" "<<union_find[i].second<<endl;
+        }
+        cout<<"-------------------------------------"<<endl;
+    }
+
 	void DBSCAN::UnionFind::test(){
 
 	}
@@ -327,7 +336,7 @@ namespace clustering
             if(center_id == 360)
                 cout<<endl;
             */
-            
+
 			// these represent the search neighbour routine
 			// the change of cell_iter is fixed in all _in_neighbour function
 			cell_iter = cell_iter + 1;
@@ -476,7 +485,22 @@ namespace clustering
 		// iterate on core points only
 		double min_distance = std::numeric_limits<double>::max();
 		double which_label = -1;
+
+        if(center_id == 360){
+            cout<<endl;
+            int dx = center_id / (m_n_cols + 1);
+            int dy = center_id % (m_n_cols + 1);
+            cout<<"center: dx:"<<dx<<" dy:"<<dy<<endl;
+        }
+
 		for(int i=0; i<num_neighbour; i++){
+
+            if(center_id == 360){
+                int dx = cell_iter / (m_n_cols + 1);
+                int dy = cell_iter % (m_n_cols + 1);
+                cout<<"("<<dx<<","<<dy<<")    ";
+            }
+            
 			std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
 			if(got != m_hash_grid.end()){
 				for(unsigned int j=0; j<got->second.size(); j++){
@@ -495,6 +519,9 @@ namespace clustering
 					}
 				}
 			}
+
+            if(center_id == 360)
+                cout<<endl;
 
 			cell_iter = cell_iter + 1;
             if(i == 2)          cell_iter = center_id - (m_n_cols + 1) - 2;
@@ -547,6 +574,16 @@ namespace clustering
                 cout<<"("<<cl_d(which,0)<<","<<cl_d(which,1)<<")  ";
             }
             cout<<endl;
+        }
+        cout<<"-------------------------------------"<<endl;
+    }
+
+    void DBSCAN::print_point_info(const DBSCAN::ClusterData& cl_d){
+        // this function should be called after the init of m_is_core and m_labels
+        cout<<"-----------print point information-----------"<<endl;
+        for(unsigned int i=0; i<cl_d.size1(); i++){
+            cout<<"("<<cl_d(i,0)<<","<<cl_d(i,1)<<")     ";
+            cout<<"["<<m_labels[i]<<" "<<m_is_core[i]<<"]"<<endl;
         }
         cout<<"-------------------------------------"<<endl;
     }

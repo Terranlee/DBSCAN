@@ -29,6 +29,7 @@ namespace clustering
 			int find(int i);
 			int get_size(int i);
 			void make_union(int p, int q);
+			void show();
 			void test();
 		};
 
@@ -89,7 +90,8 @@ namespace clustering
 		
 		// testing function
 		void print_grid_info(const ClusterData& cl_d);
-		
+		void print_point_info(const ClusterData& cld);
+
 		void hash_construct_grid(const ClusterData & cl_d);
 		void determine_core_point_grid(const ClusterData& cl_d);
 		void merge_clusters(const ClusterData& cl_d);
