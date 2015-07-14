@@ -66,8 +66,8 @@ namespace clustering
 		/*
 		for(size_t i=0; i<10; i++){
 			for(size_t j=0; j<features_num; j++)
-				std::cout<<cl_d(i, j)<<" ";
-			std::cout<<std::endl;
+				cout<<cl_d(i, j)<<" ";
+			cout<<endl;
 		}
 		*/
 		return cl_d;
@@ -90,7 +90,7 @@ namespace clustering
 			if(a[i] == b[i])
 				cnt_right++;
 		double rate = (double)cnt_right / (double)a.size();
-		std::cout<<"similarity: "<<rate<<std::endl;
+		cout<<"similarity: "<<rate<<endl;
 	}
 
 	double DBSCAN::get_clock(){
@@ -102,7 +102,7 @@ namespace clustering
 	{
 		for(const auto & l : d.get_labels())
 			o << l << " ";
-		o << std::endl;
+		o << endl;
 		return o;
 	}
 
@@ -170,7 +170,8 @@ namespace clustering
 			if ( !m_visited[nPid] ){
 				m_visited[nPid] = 1;
 				Neighbors ne1 = find_neighbors_distance_matrix(dm, nPid);
-				if ( ne1.size() >= m_min_elems ){
+                // use '>' here, not including the central point itself
+				if ( ne1.size() > m_min_elems){
 					for (const auto & n1 : ne1)
 						ne.push_back(n1);
 				}
@@ -188,7 +189,8 @@ namespace clustering
 			if ( !m_visited[pid] ){  
 				m_visited[pid] = 1;
 				Neighbors ne = find_neighbors_distance_matrix(dm, pid );
-				if (ne.size() >= m_min_elems){
+                // use '>' here, not including the central point itself
+				if (ne.size() > m_min_elems){
 					expand_cluster_distance_matrix(ne, dm, cluster_id, pid);
 					++cluster_id;
 				}
@@ -210,7 +212,7 @@ namespace clustering
 		for(uint32_t i=0; i < size_data; i++){
 			for(uint32_t j=0; j<size_feature; j++)
 				fout<<cl_d(i, j)<<" ";
-			fout<<m_labels[i]<<std::endl;
+			fout<<m_labels[i]<<endl;
 		}
 		fout.close();
 	}
@@ -247,11 +249,14 @@ namespace clustering
 		// TODO: dimension related function
 		int features_num = cl_d.size2();
 		if(features_num != 2)
-			std::cout<<"only 2D data supported now!"<<std::endl;
+			cout<<"only 2D data supported now!"<<endl;
 		grid_init(features_num);
 
 		double min_x, min_y, max_x, max_y;
 		getMinMax_grid(cl_d, &min_x, &min_y, &max_x, &max_y);
+        cout<<endl;
+        cout<<"eps_sqr:"<<m_eps_sqr<<" minpts:"<<m_min_elems<<" cell_width:"<<m_cell_width<<endl;
+        cout<<"minx:"<<min_x<<" miny:"<<min_y<<" maxx:"<<max_x<<" maxy:"<<max_y<<endl;
 		m_min_x = min_x;
 		m_min_y = min_y;
 		int nRows = int((max_x - min_x) / m_cell_width) + 1;
@@ -274,15 +279,32 @@ namespace clustering
 		}
 		m_n_rows = nRows;
 		m_n_cols = nCols;
+        cout<<"n_rows:"<<m_n_rows<<" n_cols:"<<m_n_cols<<endl;
+        print_grid_info(cl_d);
 	}
 
 	bool DBSCAN::search_in_neighbour(const ClusterData& cl_d, int point_id, int center_id){
 		// TODO: dimension related function
 		static const int num_neighbour = 21;
-		int cell_iter = center_id - 2 * m_n_rows - 1;
+		int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 		unsigned int counter = 0;
-
+        /*
+        if(center_id == 360){
+            cout<<endl;
+            int dx = center_id / (m_n_cols + 1);
+            int dy = center_id % (m_n_cols + 1);
+            cout<<"center: dx:"<<dx<<" dy:"<<dy<<endl;
+        }
+        */
 		for(int i=0; i<num_neighbour; i++){
+            /*
+            if(center_id == 360){
+                int dx = cell_iter / (m_n_cols + 1);
+                int dy = cell_iter % (m_n_cols + 1);
+                cout<<"("<<dx<<","<<dy<<")    ";
+            }
+            */
+
 			std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
 			if(got != m_hash_grid.end()){
 				for(unsigned int j=0; j<got->second.size(); j++){
@@ -296,18 +318,23 @@ namespace clustering
 
 					if(dist_sqr < m_eps_sqr)
 						counter++;
-					if(counter >= m_min_elems)
+                    // here we use '>', because it should not include the center point itself
+					if(counter > m_min_elems)
 						return true;
 				}
 			}
-
+            /*
+            if(center_id == 360)
+                cout<<endl;
+            */
+            
 			// these represent the search neighbour routine
 			// the change of cell_iter is fixed in all _in_neighbour function
 			cell_iter = cell_iter + 1;
-			if(i == 2)			cell_iter = center_id - m_n_rows - 2;
+			if(i == 2)			cell_iter = center_id - (m_n_cols + 1) - 2;
 			else if(i == 7)		cell_iter = center_id - 2;
-			else if(i == 12)	cell_iter = center_id + m_n_rows - 2;
-			else if(i == 17)	cell_iter = center_id +m_n_rows * 2 - 1;
+			else if(i == 12)	cell_iter = center_id + (m_n_cols + 1) - 2;
+			else if(i == 17)	cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
 		}
 		return false;
 	}
@@ -315,8 +342,8 @@ namespace clustering
 	void DBSCAN::determine_core_point_grid(const ClusterData& cl_d){
 		m_is_core.resize(cl_d.size1(), false);
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-			// TODO: > or >=
-			if(iter->second.size() >= m_min_elems){
+			//  here we use '>', because it should not include the central point itself
+			if(iter->second.size() > m_min_elems){
 				for(unsigned int i=0; i<iter->second.size(); i++){
 					int which = iter->second.at(i);
 					m_is_core[which] = true;
@@ -335,7 +362,7 @@ namespace clustering
 
 	int DBSCAN::merge_in_neighbour(const DBSCAN::ClusterData& cl_d, int point_id, int center_id){
 		static const int num_neighbour = 21;
-		int cell_iter = center_id - 2 * m_n_rows - 1;
+		int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
 		// iterate on core points only
 		for(int i=0; i<num_neighbour; i++){
@@ -357,10 +384,10 @@ namespace clustering
 			}
 
 			cell_iter = cell_iter + 1;
-			if(i == 2)			cell_iter = center_id - m_n_rows - 2;
-			else if(i == 7)		cell_iter = center_id - 2;
-			else if(i == 12)	cell_iter = center_id + m_n_rows - 2;
-			else if(i == 17)	cell_iter = center_id +m_n_rows * 2 - 1;
+            if(i == 2)          cell_iter = center_id - (m_n_cols + 1) - 2;
+            else if(i == 7)     cell_iter = center_id - 2;
+            else if(i == 12)    cell_iter = center_id + (m_n_cols + 1) - 2;
+            else if(i == 17)    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
 		}
 		return center_id;
 	}
@@ -444,7 +471,7 @@ namespace clustering
 		// return the proper label of a un-clustered point
 		// return -1 if this is a noise
 		static const int num_neighbour = 21;
-		int cell_iter = center_id - 2 * m_n_rows - 1;
+        int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
 		// iterate on core points only
 		double min_distance = std::numeric_limits<double>::max();
@@ -470,10 +497,10 @@ namespace clustering
 			}
 
 			cell_iter = cell_iter + 1;
-			if(i == 2)			cell_iter = center_id - m_n_rows - 2;
-			else if(i == 7)		cell_iter = center_id - 2;
-			else if(i == 12)	cell_iter = center_id + m_n_rows - 2;
-			else if(i == 17)	cell_iter = center_id +m_n_rows * 2 - 1;
+            if(i == 2)          cell_iter = center_id - (m_n_cols + 1) - 2;
+            else if(i == 7)     cell_iter = center_id - 2;
+            else if(i == 12)    cell_iter = center_id + (m_n_cols + 1) - 2;
+            else if(i == 17)    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
 		}
 		return which_label;
 	}
@@ -507,6 +534,22 @@ namespace clustering
 		merge_clusters(C);
 		determine_boarder_point(C);
 	}
+
+    void DBSCAN::print_grid_info(const DBSCAN::ClusterData& cl_d){
+        cout<<"-----------print hash grid-----------"<<endl;
+        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            int key = iter->first;
+            int dx = key / (m_n_cols + 1);
+            int dy = key % (m_n_cols + 1);
+            cout<<"[key:"<<key<<" dx:"<<dx<<" dy:"<<dy<<"]"<<endl;
+            for(unsigned int j=0; j<iter->second.size(); j++){
+                int which = iter->second.at(j);
+                cout<<"("<<cl_d(which,0)<<","<<cl_d(which,1)<<")  ";
+            }
+            cout<<endl;
+        }
+        cout<<"-------------------------------------"<<endl;
+    }
 
 	void DBSCAN::test(){
 		return;

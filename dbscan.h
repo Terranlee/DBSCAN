@@ -3,6 +3,8 @@
 #include <boost/numeric/ublas/matrix.hpp>
 
 using namespace boost::numeric;
+using std::cout;
+using std::endl;
 
 namespace clustering
 {
@@ -84,6 +86,9 @@ namespace clustering
 		bool search_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
 		int merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
 		int find_nearest_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
+		
+		// testing function
+		void print_grid_info(const ClusterData& cl_d);
 		
 		void hash_construct_grid(const ClusterData & cl_d);
 		void determine_core_point_grid(const ClusterData& cl_d);
