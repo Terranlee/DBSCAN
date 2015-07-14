@@ -16,16 +16,18 @@ namespace clustering
 		typedef std::vector<int32_t> Labels;
 
 		// use union_find to record which cells belong to the same cluster
-		// first : pointer to parent node, second : size of union_find node
 		class UnionFind{
 		private:
+			// first is the parent pointer, second is the size of this union_find node
 			std::vector<std::pair<int, int> > union_find;
 		public:
 			UnionFind();
 			UnionFind(int size);
 			void init(int size);
 			int find(int i);
+			int get_size(int i);
 			void make_union(int p, int q);
+			void test();
 		};
 
 		// functions for both method
@@ -46,6 +48,9 @@ namespace clustering
 		// two different kinds of algorithm
 		void fit_distance_matrix( const ClusterData & C );
 		void fit_grid_based(const ClusterData& C);
+
+		// test interface
+		void test();
 
 	private:
 		// for both algorithms
@@ -72,7 +77,7 @@ namespace clustering
 
 		void grid_init(const int features_num);
 		void getMinMax_grid(const ClusterData& cl_d, double* min_x, double* min_y, double* max_x, double* max_y );
-		void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find, const UnionFind& uf);
+		void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find, UnionFind& uf);
 		// check in neighbour function, only check the adjacent cells which is possible
 		bool search_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
 		int merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);

@@ -13,6 +13,49 @@
 
 namespace clustering
 {
+	DBSCAN::UnionFind::UnionFind(){}
+	DBSCAN::UnionFind::UnionFind(int size){
+		init(size);
+	}
+
+	void DBSCAN::UnionFind::init(int size){
+		union_find.resize(size);
+		for(int i=0; i<size; i++){
+			union_find[i].first = i;
+			union_find[i].second = 1;
+		}
+	}
+
+	int DBSCAN::UnionFind::find(int i){
+		while(i != union_find[i].first){
+			union_find[i].first = union_find[ union_find[i].first ].first;
+			i = union_find[i].first;
+		}
+		return i;
+	}
+
+	int DBSCAN::UnionFind::get_size(int i){
+		return union_find[i].second;
+	}
+
+	void DBSCAN::UnionFind::make_union(int p, int q){
+		int i = find(p);
+		int j = find(q);
+		if(i == j)	return;
+		if(union_find[i].second < union_find[j].second){
+			union_find[i].first = j;
+			union_find[i].second += union_find[j].second;
+		}
+		else{
+			union_find[j].first = i;
+			union_find[j].second += union_find[i].second;
+		}
+	}
+
+	void DBSCAN::UnionFind::test(){
+
+	}
+
 	DBSCAN::ClusterData DBSCAN::read_cluster_data(size_t features_num, size_t elements_num, std::string filename){
 		DBSCAN::ClusterData cl_d( elements_num, features_num );
 		std::ifstream fin(filename.data());
@@ -320,43 +363,41 @@ namespace clustering
 		return center_id;
 	}
 
-	DBSCAN::UnionFind::UnionFind(){}
-	DBSCAN::UnionFind::UnionFind(int size){
-		init(size);
-	}
-
-	void DBSCAN::UnionFind::init(int size){
-		union_find.resize(size);
-		for(int i=0; i<size; i++){
-			union_find[i].first = i;
-			union_find[i].second = 1;
-		}
-	}
-
-	int DBSCAN::UnionFind::find(int i){
-		while(i != union_find[i].first){
-			union_find[i].first = union_find[ union_find[i].first ].first;
-			i = union_find[i].first;
-		}
-		return i;
-	}
-
-	void DBSCAN::UnionFind::make_union(int p, int q){
-		int i = find(p);
-		int j = find(q);
-		if(i == j)	return;
-		if(union_find[i].second < union_find[j].second){
-			union_find[i].first = j;
-			union_find[i].second += union_find[j].second;
-		}
-		else{
-			union_find[j].first = i;
-			union_find[j].second += union_find[i].second;
-		}
-	}
-
-	void DBSCAN::cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find, const DBSCAN::UnionFind& uf){
-		return;
+	void DBSCAN::cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find, DBSCAN::UnionFind& uf){
+		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+			// key is the index in the hash_grid, key_index is the corresponding index in the union_find structure
+			int key = iter->first;
+			int key_index = (int)reverse_find.find(key)->second;
+			int root = uf.find(key_index);
+			if(uf.get_size(root) == 1){
+				bool has_core = false;
+				for(unsigned int i=0; i<iter->second.size(); i++){
+					int which = iter->second[i];
+					if(m_is_core[which] == true){
+						has_core = true;
+						break;
+					}
+				}
+				if(has_core){
+					for(unsigned int i=0; i<iter->second.size(); i++){
+						int which = iter->second[i];
+						m_labels[which] = root;
+					}
+				}
+				else{
+					for(unsigned int i=0; i<iter->second.size(); i++){
+						int which = iter->second[i];
+						m_labels[which] = -1;
+					}
+				}
+			} // endof if(uf.get_size(root) == 1)
+			else{
+				for(unsigned int i=0; i<iter->second.size(); i++){
+					int which = iter->second[i];
+					m_labels[which] = root;
+				}
+			}
+		} // endof for(std::unorderedmap::iterator)
 	}
 
 	void DBSCAN::merge_clusters(const DBSCAN::ClusterData& cl_d){
@@ -408,10 +449,15 @@ namespace clustering
 	}
 
 	void DBSCAN::fit_grid_based(const DBSCAN::ClusterData& C){
+		prepare_labels(C.size1());
+
 		hash_construct_grid(C);
 		determine_core_point_grid(C);
 		merge_clusters(C);
 		determine_boarder_point(C);
 	}
 
+	void DBSCAN::test(){
+
+	}
 }
