@@ -138,9 +138,7 @@ namespace clustering
 	}
 
 	void DBSCAN::dbscan_distance_matrix( const DBSCAN::DistanceMatrix & dm ){
-		m_visited.resize(dm.size1());
-		for(std::vector<uint8_t>::iterator iter = m_visited.begin(); iter != m_visited.end(); ++iter)
-			*iter = 0;
+		m_visited.resize(dm.size1(), 0);
 
 		uint32_t cluster_id = 0;
 		for (uint32_t pid = 0; pid < dm.size1(); ++pid){
@@ -224,7 +222,7 @@ namespace clustering
 			if(got == m_hash_grid.end()){
 				std::vector<int> intvec;
 				intvec.push_back(i);
-				m_hash_grid.insert(make_pair(key,intvec));
+				m_hash_grid.insert(std::make_pair(key,intvec));
 			}
 			else
 				got->second.push_back(i);
@@ -237,16 +235,16 @@ namespace clustering
 		// TODO: dimension related function
 		static const int num_neighbour = 21;
 		int cell_iter = center_id - 2 * m_n_rows - 1;
-		int counter = 0;
+		unsigned int counter = 0;
 
 		for(int i=0; i<num_neighbour; i++){
 			std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
 			if(got != m_hash_grid.end()){
-				for(int j=0; j<got->second.size(); j++){
+				for(unsigned int j=0; j<got->second.size(); j++){
 					int which = got->second.at(j);
 
 					double dist_sqr = 0.0;
-					for(int k=0; k<cl_d.size2(); k++){
+					for(unsigned int k=0; k<cl_d.size2(); k++){
 						double diff = cl_d(which, k) - cl_d(point_id, k);
 						dist_sqr += diff * diff;
 					}
@@ -258,6 +256,8 @@ namespace clustering
 				}
 			}
 
+			// these represent the search neighbour routine
+			// the change of cell_iter is fixed in all _in_neighbour function
 			cell_iter = cell_iter + 1;
 			if(i == 2)			cell_iter = center_id - m_n_rows - 2;
 			else if(i == 7)		cell_iter = center_id - 2;
@@ -268,7 +268,7 @@ namespace clustering
 	}
 
 	void DBSCAN::determine_core_point_grid(const ClusterData& cl_d){
-		m_is_core.resize(cl_d.size1());
+		m_is_core.resize(cl_d.size1(), false);
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
 			// TODO: > or >=
 			if(iter->second.size() >= m_min_elems){
@@ -296,13 +296,13 @@ namespace clustering
 		for(int i=0; i<num_neighbour; i++){
 			std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
 			if(got != m_hash_grid.end()){
-				for(int j=0; j<got->second.size(); j++){
+				for(unsigned int j=0; j<got->second.size(); j++){
 					int which = got->second.at(j);
 					if(!m_is_core[which])
 						continue;
 
 					double dist_sqr = 0.0;
-					for(int k=0; k<cl_d.size2(); k++){
+					for(unsigned int k=0; k<cl_d.size2(); k++){
 						double diff = cl_d(which, k) - cl_d(point_id, k);
 						dist_sqr += diff * diff;
 					}
@@ -320,56 +320,84 @@ namespace clustering
 		return center_id;
 	}
 
-	int DBSCAN::find(int i){
-		while(i != m_union_find[i].first)
-			i = m_union_find[i].first;
+	DBSCAN::UnionFind::UnionFind(){}
+	DBSCAN::UnionFind::UnionFind(int size){
+		init(size);
+	}
+
+	void DBSCAN::UnionFind::init(int size){
+		union_find.resize(size);
+		for(int i=0; i<size; i++){
+			union_find[i].first = i;
+			union_find[i].second = 1;
+		}
+	}
+
+	int DBSCAN::UnionFind::find(int i){
+		while(i != union_find[i].first){
+			union_find[i].first = union_find[ union_find[i].first ].first;
+			i = union_find[i].first;
+		}
 		return i;
 	}
 
-	void DBSCAN::union(int p, int q){
+	void DBSCAN::UnionFind::make_union(int p, int q){
 		int i = find(p);
-		int q = find(q);
+		int j = find(q);
 		if(i == j)	return;
-		if(m_union_find[i].second < m_union_find[j].second){
-			m_union_find[i].first = j;
-			m_union_find[i].second += m_union_find[j].second;
+		if(union_find[i].second < union_find[j].second){
+			union_find[i].first = j;
+			union_find[i].second += union_find[j].second;
 		}
 		else{
-			m_union_find[j].first = i;
-			m_union_find[j].second += m_union_find[i].second;
+			union_find[j].first = i;
+			union_find[j].second += union_find[i].second;
 		}
 	}
 
-	void DBSCAN::cell_to_point_label(const std::vector<int>& keyvec){
-
+	void DBSCAN::cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find, const DBSCAN::UnionFind& uf){
+		return;
 	}
 
 	void DBSCAN::merge_clusters(const DBSCAN::ClusterData& cl_d){
 		// TODO: dimension related function
-		std::vector<int> keyvec;
-		keyvec.resize(m_hash_grid.size());
-		int num_iter = 0;
-		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter)
-			keyvec[num_iter++] = iter->first;
+		
+		// initialize the UnionFind uf
+		UnionFind uf;
+		uf.init(m_hash_grid.size());
 
-		m_union_find.resize(m_hash_grid.size());
-		for(int i=0; i<m_union_find.size(); i++){
-			m_union_find[i].first = i;
-			m_union_find[i].second = 1;
+		// TODO: how to deal with the reverse_find structure?
+		// map the cell.key to a linear number
+		std::unordered_map<int, int> reverse_find;
+		reverse_find.reserve(m_hash_grid.size());
+		int index = 0;
+		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+			reverse_find.insert(std::make_pair(iter->first, index));
+			index++;
 		}
 
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
 			int cell_id = iter->first;
+			int belong_id = cell_id;
 			for(unsigned int i=0; i<iter->second.size(); i++){
 				int point_id = iter->second[i];
 				if(!m_is_core[point_id])
 					continue;
-				int belong = merge_in_neighbour(cl_d, point_id, cell_id);
-				if(belong != cell_id)
+				belong_id = merge_in_neighbour(cl_d, point_id, cell_id);
+				if(belong_id != cell_id)
 					break;
 			}
+			if(belong_id != cell_id){
+				int belong_index = reverse_find.find(belong_id)->second;
+				int cell_index = reverse_find.find(cell_id)->second;
+				uf.make_union(belong_index, cell_index);
+			}
 		}
-		cell_to_point_label(keyvec);
+		cell_label_to_point_label(reverse_find, uf);
+	}
+
+	void DBSCAN::determine_boarder_point(const DBSCAN::ClusterData& cl_d){
+
 	}
 
 	// two public fit interface 
@@ -383,6 +411,7 @@ namespace clustering
 		hash_construct_grid(C);
 		determine_core_point_grid(C);
 		merge_clusters(C);
+		determine_boarder_point(C);
 	}
 
 }

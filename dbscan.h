@@ -15,6 +15,19 @@ namespace clustering
 		typedef std::vector<uint32_t> Neighbors;
 		typedef std::vector<int32_t> Labels;
 
+		// use union_find to record which cells belong to the same cluster
+		// first : pointer to parent node, second : size of union_find node
+		class UnionFind{
+		private:
+			std::vector<std::pair<int, int> > union_find;
+		public:
+			UnionFind();
+			UnionFind(int size);
+			void init(int size);
+			int find(int i);
+			void make_union(int p, int q);
+		};
+
 		// functions for both method
 		static ClusterData gen_cluster_data( size_t features_num, size_t elements_num );
 		static ClusterData read_cluster_data( size_t features_num, size_t elements_num, std::string filename);
@@ -39,7 +52,6 @@ namespace clustering
 		double m_eps_sqr;
 		size_t m_min_elems;
 		Labels m_labels;
-
 		void prepare_labels( size_t s );
 
 		// for distance matrix method
@@ -55,17 +67,12 @@ namespace clustering
 		double m_cell_width;
 		int m_n_rows;
 		int m_n_cols;
-
-		// use union_find to record which cells belong to the same cluster
-		// first : pointer to parent node, second : size of union_find node
-		std::vector<std::pair<int, int> > m_union_find;
 		std::vector<bool> m_is_core;
 		std::unordered_map<int, std::vector<int> > m_hash_grid;
 
-		int find(int i);	// union set function
 		void grid_init(const int features_num);
 		void getMinMax_grid(const ClusterData& cl_d, double* min_x, double* min_y, double* max_x, double* max_y );
-		void cell_to_point_label(const std::vector<int>& keyvec);
+		void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find, const UnionFind& uf);
 		// check in neighbour function, only check the adjacent cells which is possible
 		bool search_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
 		int merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
@@ -73,6 +80,7 @@ namespace clustering
 		void hash_construct_grid(const ClusterData & cl_d);
 		void determine_core_point_grid(const ClusterData& cl_d);
 		void merge_clusters(const ClusterData& cl_d);
+		void determine_boarder_point(const ClusterData& cl_d);
 	};
 
 	std::ostream& operator<<(std::ostream& o, DBSCAN & d);
