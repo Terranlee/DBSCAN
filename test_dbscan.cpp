@@ -36,13 +36,13 @@ void test_grid(const DBSCAN::ClusterData& cl_d){
 
 int main()
 {
-	//DBSCAN::ClusterData cl_d = DBSCAN::gen_cluster_data( 2, 10000 );
+    //DBSCAN::ClusterData cl_d = DBSCAN::gen_cluster_data( 2, 10000 );
     DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
 
     test_original(cl_d);
-	test_grid(cl_d);
+    test_grid(cl_d);
 
     DBSCAN::cmp_result(label_origin, label_grid);
 
-	return 0;
+    return 0;
 }
