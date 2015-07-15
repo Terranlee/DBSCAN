@@ -23,8 +23,12 @@ int UnionFind::find(int i){
     return i;
 }
 
-int UnionFind::get_size(int i){
+int UnionFind::get_size(int i) const{
     return union_find[i].second;
+}
+
+int UnionFind::get_count() const{
+    return count;
 }
 
 void UnionFind::make_union(int p, int q){
@@ -42,7 +46,7 @@ void UnionFind::make_union(int p, int q){
     count--;
 }
 
-void UnionFind::print_union(){
+void UnionFind::print_union() const{
     // this function should be called after merge_clusters
     cout<<"-----------print union find information-----------"<<endl;
     cout<<"union_find count:"<<count<<endl;

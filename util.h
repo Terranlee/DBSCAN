@@ -18,9 +18,10 @@ public:
     UnionFind(int size);
     void init(int size);
     int find(int i);
-    int get_size(int i);
+    int get_size(int i) const;
+    int get_count() const;
     void make_union(int p, int q);
-    void print_union();
+    void print_union() const;
     void test();
 };
 

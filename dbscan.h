@@ -36,7 +36,10 @@ namespace clustering
 
         void init(double eps, size_t min_elems);
         void reset();
+
         const Labels & get_labels() const;
+        void reshape_labels();
+        int get_cluster_number() const;
         void output_result(const ClusterData& cl_d, const std::string filename) const;
 
         // different kinds of algorithm
@@ -54,7 +57,7 @@ namespace clustering
         double m_eps_sqr;
         size_t m_min_elems;
         Labels m_labels;
-        
+
         void prepare_labels( size_t s );
 
 
@@ -92,8 +95,8 @@ namespace clustering
         int find_nearest_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
     
         // testing function
-        void print_grid_info(const ClusterData& cl_d);
-        void print_point_info(const ClusterData& cld);
+        void print_grid_info(const ClusterData& cl_d) const;
+        void print_point_info(const ClusterData& cld) const;
         
         // four main steps for grid based DBSCAN clustering
         void hash_construct_grid(const ClusterData & cl_d);

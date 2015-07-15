@@ -1,9 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include <cmath>
-#include <climits>
 #include <time.h>
 #include <cassert>
+#include <map>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -86,14 +85,12 @@ namespace clustering
         m_labels.clear();
     }
 
-    void DBSCAN::prepare_labels( size_t s ){
-        m_labels.resize(s);
-        for( auto & l : m_labels)
-            l = -1;
-    }
-
     const DBSCAN::Labels & DBSCAN::get_labels() const{
         return m_labels;
+    }
+
+    int DBSCAN::get_cluster_number() const{
+        return uf.get_count();
     }
 
     void DBSCAN::output_result(const DBSCAN::ClusterData& cl_d, const std::string filename) const {
@@ -102,6 +99,7 @@ namespace clustering
         uint32_t size_ans = m_labels.size();
         assert( size_data == size_ans);
 
+        // map the cluster result into number from 0 to max
         std::ofstream fout(filename.data());
         for(uint32_t i=0; i < size_data; i++){
             for(uint32_t j=0; j<size_feature; j++)
@@ -109,6 +107,27 @@ namespace clustering
             fout<<m_labels[i]<<endl;
         }
         fout.close();
+    }
+
+    void DBSCAN::reshape_labels(){
+        int size_data = m_labels.size();
+        int index = 0;
+        std::map<int, int> mapping;
+        for(uint32_t i=0; i<size_data; i++){
+            if(m_labels[i] == -1)
+                continue;
+            if(mapping.find(m_labels[i]) == mapping.end()){
+                mapping.insert(std::make_pair(m_labels[i], index));
+                index++;
+            }
+            m_labels[i] = mapping.find(m_labels[i])->second;
+        }
+    }
+
+    void DBSCAN::prepare_labels( size_t s ){
+        m_labels.resize(s);
+        for( auto & l : m_labels)
+            l = -1;
     }
 
     // two public fit interface 

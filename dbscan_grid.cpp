@@ -289,7 +289,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN::print_grid_info(const DBSCAN::ClusterData& cl_d){
+    void DBSCAN::print_grid_info(const DBSCAN::ClusterData& cl_d) const{
         cout<<"-----------print hash grid-----------"<<endl;
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             int key = iter->first;
@@ -305,7 +305,7 @@ namespace clustering{
         cout<<"-------------------------------------"<<endl;
     }
 
-    void DBSCAN::print_point_info(const DBSCAN::ClusterData& cl_d){
+    void DBSCAN::print_point_info(const DBSCAN::ClusterData& cl_d) const{
         // this function should be called after the init of m_is_core and m_labels
         cout<<"-----------print point information-----------"<<endl;
         for(unsigned int i=0; i<cl_d.size1(); i++){
