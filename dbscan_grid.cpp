@@ -244,7 +244,7 @@ namespace clustering{
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
         // iterate on core points only
-        double min_distance = std::numeric_limits<double>::max();
+        double min_distance = m_eps_sqr;
         double which_label = -1;
         for(int i=0; i<num_neighbour; i++){
             std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);

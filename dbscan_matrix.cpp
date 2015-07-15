@@ -30,7 +30,7 @@ namespace clustering{
     DBSCAN::Neighbors DBSCAN::find_neighbors_distance_matrix(const DBSCAN::DistanceMatrix & D, uint32_t pid){
         Neighbors ne;
         for (uint32_t j = 0; j < D.size1(); ++j){
-            if     ( D(pid, j) <= m_eps_sqr )
+            if( D(pid, j) < m_eps_sqr )
                 ne.push_back(j);
         }
         return ne;

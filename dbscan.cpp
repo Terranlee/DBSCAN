@@ -110,7 +110,7 @@ namespace clustering
     }
 
     void DBSCAN::reshape_labels(){
-        int size_data = m_labels.size();
+        unsigned int size_data = m_labels.size();
         int index = 0;
         std::map<int, int> mapping;
         for(uint32_t i=0; i<size_data; i++){
@@ -143,6 +143,8 @@ namespace clustering
         hash_construct_grid(C);
         determine_core_point_grid(C);
         merge_clusters(C);
+        //reshape_labels();
+        //output_result(C, "output_middle");
         determine_boarder_point(C);
     }
 
