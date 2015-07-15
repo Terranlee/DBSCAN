@@ -54,6 +54,7 @@ namespace clustering
         double m_eps_sqr;
         size_t m_min_elems;
         Labels m_labels;
+        
         void prepare_labels( size_t s );
 
 
@@ -79,14 +80,15 @@ namespace clustering
         double m_min_y;
         std::vector<bool> m_is_core;
         std::unordered_map<int, std::vector<int> > m_hash_grid;
+        UnionFind uf;
 
         void grid_init(const int features_num);
         void getMinMax_grid(const ClusterData& cl_d, double* min_x, double* min_y, double* max_x, double* max_y );
-        void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find, UnionFind& uf);
+        void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find);
 
         // check in neighbour function, only check the adjacent cells which is possible
         bool search_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
-        void merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id, UnionFind& uf, const std::unordered_map<int, int>& reverse);
+        void merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id, const std::unordered_map<int, int>& reverse);
         int find_nearest_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
     
         // testing function
