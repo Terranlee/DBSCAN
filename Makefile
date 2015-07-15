@@ -99,19 +99,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named dbscan
-
-# Build rule for target.
-dbscan: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 dbscan
-.PHONY : dbscan
-
-# fast build rule for target.
-dbscan/fast:
-	$(MAKE) -f CMakeFiles/dbscan.dir/build.make CMakeFiles/dbscan.dir/build
-.PHONY : dbscan/fast
-
-#=============================================================================
 # Target rules for targets named test_dbscan
 
 # Build rule for target.
@@ -126,18 +113,48 @@ test_dbscan/fast:
 
 # target to build an object file
 dbscan.o:
-	$(MAKE) -f CMakeFiles/dbscan.dir/build.make CMakeFiles/dbscan.dir/dbscan.o
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.o
 .PHONY : dbscan.o
 
 # target to preprocess a source file
 dbscan.i:
-	$(MAKE) -f CMakeFiles/dbscan.dir/build.make CMakeFiles/dbscan.dir/dbscan.i
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.i
 .PHONY : dbscan.i
 
 # target to generate assembly for a file
 dbscan.s:
-	$(MAKE) -f CMakeFiles/dbscan.dir/build.make CMakeFiles/dbscan.dir/dbscan.s
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.s
 .PHONY : dbscan.s
+
+# target to build an object file
+dbscan_grid.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.o
+.PHONY : dbscan_grid.o
+
+# target to preprocess a source file
+dbscan_grid.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.i
+.PHONY : dbscan_grid.i
+
+# target to generate assembly for a file
+dbscan_grid.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.s
+.PHONY : dbscan_grid.s
+
+# target to build an object file
+dbscan_matrix.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.o
+.PHONY : dbscan_matrix.o
+
+# target to preprocess a source file
+dbscan_matrix.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.i
+.PHONY : dbscan_matrix.i
+
+# target to generate assembly for a file
+dbscan_matrix.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.s
+.PHONY : dbscan_matrix.s
 
 # target to build an object file
 test_dbscan.o:
@@ -154,22 +171,45 @@ test_dbscan.s:
 	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.s
 .PHONY : test_dbscan.s
 
+# target to build an object file
+util.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.o
+.PHONY : util.o
+
+# target to preprocess a source file
+util.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.i
+.PHONY : util.i
+
+# target to generate assembly for a file
+util.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.s
+.PHONY : util.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... dbscan"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... test_dbscan"
 	@echo "... dbscan.o"
 	@echo "... dbscan.i"
 	@echo "... dbscan.s"
+	@echo "... dbscan_grid.o"
+	@echo "... dbscan_grid.i"
+	@echo "... dbscan_grid.s"
+	@echo "... dbscan_matrix.o"
+	@echo "... dbscan_matrix.i"
+	@echo "... dbscan_matrix.s"
 	@echo "... test_dbscan.o"
 	@echo "... test_dbscan.i"
 	@echo "... test_dbscan.s"
+	@echo "... util.o"
+	@echo "... util.i"
+	@echo "... util.s"
 .PHONY : help
 
 

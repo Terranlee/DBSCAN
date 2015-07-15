@@ -8,8 +8,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 add_definitions(-DBOOST_UBLAS_NDEBUG)
 add_definitions(-std=c++11)
 
-add_library(dbscan dbscan.cpp)
+aux_source_directory(. DIR_SRCS)
 
-add_executable(test_dbscan test_dbscan.cpp)
-target_link_libraries(test_dbscan dbscan)
+add_executable(test_dbscan ${DIR_SRCS})
 
