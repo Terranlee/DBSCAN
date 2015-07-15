@@ -6,9 +6,9 @@ Grid based DBSCAN algorithm
 Designed for CPU execute and DataFlow Engine acceleration  
 
 ### Compile & run  
->  $cmake CMakeList.txt
->  $make
->  $./test_dbscan
+>  $cmake CMakeList.txt  
+>  $make  
+>  $./test_dbscan  
 
 ### Data & result  
 1. Sample data is in data/  

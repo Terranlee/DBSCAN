@@ -2,7 +2,6 @@
 #include <fstream>
 #include <cmath>
 #include <climits>
-#include <time.h>
 #include <cassert>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>

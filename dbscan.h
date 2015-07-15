@@ -103,6 +103,13 @@ namespace clustering
         void determine_core_point_grid(const ClusterData& cl_d);
         void merge_clusters(const ClusterData& cl_d);
         void determine_boarder_point(const ClusterData& cl_d);
+
+
+        /*****************************************************************************************/
+        // reduced precision function
+        // the number of points in each cell is fixed, making the length of iteration to be fixed
+        // implemented in dbscan_reduced.cpp
+        void reduce_precision(int max_num_point);
     };
 
 
