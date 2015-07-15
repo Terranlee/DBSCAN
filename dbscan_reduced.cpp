@@ -16,10 +16,11 @@ namespace clustering{
         }
         mid_x = mid_x / (double) vec.size();
         mid_y = mid_y / (double) vec.size();
-
+        /*
         std::vector<double> diff(vec.size());
         for(unsigned int i=0; i<vec.size(); i++)
             diff[i] = 
+        */
     }
 
     // making the maximum number of points in each cell is max_num_point
