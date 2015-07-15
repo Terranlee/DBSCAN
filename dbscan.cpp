@@ -291,8 +291,8 @@ namespace clustering
         }
         m_n_rows = nRows;
         m_n_cols = nCols;
-        cout<<"n_rows:"<<m_n_rows<<" n_cols:"<<m_n_cols<<endl;
-        print_grid_info(cl_d);
+        //cout<<"n_rows:"<<m_n_rows<<" n_cols:"<<m_n_cols<<endl;
+        //print_grid_info(cl_d);
     }
 
     bool DBSCAN::search_in_neighbour(const ClusterData& cl_d, int point_id, int center_id){
@@ -488,8 +488,8 @@ namespace clustering
         }
         cell_label_to_point_label(reverse_find, uf);
 
-        print_point_info(cl_d);
-        uf.print_union();
+        //print_point_info(cl_d);
+        //uf.print_union();
     }
 
     int DBSCAN::find_nearest_in_neighbour(const DBSCAN::ClusterData& cl_d, int point_id, int center_id){
@@ -503,21 +503,23 @@ namespace clustering
         double min_distance = std::numeric_limits<double>::max();
         double which_label = -1;
 
+        /*
         if(center_id == 360){
             cout<<endl;
             int dx = center_id / (m_n_cols + 1);
             int dy = center_id % (m_n_cols + 1);
             cout<<"center: dx:"<<dx<<" dy:"<<dy<<endl;
         }
+        */
 
         for(int i=0; i<num_neighbour; i++){
-
+            /*
             if(center_id == 360){
                 int dx = cell_iter / (m_n_cols + 1);
                 int dy = cell_iter % (m_n_cols + 1);
                 cout<<"("<<dx<<","<<dy<<")    ";
             }
-            
+            */
             std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
                 for(unsigned int j=0; j<got->second.size(); j++){
@@ -536,10 +538,11 @@ namespace clustering
                     }
                 }
             }
-
+            /*
             if(center_id == 360)
                 cout<<endl;
-
+            */
+            
             cell_iter = cell_iter + 1;
             if(i == 2)          cell_iter = center_id - (m_n_cols + 1) - 2;
             else if(i == 7)     cell_iter = center_id - 2;
