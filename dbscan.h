@@ -96,7 +96,7 @@ namespace clustering
     
         // testing function
         void print_grid_info(const ClusterData& cl_d) const;
-        void print_point_info(const ClusterData& cld) const;
+        void print_point_info(const ClusterData& cl_d) const;
         
         // four main steps for grid based DBSCAN clustering
         void hash_construct_grid(const ClusterData & cl_d);
@@ -109,7 +109,9 @@ namespace clustering
         // reduced precision function
         // the number of points in each cell is fixed, making the length of iteration to be fixed
         // implemented in dbscan_reduced.cpp
-        void reduce_precision(int max_num_point);
+        int m_max_num_point;
+        void reduce_precision(const ClusterData& cl_d, int max_num_point);
+        void process_vector(const ClusterData& cl_d, std::vector<int>& vec);
     };
 
 
