@@ -25,27 +25,31 @@ namespace clustering
         /*****************************************************************************************/
         // functions for all DBSCAN methods
         // implemented in dbscan.cpp
-        static ClusterData gen_cluster_data( size_t features_num, size_t elements_num );
-        static ClusterData read_cluster_data( size_t features_num, size_t elements_num, std::string filename);
         static void cmp_result(const Labels& a, const Labels & b);
         static double get_clock();
 
+        // initialize, deconstruct and reset
         DBSCAN(double eps, size_t min_elems);
         DBSCAN();
         ~DBSCAN();
-
         void init(double eps, size_t min_elems);
         void reset();
 
+        // data initialization functions
+        void gen_cluster_data( size_t features_num, size_t elements_num);
+        void read_cluster_data( size_t features_num, size_t elements_num, std::string filename);
+        
+        // output functions
         const Labels & get_labels() const;
-        void reshape_labels();
         int get_cluster_number() const;
-        void output_result(const ClusterData& cl_d, const std::string filename) const;
+        void output_result(const std::string filename) const;
+        void reshape_labels();
 
         // different kinds of algorithm
         // implemented in dbscan.cpp
-        void fit_distance_matrix( const ClusterData & C );
-        void fit_grid_based(const ClusterData& C);
+        void fit_distance_matrix();
+        void fit_grid_based();
+        void fit_grid_reduced_precision();
 
         // test interface
         void test();
@@ -57,6 +61,7 @@ namespace clustering
         double m_eps_sqr;
         size_t m_min_elems;
         Labels m_labels;
+        ClusterData cl_d;
 
         void prepare_labels( size_t s );
 
@@ -66,7 +71,7 @@ namespace clustering
         // implemented in dbscan_matrix.cpp
         std::vector<uint8_t> m_visited;
 
-        const DistanceMatrix calc_dist_matrix( const ClusterData & C);
+        const DistanceMatrix calc_dist_matrix();
         Neighbors find_neighbors_distance_matrix(const DistanceMatrix & D, uint32_t pid);
         void expand_cluster_distance_matrix(Neighbors& ne, const DistanceMatrix& dm, const int cluster_id, const int pid);
         void dbscan_distance_matrix( const DistanceMatrix & dm );
@@ -86,34 +91,46 @@ namespace clustering
         UnionFind uf;
 
         void grid_init(const int features_num);
-        void getMinMax_grid(const ClusterData& cl_d, double* min_x, double* min_y, double* max_x, double* max_y );
+        void getMinMax_grid(double* min_x, double* min_y, double* max_x, double* max_y );
         void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find);
 
         // check in neighbour function, only check the adjacent cells which is possible
-        bool search_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
-        void merge_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id, const std::unordered_map<int, int>& reverse);
-        int find_nearest_in_neighbour(const ClusterData& cl_d, int point_id, int cell_id);
+        bool search_in_neighbour(int point_id, int cell_id);
+        void merge_in_neighbour(int point_id, int cell_id, const std::unordered_map<int, int>& reverse);
+        int find_nearest_in_neighbour(int point_id, int cell_id);
     
         // testing function
-        void print_grid_info(const ClusterData& cl_d) const;
-        void print_point_info(const ClusterData& cl_d) const;
+        void print_grid_info() const;
+        void print_point_info() const;
         
         // four main steps for grid based DBSCAN clustering
-        void hash_construct_grid(const ClusterData & cl_d);
-        void determine_core_point_grid(const ClusterData& cl_d);
-        void merge_clusters(const ClusterData& cl_d);
-        void determine_boarder_point(const ClusterData& cl_d);
+        void hash_construct_grid();
+        void determine_core_point_grid();
+        void merge_clusters();
+        void determine_boarder_point();
 
 
         /*****************************************************************************************/
-        // reduced precision function
+        // variables and functions for reduced precision implementation
         // the number of points in each cell is fixed, making the length of iteration to be fixed
+        // the precision of the following implementation will be reduced
         // implemented in dbscan_reduced.cpp
         int m_max_num_point;
-        void reduce_precision(const ClusterData& cl_d, int max_num_point);
-        void process_vector(const ClusterData& cl_d, std::vector<int>& vec);
-    };
 
+        void process_vector(std::vector<int>& vec);
+        void reduce_precision(int max_num_point);
+
+        // same function as the grid based algorithm
+        // only add a restriction about the number of points in each cells
+        bool search_in_neighbour_reduced(int point_id, int cell_id);
+        void merge_in_neighbour_reduced(int point_id, int cell_id, const std::unordered_map<int, int>& reverse);
+        int find_nearest_in_neighbour_reduced(int point_id, int cell_id);
+
+        void determine_core_point_grid_reduced();
+        void merge_clusters_reduced();
+        void determine_boarder_point_reduced();
+
+    };
 
     std::ostream& operator<<(std::ostream& o, DBSCAN & d);
 }

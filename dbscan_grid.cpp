@@ -18,7 +18,7 @@ namespace clustering{
         m_cell_width = eps / sq;
     }
 
-    void DBSCAN::getMinMax_grid(const DBSCAN::ClusterData& cl_d, double* min_x, double* min_y, double* max_x, double* max_y){
+    void DBSCAN::getMinMax_grid(double* min_x, double* min_y, double* max_x, double* max_y){
         // TODO: dimension related function
         double maxx, maxy, minx, miny;
         maxx = maxy = std::numeric_limits<double>::min();
@@ -39,7 +39,7 @@ namespace clustering{
         *min_y = miny;
     }
 
-    void DBSCAN::hash_construct_grid(const DBSCAN::ClusterData& cl_d){
+    void DBSCAN::hash_construct_grid(){
         // TODO: dimension related function
         int features_num = cl_d.size2();
         if(features_num != 2)
@@ -47,10 +47,10 @@ namespace clustering{
         grid_init(features_num);
 
         double min_x, min_y, max_x, max_y;
-        getMinMax_grid(cl_d, &min_x, &min_y, &max_x, &max_y);
-        cout<<endl;
-        cout<<"eps_sqr:"<<m_eps_sqr<<" minpts:"<<m_min_elems<<" cell_width:"<<m_cell_width<<endl;
-        cout<<"minx:"<<min_x<<" miny:"<<min_y<<" maxx:"<<max_x<<" maxy:"<<max_y<<endl;
+        getMinMax_grid(&min_x, &min_y, &max_x, &max_y);
+        //cout<<endl;
+        //cout<<"eps_sqr:"<<m_eps_sqr<<" minpts:"<<m_min_elems<<" cell_width:"<<m_cell_width<<endl;
+        //cout<<"minx:"<<min_x<<" miny:"<<min_y<<" maxx:"<<max_x<<" maxy:"<<max_y<<endl;
         m_min_x = min_x;
         m_min_y = min_y;
         int nRows = int((max_x - min_x) / m_cell_width) + 1;
@@ -77,7 +77,7 @@ namespace clustering{
         //print_grid_info(cl_d);
     }
 
-    bool DBSCAN::search_in_neighbour(const ClusterData& cl_d, int point_id, int center_id){
+    bool DBSCAN::search_in_neighbour(int point_id, int center_id){
         // TODO: dimension related function
         static const int num_neighbour = 21;
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
@@ -113,7 +113,7 @@ namespace clustering{
         return false;
     }
 
-    void DBSCAN::determine_core_point_grid(const ClusterData& cl_d){
+    void DBSCAN::determine_core_point_grid(){
         m_is_core.resize(cl_d.size1(), false);
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             //  here we use '>', because it should not include the central point itself
@@ -127,7 +127,7 @@ namespace clustering{
                 int cell_id = iter->first;
                 for(unsigned int i=0; i<iter->second.size(); i++){
                     int point_id = iter->second.at(i);
-                    bool result = search_in_neighbour(cl_d, point_id, cell_id);
+                    bool result = search_in_neighbour(point_id, cell_id);
                     m_is_core[point_id] = result;
                 }
             }
@@ -135,7 +135,7 @@ namespace clustering{
         //print_point_info(cl_d);
     }
 
-    void DBSCAN::merge_in_neighbour(const DBSCAN::ClusterData& cl_d, int point_id, int center_id, const std::unordered_map<int, int>& reverse_find){
+    void DBSCAN::merge_in_neighbour(int point_id, int center_id, const std::unordered_map<int, int>& reverse_find){
         static const int num_neighbour = 21;
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
@@ -157,6 +157,7 @@ namespace clustering{
                         int belong_index = reverse_find.find(cell_iter)->second;
                         int cell_index = reverse_find.find(center_id)->second;
                         uf.make_union(belong_index, cell_index);
+                        break;
                         //return cell_iter;
                     }
                 }
@@ -195,7 +196,7 @@ namespace clustering{
         } // endof for(std::unorderedmap::iterator)
     }
 
-    void DBSCAN::merge_clusters(const DBSCAN::ClusterData& cl_d){
+    void DBSCAN::merge_clusters(){
         // TODO: dimension related function
         
         // initialize the UnionFind uf in class DBSCAN
@@ -218,7 +219,7 @@ namespace clustering{
                 if(!m_is_core[point_id])
                     continue;
 
-                merge_in_neighbour(cl_d, point_id, cell_id, reverse_find);
+                merge_in_neighbour(point_id, cell_id, reverse_find);
                 // for debug
                 /*
                 int dx1 = cell_id / (m_n_cols + 1);
@@ -235,7 +236,7 @@ namespace clustering{
         //uf.print_union();
     }
 
-    int DBSCAN::find_nearest_in_neighbour(const DBSCAN::ClusterData& cl_d, int point_id, int center_id){
+    int DBSCAN::find_nearest_in_neighbour(int point_id, int center_id){
         // TODO: dimension related function
         // return the proper label of a un-clustered point
         // return -1 if this is a noise
@@ -274,7 +275,7 @@ namespace clustering{
         return which_label;
     }
 
-    void DBSCAN::determine_boarder_point(const DBSCAN::ClusterData& cl_d){
+    void DBSCAN::determine_boarder_point(){
         for(unsigned int i=0; i<m_labels.size(); i++){
             if(m_labels[i] == -1){
                 // calculate which cell is this point in
@@ -282,13 +283,13 @@ namespace clustering{
                 int dy = int((cl_d(i,1) - m_min_y) / m_cell_width) + 1;
                 int key = dx * (m_n_cols + 1) + dy;
 
-                int label = find_nearest_in_neighbour(cl_d, i, key);
+                int label = find_nearest_in_neighbour(i, key);
                 m_labels[i] = label;
             }
         }
     }
 
-    void DBSCAN::print_grid_info(const DBSCAN::ClusterData& cl_d) const{
+    void DBSCAN::print_grid_info() const{
         cout<<"-----------print hash grid-----------"<<endl;
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             int key = iter->first;
@@ -304,7 +305,7 @@ namespace clustering{
         cout<<"-------------------------------------"<<endl;
     }
 
-    void DBSCAN::print_point_info(const DBSCAN::ClusterData& cl_d) const{
+    void DBSCAN::print_point_info() const{
         // this function should be called after the init of m_is_core and m_labels
         cout<<"-----------print point information-----------"<<endl;
         for(unsigned int i=0; i<cl_d.size1(); i++){

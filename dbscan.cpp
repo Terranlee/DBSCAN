@@ -12,8 +12,8 @@
 
 namespace clustering
 {
-    DBSCAN::ClusterData DBSCAN::read_cluster_data(size_t features_num, size_t elements_num, std::string filename){
-        DBSCAN::ClusterData cl_d( elements_num, features_num );
+    void DBSCAN::read_cluster_data(size_t features_num, size_t elements_num, std::string filename){
+        cl_d = DBSCAN::ClusterData(elements_num, features_num);
         std::ifstream fin(filename.data());
         for(size_t i=0; i<elements_num; i++)
             for(size_t j=0; j<features_num; j++)
@@ -26,16 +26,14 @@ namespace clustering
             cout<<endl;
         }
         */
-        return cl_d;
     }
 
-    DBSCAN::ClusterData DBSCAN::gen_cluster_data( size_t features_num, size_t elements_num ){
-        DBSCAN::ClusterData cl_d( elements_num, features_num );
+    void DBSCAN::gen_cluster_data( size_t features_num, size_t elements_num ){
+        cl_d = DBSCAN::ClusterData(elements_num, features_num);
         for (size_t i = 0; i < elements_num; ++i){
             for (size_t j = 0; j < features_num; ++j)
                 cl_d(i, j) = (-1.0 + rand() * (2.0) / RAND_MAX);
         }
-        return cl_d;
     }
 
     void DBSCAN::cmp_result(const Labels& a, const Labels& b){
@@ -93,7 +91,7 @@ namespace clustering
         return uf.get_count();
     }
 
-    void DBSCAN::output_result(const DBSCAN::ClusterData& cl_d, const std::string filename) const {
+    void DBSCAN::output_result(const std::string filename) const {
         uint32_t size_data = cl_d.size1();
         uint32_t size_feature = cl_d.size2();
         uint32_t size_ans = m_labels.size();
@@ -131,21 +129,30 @@ namespace clustering
     }
 
     // two public fit interface 
-    void DBSCAN::fit_distance_matrix( const DBSCAN::ClusterData & C ) {
-        prepare_labels( C.size1() );
-        const DBSCAN::DistanceMatrix D = calc_dist_matrix(C);
+    void DBSCAN::fit_distance_matrix() {
+        prepare_labels( cl_d.size1() );
+        const DBSCAN::DistanceMatrix D = calc_dist_matrix();
         dbscan_distance_matrix( D );
     }
 
-    void DBSCAN::fit_grid_based(const DBSCAN::ClusterData& C){
-        prepare_labels(C.size1());
+    void DBSCAN::fit_grid_based(){
+        prepare_labels(cl_d.size1());
 
-        hash_construct_grid(C);
-        determine_core_point_grid(C);
-        merge_clusters(C);
-        //reshape_labels();
-        //output_result(C, "output_middle");
-        determine_boarder_point(C);
+        hash_construct_grid();
+        determine_core_point_grid();
+        merge_clusters();
+        determine_boarder_point();
+    }
+
+    void DBSCAN::fit_grid_reduced_precision() {
+        prepare_labels(cl_d.size1());
+
+        hash_construct_grid();
+        reduce_precision(2 * m_min_elems);
+
+        determine_core_point_grid_reduced();
+        merge_clusters_reduced();
+        determine_boarder_point_reduced();
     }
 
     void DBSCAN::test(){

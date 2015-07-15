@@ -8,8 +8,7 @@
 
 namespace clustering{
 
-    const DBSCAN::DistanceMatrix DBSCAN::calc_dist_matrix( const DBSCAN::ClusterData & C){
-        DBSCAN::ClusterData cl_d = C;
+    const DBSCAN::DistanceMatrix DBSCAN::calc_dist_matrix(){
         // rows x rows
         DBSCAN::DistanceMatrix d_m( cl_d.size1(), cl_d.size1() );
         for (size_t i = 0; i < cl_d.size1(); ++i){
