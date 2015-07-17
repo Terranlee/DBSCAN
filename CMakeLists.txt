@@ -1,5 +1,8 @@
 SET(CMAKE_C_COMPILER "icc")
+# use icpc & -std=c++0x on server
+# use g++ & -std=c++11  on laptop
 SET(CMAKE_CXX_COMPILER "icpc")
+#SET(CMAKE_CXX_COMPILER "g++")
 
 SET(CMAKE_C_FLAGS "-std=gnu99 -O3 -pedantic -pedantic")
 SET(CMAKE_CXX_FLAGS "-std=c++0x -Wall -O3 -pedantic")

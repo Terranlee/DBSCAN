@@ -12,4 +12,9 @@ Designed for CPU execute and DataFlow Engine acceleration
 
 ### Data & result  
 1. Sample data is in data/  
-2. Two results are in result/  
+2. Two results are in result/ 
+
+### About DataFlow Engine   
+The codes related to DataFlow engine are in EngineCode/  
+This requires special platform(Maxeler Dataflow Engine and its special compiler)  
+

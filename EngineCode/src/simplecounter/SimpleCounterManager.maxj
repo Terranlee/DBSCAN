@@ -1,0 +1,28 @@
+/**
+ * Document: MaxCompiler Tutorial (maxcompiler-tutorial.pdf)
+ * Chapter: 9      Example: 1      Name: Simple Counter
+ * MaxFile name: SimpleCounter
+ * Summary:
+ *       Manager for simple counter kernel. All IO is between the CPU and the DFE.
+ */
+package simplecounter;
+
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.managers.standard.Manager;
+import com.maxeler.maxcompiler.v2.managers.standard.Manager.IOType;
+
+class SimpleCounterManager {
+
+	private static final int dataWidth = 32;
+
+	public static void main(String[] args) {
+		Manager m = new Manager(new EngineParameters(args));
+		Kernel k = new SimpleCounterKernel(m.makeKernelParameters(), dataWidth);
+		m.setKernel(k);
+		m.addMaxFileConstant("dataWidth", dataWidth);
+		m.setIO(IOType.ALL_CPU);
+		m.createSLiCinterface();
+		m.build();
+	}
+}
