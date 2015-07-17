@@ -124,6 +124,7 @@ namespace clustering
             }
             m_labels[i] = mapping.find(m_labels[i])->second;
         }
+        cout<<"get "<<mapping.size()<<" clusters"<<endl;
     }
 
     void DBSCAN::prepare_labels( size_t s ){
@@ -147,7 +148,12 @@ namespace clustering
 
         hash_construct_grid();
         determine_core_point_grid();
+
+        double clock1 = get_clock();
         merge_clusters();
+        double clock2 = get_clock();
+        cout<<clock2 - clock1<<endl;
+
         determine_boarder_point();
     }
 
@@ -155,7 +161,9 @@ namespace clustering
         prepare_labels(cl_d.size1());
 
         hash_construct_grid();
-        reduce_precision(2 * m_min_elems);
+        //detect_cell_size();
+        
+        reduce_precision(m_min_elems);
 
         determine_core_point_grid_reduced();
         merge_clusters_reduced();

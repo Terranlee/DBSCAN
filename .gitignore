@@ -1,6 +1,8 @@
 CMakeCache.txt 
 CMakeFiles/
 cmake_install.cmake
+data/add_data
+data/*times_*
 test_dbscan
 libdbscan.a
 output*

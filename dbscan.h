@@ -115,10 +115,10 @@ namespace clustering
         // the number of points in each cell is fixed, making the length of iteration to be fixed
         // the precision of the following implementation will be reduced
         // implemented in dbscan_reduced.cpp
-        int m_max_num_point;
+        unsigned int m_max_num_point;
 
         void process_vector(std::vector<int>& vec);
-        void reduce_precision(int max_num_point);
+        void reduce_precision(unsigned int max_num_point);
 
         // same function as the grid based algorithm
         // only add a restriction about the number of points in each cells
@@ -130,6 +130,8 @@ namespace clustering
         void merge_clusters_reduced();
         void determine_boarder_point_reduced();
 
+        // some test function
+        void detect_cell_size();
     };
 
     std::ostream& operator<<(std::ostream& o, DBSCAN & d);
