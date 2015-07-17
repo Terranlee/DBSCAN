@@ -9,11 +9,11 @@ void test_original(DBSCAN::Labels& label_origin){
     //DBSCAN dbs(2, 3);   // the papameter for 3spiral.txt
     //DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
 
-    //DBSCAN dbs(20000, 4);   // the papameter for s1.txt
-    //dbs.read_cluster_data(2, 5000, "../../data/s1.txt");
+    DBSCAN dbs(20000, 4);   // the papameter for s1.txt
+    dbs.read_cluster_data(2, 5000, "data/s1.txt");
 
-    DBSCAN dbs(10000, 4);
-    dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
+    //DBSCAN dbs(10000, 4);
+    //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
 
     cout<<"start execution of distance matrix DBSCAN"<<endl;
     double begin = DBSCAN::get_clock();
@@ -35,11 +35,11 @@ void test_grid(DBSCAN::Labels& label_grid){
     //DBSCAN dbs(2, 3);   // the papameter for 3spiral.txt
     //DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
 
-    //DBSCAN dbs(20000, 4);   // the papameter for s1.txt
-    //dbs.read_cluster_data(2, 5000, "../../data/s1.txt");
+    DBSCAN dbs(20000, 4);   // the papameter for s1.txt
+    dbs.read_cluster_data(2, 5000, "data/s1.txt");
 
-    DBSCAN dbs(14000, 20);
-    dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
+    //DBSCAN dbs(14000, 20);
+    //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
 
     cout<<"start execution of grid based DBSCAN"<<endl;
     double begin = DBSCAN::get_clock();
@@ -61,13 +61,13 @@ void test_reduced(DBSCAN::Labels& label_reduced){
     //DBSCAN dbs(2, 3);   // the papameter for 3spiral.txt
     //DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
 
-    //DBSCAN dbs(20000, 4);   // the papameter for s1.txt
-    //dbs.read_cluster_data(2, 5000, "../../data/s1.txt");
+    DBSCAN dbs(20000, 4);   // the papameter for s1.txt
+    dbs.read_cluster_data(2, 5000, "data/s1.txt");
 
-    DBSCAN dbs(14000, 20);
-    dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
+    //DBSCAN dbs(14000, 20);
+    //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
 
-    cout<<"start execution of grid based DBSCAN"<<endl;
+    cout<<"start execution of reduced grid based DBSCAN"<<endl;
     double begin = DBSCAN::get_clock();
     dbs.fit_grid_reduced_precision();
     double end = DBSCAN::get_clock();

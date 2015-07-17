@@ -149,10 +149,10 @@ namespace clustering
         hash_construct_grid();
         determine_core_point_grid();
 
-        double clock1 = get_clock();
+        //double clock1 = get_clock();
         merge_clusters();
-        double clock2 = get_clock();
-        cout<<clock2 - clock1<<endl;
+        //double clock2 = get_clock();
+        //cout<<clock2 - clock1<<endl;
 
         determine_boarder_point();
     }
