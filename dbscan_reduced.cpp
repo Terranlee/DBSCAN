@@ -1,4 +1,5 @@
 #include <iostream>
+#include <climits>
 #include <algorithm>
 #include <functional>
 
@@ -34,10 +35,10 @@ namespace clustering{
 
     // making the maximum number of points in each cell is max_num_point
     // do this by remove the points that are in the center of a cell
-    void DBSCAN::reduce_precision(int max_num_point){
+    void DBSCAN::reduce_precision(unsigned int max_num_point){
         m_max_num_point = max_num_point;
         for(std::unordered_map<int, std::vector<int> >::iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-            if((int)iter->second.size() <= max_num_point)
+            if(iter->second.size() <= max_num_point)
                 continue;
             process_vector(iter->second);
         }
@@ -228,6 +229,15 @@ namespace clustering{
                 m_labels[i] = label;
             }
         }
+    }
+
+    void DBSCAN::detect_cell_size(){
+        unsigned int max_cell_size = 0;
+        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            if(iter->second.size() > max_cell_size)
+                max_cell_size = iter->second.size();
+        }
+        cout<<"the max cell size is:"<<max_cell_size<<endl;
     }
 
 }

@@ -10,7 +10,7 @@ using namespace std;
 using boost::numeric::ublas::matrix;
 
 
-void read_cluster_data(matrix<double>& cl_d, size_t features_num, size_t elements_num, string filename){
+void read_cluster_data(matrix<double>& cl_d, size_t elements_num, size_t features_num, string filename){
     ifstream fin(filename.data());
     for(size_t i=0; i<elements_num; i++)
         for(size_t j=0; j<features_num; j++)
@@ -47,12 +47,13 @@ int main(){
     int elements_num = 5000;
     int features_num = 2;
     unsigned int times_multiply = 5;
-    double range = 2000.0;
+    double range = 8000.0;
 
     string filename = "s1.txt";
 
     matrix<double> cl_d = matrix<double>(elements_num, features_num);
     read_cluster_data(cl_d, elements_num, features_num, filename);
     multiply_data(cl_d, times_multiply, range, filename);
+    
     return 0;
 }
