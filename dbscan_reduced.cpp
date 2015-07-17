@@ -146,7 +146,8 @@ namespace clustering{
         // TODO: how to deal with the reverse_find structure?
         // map the cell.key to a linear number
         std::unordered_map<int, int> reverse_find;
-        reverse_find.reserve(m_hash_grid.size());
+		// icpc 12.1.4 does not support reserve function???
+        //reverse_find.reserve(m_hash_grid.size());
         int index = 0;
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             reverse_find.insert(std::make_pair(iter->first, index));

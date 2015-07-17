@@ -54,8 +54,12 @@ namespace clustering
 
     std::ostream& operator<<(std::ostream& o, DBSCAN & d)
     {
-        for(const auto & l : d.get_labels())
-            o << l << " ";
+		// icpc 12.1.4 does not support auto
+		DBSCAN::Labels lb = d.get_labels();
+		for(unsigned int i=0; i<lb.size(); i++)
+			o << lb[i] << " ";
+        //for(const auto & l : d.get_labels())
+        //    o << l << " ";
         o << endl;
         return o;
     }
@@ -124,8 +128,11 @@ namespace clustering
 
     void DBSCAN::prepare_labels( size_t s ){
         m_labels.resize(s);
-        for( auto & l : m_labels)
-            l = -1;
+		// icpc 12.1.4 does not support auto
+        //for( auto & l : m_labels)
+        //    l = -1;
+		for(unsigned int i=0; i<m_labels.size(); i++)
+			m_labels[i] = -1;
     }
 
     // two public fit interface 

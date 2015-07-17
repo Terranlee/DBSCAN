@@ -17,8 +17,11 @@ namespace clustering{
                 if (i != j){
                     ublas::matrix_row<DBSCAN::ClusterData> U (cl_d, i);
                     ublas::matrix_row<DBSCAN::ClusterData> V (cl_d, j);
-                    for (const auto e : ( U-V ) )
-                        d_m(i, j) += e * e;
+					// icpc 12.1.4 does not support auto
+                    //for (const auto e : ( U-V ) )
+                    //    d_m(i, j) += e * e;
+					for(unsigned int k=0; k<U.size(); k++)
+						d_m(i, j) += (U[k] - V[k]) * (U[k] - V[k]);
                     d_m(j, i) = d_m(i, j);
                 }
             }
@@ -44,8 +47,11 @@ namespace clustering{
                 Neighbors ne1 = find_neighbors_distance_matrix(dm, nPid);
                 // use '>' here, not including the central point itself
                 if ( ne1.size() > m_min_elems){
-                    for (const auto & n1 : ne1)
-                        ne.push_back(n1);
+					// icpc 12.1.4 does not support auto
+                    //for (const auto & n1 : ne1)
+                    //    ne.push_back(n1);
+					for(unsigned int k=0; k<ne1.size(); k++)
+						ne.push_back(ne1[k]);
                 }
             }
             if ( m_labels[nPid] == -1 )
