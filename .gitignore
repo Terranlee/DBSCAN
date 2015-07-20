@@ -1,4 +1,5 @@
 CMakeCache.txt
+EngineCode/hardware/NaiveMatrixMultiply/build/
 CMakeFiles/
 cmake_install.cmake
 data/add_data

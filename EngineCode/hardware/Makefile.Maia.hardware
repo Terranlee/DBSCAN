@@ -1,0 +1,6 @@
+# ---- Available DFE hardware settings ----
+DFEModel=MAIA
+
+MPCX=true
+DEVICENUM=MAIA
+SLIC_CONF="default_engine_resource = 192.168.0.10"
