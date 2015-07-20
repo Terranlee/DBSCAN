@@ -1,0 +1,122 @@
+/***
+*/
+
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.CounterChain;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.Control;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.KernelMath;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
+import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.memory.Memory;
+
+import java.util.ArrayList;
+
+class MatrixMultiplyKernel extends Kernel {
+
+    private static int m_num_points_cell = 10;
+	private static int m_num_neighbour = 21;
+	private static int m_num_rows = 100;
+
+	private static DFEType m_dataType = Kernel.dfeFloat(8, 24);
+
+    protected MatrixMultiplyKernel(KernelParameters parameters) {
+        super(parameters);
+		
+		CounterChain cc = control.count.makeCounterChain();
+		DFEVar tempClk = cc.addCounter(m_num_points_cell, 1);
+		DFEVar isReading = tempClk === 0;
+
+		DFEVectorType<DFEVar> cell = new DFEVectorType<DFEVar>(m_dataType, m_num_points_cell * 2);
+        DFEVector<DFEVar> input = io.input("input", cell, isReading);
+        DFEVar eps = io.scalarInput("eps", m_dataType);
+		
+//		DFEVar centerX = input[0];
+//		DFEVar centerY = input[1];
+//		setWindow(window, input);
+		
+//		DFEVector<DFEVar> output = (new DFEVectorType<DFEVar>(dfeBool(), m_num_points_cell)).newInstance(this);
+//		for(int i=0; i<m_num_points_cell; i++)
+//			output[i] <== parallelCompute(window[i], centerX, centerY, eps);
+
+        io.output("output", output, output.getType());
+    }
+
+	private void setWindow(ArrayList<DFEVector<DFEVar> > window, DFEVector<DFEVar> input){
+		for(int i=0; i<3; i++){
+			DFEVector<DFEVar> temp = stream.offset(input, -2 * m_num_rows + i - 1);
+			window.add(temp);
+		}
+		for(int i=3; i<8; i++){
+			DFEVector<DFEVar> temp = stream.offset(input, -1 * m_num_rows + i - 5);
+			window.add(temp);
+		}
+		for(int i=8; i<13; i++){
+			DFEVector<DFEVar> temp = stream.offset(input, i - 10);
+			window.add(temp);
+		}
+		for(int i=13; i<18; i++){
+			DFEVector<DFEVar> temp = stream.offset(input, m_num_rows + i - 15);
+			window.add(temp);
+		}
+		for(int i=18; i<21; i++){
+			DFEVector<DFEVar> temp = stream.offset(input, 2 * m_num_rows + i - 19);
+			window.add(temp);
+		}
+	}
+
+	private DFEVar judgeDistance(DFEVar x, DFEVar y, DFEVar centerX, DFEVar centerY, DFEVar sqrEps) {
+        // return if the distance between center and a certain point is less than sqrEps
+        DFEVar diffx = centerX - x;
+        DFEVar diffy = centerY - y;
+        DFEVar sqrDist = diffx * diffx + diffy * diffy;
+        return sqrDist <= sqrEps;
+    }
+
+	private DFEVar adderTree(DFEVar[] input){
+        // the input variable should be float or int
+        DFEVar[] sums = new DFEVar[input.length / 2 + (input.length % 2)];
+        for (int i = 0; i < input.length / 2; i++) {
+            sums[i] = input[2 * i] + input[2 * i + 1];
+        }
+        if (input.length % 2 == 1) {
+            sums[sums.length - 1] = input[input.length - 1];
+        }
+        return sums.length == 1 ? sums[0] : adderTree(sums);
+    }
+							    
+	private DFEVar orTree(DFEVar[] input){
+	    // the input variable should be dfeBool
+		DFEVar[] or = new DFEVar[input.length / 2 + (input.length % 2)];
+        for (int i=0; i<input.length / 2; i++) {
+			or[i] = input[2 * i] | input[2 * i + 1];
+		}
+		if (input.length % 2 == 1) {
+	        or[or.length - 1] = input[input.length - 1];
+	    }
+	    return or.length == 1 ? or[0] : orTree(or);
+	}
+
+	private DFEVar minTree(DFEVar[] input){
+		// the input variable should be float or int
+		DFEVar[] minimum = new DFEVar[input.length / 2 + (input.length % 2)];
+		for (int i=0; i<input.length / 2; i++) {
+			minimum[i] = KernelMath.min(input[2 * i], input[2 * i + 1]);
+		}
+		if (input.length % 2 == 1) {
+			minimum[minimum.length - 1] = input[input.length - 1];
+		}
+		return minimum.length == 1 ? minimum[0] : minTree(minimum);
+	}
+	
+	private DFEVar safeOffset(DFEVar input, DFEVar cycle, int offset) {
+		// add pipelineFactor to remove the 1 cycle postpone by the buffer
+		optimization.pushPipeliningFactor(0);
+		DFEVar ret_val = cycle < -offset ? 0 : stream.offset(input, offset);
+		optimization.popPipeliningFactor();
+		return ret_val;											
+	}
+
+}
+
