@@ -27,15 +27,19 @@ public class MatrixMultiplyManager extends CustomManager{
     private static EngineInterface interfaceDefault() {
         EngineInterface engine_interface = new EngineInterface();
         
-        InterfaceParam N = engine_interface.addParam("N", CPUTypes.INT); // N means the number of cells
+        InterfaceParam N = engine_interface.addParam("N", CPUTypes.INT); // N means the number of points 
 		InterfaceParam Eps = engine_interface.addParam("Eps", CPUTypes.FLOAT);
+		InterfaceParam MinPts = engine_interface.addParam("MinPts", CPUTypes.INT);
 
 		// for each cell, iterate m_num_points_cell cycle, to determine all the points in this center cell
-        engine_interface.setTicks(s_kernelName, N * m_num_points_cell);
+		// now the dimension is 2, and we have N * 2 input numbers
+        engine_interface.setTicks(s_kernelName, N * 2);
 		engine_interface.setScalar(s_kernelName, "eps", Eps);
-
-        engine_interface.setStream("input", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * m_num_points_cell);
-        engine_interface.setStream("output", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes());
+		engine_interface.setScalar(s_kernelName, "minPts", MinPts);
+		
+		// * 2 means that the current dimension is 2, and we have N * 2 input numbers
+        engine_interface.setStream("input", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * 2);
+        engine_interface.setStream("output", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * 2);
         return engine_interface;
     }
 
@@ -45,3 +49,4 @@ public class MatrixMultiplyManager extends CustomManager{
         manager.build();
     }
 }
+

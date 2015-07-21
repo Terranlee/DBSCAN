@@ -80,7 +80,7 @@ class MatrixMultiplyKernel extends Kernel {
 			cellOffset = i - 12;
 		else if(i >= 15 && i <= 19)
 			cellOffset = 1 * m_num_rows + i - 17;
-		else if(i >= 20 && i <= 25)
+		else if(i >= 20 && i <= 24)
 			cellOffset = 2 * m_num_rows + i - 22;
 		cellOffset = cellOffset * m_num_points_cell;
 
