@@ -7,46 +7,56 @@ import com.maxeler.maxcompiler.v2.managers.engine_interfaces.InterfaceParam;
 import com.maxeler.maxcompiler.v2.managers.custom.CustomManager;
 import com.maxeler.maxcompiler.v2.managers.custom.blocks.KernelBlock;
 import com.maxeler.maxcompiler.v2.build.EngineParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEFloat;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
 
 public class DBSCANManager extends CustomManager{
 
     private static final String s_kernelName  = "DBSCANKernel";
 
-	// m_num_points_cell have a same defination in kernel.maxj
-	private static final int m_num_points_cell = 10;
+    public DBSCANManager(DBSCANParameters params) {
+        super(params);
 
-    DBSCANManager(EngineParameters ep) {
-        super(ep);
+		addConstant(params);
 
-        KernelBlock k =
-	    addKernel(new DBSCANKernel(makeKernelParameters(s_kernelName)));
+        KernelBlock k = addKernel(new DBSCANKernel(makeKernelParameters(s_kernelName), params));
 
         k.getInput("input") <== addStreamFromCPU("input");
         addStreamToCPU("output") <== k.getOutput("output");
+
+        createSLiCinterface(interfaceDefault());
     }
+	
+	private addConstant(DBSCANParameters params){
+		addMaxFileConstant("numRows",		params.getNumRows());
+		addMaxFileConstant("numPointsCell",	params.getNumPointsCell());
+		addMaxFileConstant("numNeighbour",	params.getNumNeighbour());
+		addMaxFileConstant("isFloat",		params.getInputType() instanceof DFEFloat ? 1 : 0);
+	}
 
     private static EngineInterface interfaceDefault() {
         EngineInterface engine_interface = new EngineInterface();
         
         InterfaceParam N = engine_interface.addParam("N", CPUTypes.INT); // N means the number of points 
 		InterfaceParam Eps = engine_interface.addParam("Eps", CPUTypes.FLOAT);
-		InterfaceParam MinPts = engine_interface.addParam("MinPts", CPUTypes.INT);
+		// minPts is not needed for the merging cluster operation
+		//InterfaceParam MinPts = engine_interface.addParam("MinPts", CPUTypes.INT);
 
 		// for each cell, iterate m_num_points_cell cycle, to determine all the points in this center cell
 		// now the dimension is 2, and we have N * 2 input numbers
         engine_interface.setTicks(s_kernelName, N * 2);
 		engine_interface.setScalar(s_kernelName, "eps", Eps);
-		engine_interface.setScalar(s_kernelName, "minPts", MinPts);
+
+		//engine_interface.setScalar(s_kernelName, "minPts", MinPts);
 		
 		// * 2 means that the current dimension is 2, and we have N * 2 input numbers
         engine_interface.setStream("input", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * 2);
-        engine_interface.setStream("output", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * 2);
+        engine_interface.setStream("output", CPUTypes.UINT8, N * CPUTypes.UINT8.sizeInBytes() * 3);
         return engine_interface;
     }
 
     public static void main(String[] args) {
-        DBSCANManager manager = new DBSCANManager(new EngineParameters(args));
-        manager.createSLiCinterface(interfaceDefault());
+        DBSCANManager manager = new DBSCANManager(new DBSCANParameters(args));
         manager.build();
     }
 }
