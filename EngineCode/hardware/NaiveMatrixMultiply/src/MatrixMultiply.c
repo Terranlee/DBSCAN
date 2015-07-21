@@ -65,7 +65,7 @@ void test_cpu(){
 	for(int i=0; i<length; i++)
 		arr[i] = 1.0;
 
-	float* answer_cpu = (float*)safe_malloc(sizeof(float) * length);
+	answer_cpu = (float*)safe_malloc(sizeof(float) * length);
 	float eps = 0.1;
 	int minPts = 5;
 	MatrixMultiply_cpu(eps, minPts, num_of_points, arr, answer_cpu);
