@@ -2,7 +2,6 @@
 #define __DBSCAN_REDUCED_H__
 
 #include "dbscan_grid.h"
-#include "dbscan_reduced.h"
 
 namespace clustering{
     class DBSCAN_Reduced : public DBSCAN_Grid{
