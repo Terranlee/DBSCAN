@@ -1,0 +1,52 @@
+Reading model section from scheduler.mod...
+95 lines were read
+Reading data section from DBSCANKernel_scheduler_2_C.dat...
+6084 lines were read
+Generating schedulingEquation...
+Generating bufferingEquation...
+Generating afterFlushNode...
+Generating forcePairConstraints...
+Generating forceAtEnd...
+Generating autoVarLatencyUserMin...
+Generating autoVarLatencyUserMax...
+Generating fifos...
+Model has been successfully generated
+ipp_basic_tech:  1 row(s) and 2 column(s) removed
+ipp_reduce_bnds: 1 pass(es) made, 0 bound(s) reduced
+ipp_basic_tech:  0 row(s) and 0 column(s) removed
+ipp_reduce_coef: 1 pass(es) made, 0 coefficient(s) reduced
+lpx_intopt: presolved MIP has 3007 rows, 2009 columns, 7516 non-zeros
+lpx_intopt: 2009 integer columns, none of which are binary
+lpx_adv_basis: size of triangular part = 3007
+Solving LP relaxation...
+      0:   objval =  -3.756010000e+05   infeas =   1.000000000e+00 (0)
+    200:   objval =  -3.756010000e+05   infeas =   9.979613098e-01 (0)
+    400:   objval =  -3.756010000e+05   infeas =   9.979613098e-01 (0)
+    600:   objval =  -3.754570000e+05   infeas =   9.979515045e-01 (0)
+    800:   objval =  -3.754570000e+05   infeas =   9.979515045e-01 (0)
+   1000:   objval =  -3.435210000e+05   infeas =   9.971066125e-01 (0)
+   1200:   objval =   3.149663900e+07   infeas =   3.443008600e-01 (0)
+   1400:   objval =   6.336863900e+07   infeas =   1.753845525e-02 (0)
+   1600:   objval =   6.436112000e+07   infeas =   1.206790187e-02 (0)
+   1800:   objval =   6.440457600e+07   infeas =   9.871509407e-03 (0)
+   2000:   objval =   6.455555200e+07   infeas =   3.328090209e-03 (0)
+   2200:   objval =   6.455555200e+07   infeas =   3.328090209e-03 (0)
+   2400:   objval =   6.455555200e+07   infeas =   3.323187547e-03 (0)
+   2527:   objval =   6.449225600e+07   infeas =   0.000000000e+00 (0)
+*  2527:   objval =   6.449225600e+07   infeas =   0.000000000e+00 (0)
+*  2600:   objval =   6.396457600e+07   infeas =   0.000000000e+00 (0)
+*  2800:   objval =   4.059891200e+07   infeas =   0.000000000e+00 (0)
+*  3000:   objval =   2.028540800e+07   infeas =   0.000000000e+00 (0)
+*  3200:   objval =   6.884128000e+06   infeas =   0.000000000e+00 (0)
+*  3400:   objval =   5.983360000e+05   infeas =   0.000000000e+00 (0)
+*  3600:   objval =   5.157120000e+05   infeas =   0.000000000e+00 (0)
+*  3768:   objval =   2.587840000e+05   infeas =   0.000000000e+00 (0)
+OPTIMAL SOLUTION FOUND
+Integer optimization begins...
++  3768: mip =     not found yet >=              -inf        (1; 0)
++  3768: >>>>>   2.587840000e+05 >=   2.587840000e+05   0.0% (1; 0)
++  3768: mip =   2.587840000e+05 >=     tree is empty   0.0% (0; 1)
+INTEGER OPTIMAL SOLUTION FOUND
+Time used:   0.8 secs
+Memory used: 7.8 Mb (8168720 bytes)
+Model has been successfully processed

@@ -25,38 +25,49 @@ DFEMAXDIR=$(MAXCOMPILER_BUILD_DIR)/$(PRJ)_$(DFEModel)_DFE/results
 MAXELEROSDIR_SIM:=$(MAXCOMPILERDIR)/lib/maxeleros-sim
 
 # ---- Source files ----
-ENGINEFILES=$(wildcard ../src/*.maxj)
-CPUFILES=$(wildcard ../src/*.c ../src/*.cpp)
+#  Modified by Terranlee
+#  Change the root directory of source files
+ENGINEFILES=$(wildcard ../src/EngineCode/*.maxj)
+CPUFILES=$(wildcard ../src/CPUCode/*.c ../src/CPUCode/*.cpp)
 
 # ---- Compiler settings ----
 
 # detect the language: do we have .cpp extensions?
 ifneq ($(findstring cpp, $(CPUFILES)), )
     # language: C++
-    CXX ?= icpc
+    CXX = icpc
     CPUCOMPILER = $(CXX)
+	
+	# Modified by Terranlee 
+	# Choose icpc and icc as the default c compiler
+	# Add support for c++11
+	
+	## Assuming CXX points to g++/c++ by default
+	## COMPILER_CFLAGS = -fopenmp
+	## OPT_FLAGS = -march=native -O3
 
-    # Assuming CXX points to g++/c++ by default
-    COMPILER_CFLAGS = -fopenmp
-    OPT_FLAGS = -march=native -O3
+    ##ifeq ($(CXX), icpc)
+    COMPILER_CFLAGS = -openmp -Wall -std=c++0x
+    OPT_FLAGS = -xHost -O3
+    ##endif
 
-    ifeq ($(CXX), icpc)
-      COMPILER_CFLAGS = -openmp
-      OPT_FLAGS = -xHost -O3
-    endif
 else
     # language: C
-    CC ?= icc
+    CC = icc
     CPUCOMPILER = $(CC)
 
-    # Assuming CC points to gcc/cc by default
-    COMPILER_CFLAGS = -std=c99 -fopenmp
-    OPT_FLAGS = -march=native -O3
+	# Modified by Terranlee
+	# Choose icc and icc as the default c compiler
+	# Add support for c++11
+	
+    ## Assuming CC points to gcc/cc by default
+    ## COMPILER_CFLAGS = -std=c99 -fopenmp
+    ## OPT_FLAGS = -march=native -O3
 
-    ifeq ($(CC), icc)
-      COMPILER_CFLAGS = -std=c99 -openmp
-      OPT_FLAGS = -xHost -O3
-    endif
+    ## ifeq ($(CC), icc)
+    COMPILER_CFLAGS = -std=c99 -openmp -Wall
+    OPT_FLAGS = -xHost -O3
+    ## endif
 endif
 
 
@@ -90,9 +101,10 @@ DEBUG_FLAGS?=
 ALL_FLAGS = $(CFLAGS) $(EXTRA_CFLAGS) $(DEBUG_FLAGS)
 # ---- Default DFE ----
 DFEID=/dev/maxeler0
-
 # Files to remove on clean
-TRASH=*~ ../src/*~ *.o
+# Modified by Terranlee
+# Change the directory of the source code
+TRASH=*~ ../src/CPUCode/*~ ../src/EngineCode/*~ *.o
 DIST_TRASH=Maxfiles.h *.class *.o debug* *.dot *.png
 
 help:
@@ -122,17 +134,29 @@ all: runsim build
 
 $(SIMMAXDIR)/$(PRJ).max: $(ENGINEFILES)
 	$(MAXJC) $(JFLAGS) $(ENGINEFILES)
-	MAXAPPJCP=. MAXSOURCEDIRS='../src' $(MAXJAVARUN) -v -m 8192 $(MANAGER) DFEModel=$(DFEModel) maxFileName=$(PRJ) target='DFE_SIM' enableMPCX=$(MPCX)
+	# Modified by Terranlee
+	# Change the root directory of the source files
+	MAXAPPJCP=. MAXSOURCEDIRS='../src/EngineCode' $(MAXJAVARUN) -v -m 8192 $(MANAGER) DFEModel=$(DFEModel) maxFileName=$(PRJ) target='DFE_SIM' enableMPCX=$(MPCX)
 	cp $(SIMMAXDIR)/$(PRJ).h $(SIMMAXDIR)/Maxfiles.h
 
 $(PRJ)_sim.o: $(SIMMAXDIR)/$(PRJ).max
 	$(SLICCOMPILE) $< $@
 
-$(PRJ)_simc.o: $(CPUFILES)
-	$(CPUCOMPILER) $< $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
+# Modified by Terranlee
+# Add multiple file compilation
+TEMPOBJS := $(patsubst %cpp,%o,$(CPUFILES))  
+CPUOBJS := $(notdir $(TEMPOBJS))
+%.o:%.cpp  
+	$(CPUCOMPILER) $(CFLAGS) -c $<  
 
-$(PRJ)_sim: $(PRJ)_sim.o $(PRJ)_simc.o
+$(PRJ)_sim: $(PRJ)_sim.o $(CPUOBJS)
 	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
+
+#$(PRJ)_simc.o: $(CPUFILES)
+#	$(CPUCOMPILER) $^ $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
+
+#$(PRJ)_sim: $(PRJ)_sim.o $(PRJ)_simc.o
+#	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
 
 runsim: $(PRJ)_sim
 	$(MAXCOMPILERSIM) -n $(USER)a -c$(DEVICENUM) -d$(NUMDEVICES) restart
@@ -150,7 +174,9 @@ gdbsim:
 
 $(DFEMAXDIR)/$(PRJ).max: $(ENGINEFILES)
 	$(MAXJC) $(JFLAGS) $(ENGINEFILES)
-	MAXAPPJCP=. MAXSOURCEDIRS='../src' $(MAXJAVARUN) -v -m 8192 $(MANAGER) DFEModel=$(DFEModel) maxFileName=$(PRJ) target='DFE' enableMPCX=$(MPCX)
+	# Modified by Terranlee
+	# Change the root directory of source files
+	MAXAPPJCP=. MAXSOURCEDIRS='../src/EngineCode' $(MAXJAVARUN) -v -m 8192 $(MANAGER) DFEModel=$(DFEModel) maxFileName=$(PRJ) target='DFE' enableMPCX=$(MPCX)
 	cp $(DFEMAXDIR)/$(PRJ).h $(DFEMAXDIR)/Maxfiles.h
 	rm $(DFEMAXDIR)/$(PRJ).h
 	rm $(DFEMAXDIR)/$(PRJ).max

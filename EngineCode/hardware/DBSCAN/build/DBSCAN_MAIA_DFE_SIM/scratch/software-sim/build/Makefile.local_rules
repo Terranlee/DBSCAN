@@ -1,0 +1,54 @@
+CXXFLAGS_OPTIONAL := -DHAVE_KERNELS -DMAXFILE_INC="../../MaxCompilerDesignData.dat" -g0  -DSLIC_NO_DECLARATIONS 
+CFLAGS_OPTIONAL   := -DMAXFILE_INC="../../MaxCompilerDesignData.dat" -g0  -DSLIC_NO_DECLARATIONS 
+LDFLAGS_OPTIONAL  := -O2 -s
+CC := $(MAXCOMPILERDIR_QUOTE)/lib/gcc/bin/gcc
+CXX := $(MAXCOMPILERDIR_QUOTE)/lib/gcc/bin/g++
+TARGET_BIN := DBSCAN.so
+HDRDIR := stdsimheader.h.gch
+HDRS := stdsimheader.h.O0Impl stdsimheader.h.O2
+OBJS :=  \
+	$(OBJDIR)/DBSCANKernel_exec0.NoTplInst.O2.o \
+	$(OBJDIR)/DBSCANKernel_exec1.NoTplInst.O2.o \
+	$(OBJDIR)/DBSCANKernel_exec2.NoTplInst.O2.o \
+	$(OBJDIR)/DBSCANKernel.O0.o \
+	$(OBJDIR)/DBSCANKernel_Templates.O2.o \
+	$(OBJDIR)/max_msi.O0.o
+PRECOMPILED_OBJS :=  \
+	StructToGroupDummy.o \
+	Mux.o \
+	DualAspectMux.o \
+	Demux.o \
+	Fanout.o \
+	CapRegs.o \
+	IFPGARegs.o \
+	ChecksumMem.o \
+	PCIe.o \
+	KernelManagerBlockSync.o \
+	DualAspectReg.o \
+	PullPushAdapter.o \
+	FilePullSource.o \
+	max_shared_fifo.o \
+	SharedFIFO.o \
+	Fifos.o \
+	FilePushSink.o \
+	SimTerminator.o \
+	Watch.o \
+	StreamStatus.o \
+	RunLengthExpander.o \
+	ManagerBlock.o \
+	MappedElements.o \
+	ManagerSync.o \
+	PullSync.o \
+	PushSync.o \
+	DynamicVarUInt.o \
+	SimException.o \
+	DebugStreams.o \
+	AddressGenerator.o \
+	MemoryControllerPro.o \
+	MemoryControllerRAM.o \
+	MemoryControllerCommand.o \
+	MemoryControllerStreams.o \
+	MemoryControllerConfig.o \
+	TCP.o \
+	Ethernet.o \
+	Timestamp.o

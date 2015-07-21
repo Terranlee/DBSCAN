@@ -1,0 +1,11 @@
+#user parameters:
+DFEModel=MAIA
+maxFileName=DBSCAN
+target=DFE_SIM
+enableMPCX=true
+
+#default parameters:
+MPPRStartCT=1
+MPPREndCT=1
+MPPRThreads=1
+MPPRRetryThreshold=0

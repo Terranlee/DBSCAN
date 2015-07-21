@@ -1,0 +1,112 @@
+*** After kernel graph-pass 'Init Graph' ***
+node "stream offset: 1" (ID 3) has unconnected outputs: [output]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.Stream.offset(Stream.java:235)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:32)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (eps)" (ID 4) has unconnected outputs: [eps]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:34)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (minPts)" (ID 5) has unconnected outputs: [minPts]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:35)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+*** After kernel graph-pass 'Init Graph' ***
+node "Scalar input (eps)" (ID 4) has unconnected outputs: [eps]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:34)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (minPts)" (ID 5) has unconnected outputs: [minPts]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:35)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+*** After kernel graph-pass 'FoldConstantsPass' ***
+node "Scalar input (eps)" (ID 4) has unconnected outputs: [eps]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:34)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (minPts)" (ID 5) has unconnected outputs: [minPts]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:35)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+*** After kernel graph-pass 'OptimiseNodesPass' ***
+node "Scalar input (eps)" (ID 4) has unconnected outputs: [eps]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:34)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (minPts)" (ID 5) has unconnected outputs: [minPts]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:35)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+*** After kernel graph-pass 'ScheduleApplier' ***
+node "Scalar input (eps)" (ID 4) has unconnected outputs: [eps]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:34)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (minPts)" (ID 5) has unconnected outputs: [minPts]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:35)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+*** After kernel graph-pass 'TapFIFOsPass' ***
+node "Scalar input (eps)" (ID 4) has unconnected outputs: [eps]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:34)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (minPts)" (ID 5) has unconnected outputs: [minPts]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:35)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+*** After kernel graph-pass 'RemoveUntypedConstants' ***
+node "Scalar input (eps)" (ID 4) has unconnected outputs: [eps]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:34)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	
+node "Scalar input (minPts)" (ID 5) has unconnected outputs: [minPts]
+stack trace of node origin follows:
+	com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.core.IO.scalarInput(IO.java:992)
+	DBSCANKernel.<init>(DBSCANKernel.maxj:35)
+	DBSCANManager.<init>(DBSCANManager.maxj:22)
+	DBSCANManager.main(DBSCANManager.maxj:48)
+	

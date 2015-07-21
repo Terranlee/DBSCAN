@@ -1,0 +1,24 @@
+Tue Jul 21 14:44:29 BST 2015
+DBSCANKernel
+original
+DBSCANKernel_original.dot
+pre_dsp_extraction
+DBSCANKernel_pre_dsp_extraction.dot
+post_dsp_extraction
+DBSCANKernel_post_dsp_extraction.dot
+pre_condadd_extraction
+DBSCANKernel_pre_condadd_extraction.dot
+optimised
+DBSCANKernel_optimised.dot
+scheduled_1
+DBSCANKernel_scheduled_1.dot
+tapnfold_1
+DBSCANKernel_tapnfold_1.dot
+validated_fifos
+DBSCANKernel_validated_fifos.dot
+scheduled_2
+DBSCANKernel_scheduled_2.dot
+tapnfold_2
+DBSCANKernel_tapnfold_2.dot
+final
+DBSCANKernel_final.dot
