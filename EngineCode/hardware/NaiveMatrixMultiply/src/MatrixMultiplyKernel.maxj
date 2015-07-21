@@ -82,7 +82,8 @@ class MatrixMultiplyKernel extends Kernel {
 			cellOffset = 1 * m_num_rows + i - 17;
 		else if(i >= 20 && i <= 24)
 			cellOffset = 2 * m_num_rows + i - 22;
-		cellOffset = cellOffset * m_num_points_cell;
+		// here, *2 because the dimension of data is 2
+		cellOffset = cellOffset * m_num_points_cell * 2;
 
 		for(int j=0; j<m_num_points_cell; j++){
 			// in the for loop, set every points in the cell
