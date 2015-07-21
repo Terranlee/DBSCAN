@@ -75,7 +75,7 @@ void test_reduced(DBSCAN::Labels& label_reduced){
     double begin = DBSCAN::get_clock();
     dbs->fit();
     double end = DBSCAN::get_clock();
-    cout<<"time is : "<<end - begin<<endl<<endl;
+    cout<<"time is : "<<end - begin<<endl;
 
     dbs->reshape_labels();
     dbs->output_result("output_grid");

@@ -73,8 +73,7 @@ namespace clustering
         reset();
     }
 
-    DBSCAN::~DBSCAN(){
-    }
+    DBSCAN::~DBSCAN(){}
 
     void DBSCAN::init(double eps, size_t min_elems)
     {

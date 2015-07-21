@@ -16,6 +16,7 @@ namespace clustering
     class DBSCAN
     {
     public:
+        // data type defination
         typedef ublas::vector<double> FeaturesWeights;
         typedef ublas::matrix<double> ClusterData;
         typedef ublas::matrix<double> DistanceMatrix;
@@ -29,13 +30,14 @@ namespace clustering
         static double get_clock();
 
         // initialize, deconstruct and reset
+        // use virtual deconstruct function, avoid memory leak
         DBSCAN(double eps, size_t min_elems);
         DBSCAN();
-        ~DBSCAN();
+        virtual ~DBSCAN();
+
+        // data initialization/reset functions
         void init(double eps, size_t min_elems);
         void reset();
-
-        // data initialization functions
         void gen_cluster_data( size_t features_num, size_t elements_num);
         void read_cluster_data( size_t features_num, size_t elements_num, std::string filename);
         
@@ -44,10 +46,12 @@ namespace clustering
         void output_result(const std::string filename) const;
         void reshape_labels();
 
-        // virtual functions, just serve as an interface
+        /*****************************************************************************************/
+        // pure virtual functions, just serve as an interface
+        // you can not create a instance of class DBSCAN
         // different kinds of algorithm are implemented in different header files and cpp files
-        virtual void fit();
-        virtual void test();
+        virtual void fit() = 0;
+        virtual void test() = 0;
 
     protected:
         /*****************************************************************************************/

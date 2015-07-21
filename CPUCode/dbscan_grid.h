@@ -7,7 +7,7 @@ namespace clustering{
     class DBSCAN_Grid : public DBSCAN{
     public:
         DBSCAN_Grid(double eps, size_t min_elems);
-        ~DBSCAN_Grid();
+        virtual ~DBSCAN_Grid();
         
         virtual void fit();
         virtual void test();

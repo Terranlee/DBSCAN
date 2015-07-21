@@ -7,7 +7,7 @@ namespace clustering{
     class DBSCAN_Matrix : public DBSCAN{
     public:
         DBSCAN_Matrix(double eps, size_t min_elems);
-        ~DBSCAN_Matrix();
+        virtual ~DBSCAN_Matrix();
         
         virtual void fit();
         virtual void test();
