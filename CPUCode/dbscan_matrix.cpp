@@ -4,11 +4,14 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <vector>
 
-#include "dbscan.h"
+#include "dbscan_matrix.h"
 
 namespace clustering{
 
-    const DBSCAN::DistanceMatrix DBSCAN::calc_dist_matrix(){
+    DBSCAN_Matrix::DBSCAN_Matrix(double eps, size_t min_elems) : DBSCAN(eps, min_elems){}
+    DBSCAN_Matrix::~DBSCAN_Matrix(){}
+    
+    const DBSCAN::DistanceMatrix DBSCAN_Matrix::calc_dist_matrix(){
         // rows x rows
         DBSCAN::DistanceMatrix d_m( cl_d.size1(), cl_d.size1() );
         for (size_t i = 0; i < cl_d.size1(); ++i){
@@ -29,7 +32,7 @@ namespace clustering{
         return d_m;
     }
 
-    DBSCAN::Neighbors DBSCAN::find_neighbors_distance_matrix(const DBSCAN::DistanceMatrix & D, uint32_t pid){
+    DBSCAN::Neighbors DBSCAN_Matrix::find_neighbors_distance_matrix(const DBSCAN::DistanceMatrix & D, uint32_t pid){
         Neighbors ne;
         for (uint32_t j = 0; j < D.size1(); ++j){
             if( D(pid, j) < m_eps_sqr )
@@ -38,7 +41,7 @@ namespace clustering{
         return ne;
     }
 
-    void DBSCAN::expand_cluster_distance_matrix(DBSCAN::Neighbors & ne, const DBSCAN::DistanceMatrix & dm, const int cluster_id, const int pid){
+    void DBSCAN_Matrix::expand_cluster_distance_matrix(DBSCAN::Neighbors & ne, const DBSCAN::DistanceMatrix & dm, const int cluster_id, const int pid){
         m_labels[pid] = cluster_id;
         for (uint32_t i = 0; i < ne.size(); ++i){
             uint32_t nPid = ne[i];
@@ -59,7 +62,7 @@ namespace clustering{
         }
     }
     
-    void DBSCAN::dbscan_distance_matrix( const DBSCAN::DistanceMatrix & dm ){
+    void DBSCAN_Matrix::dbscan_distance_matrix( const DBSCAN::DistanceMatrix & dm ){
         m_visited.resize(dm.size1(), 0);
         uint32_t cluster_id = 0;
         for (uint32_t pid = 0; pid < dm.size1(); ++pid){
@@ -75,4 +78,15 @@ namespace clustering{
         }
     }
 
+    // virtual function derived from DBSCAN
+    void DBSCAN_Matrix::fit() {
+        prepare_labels( cl_d.size1() );
+        const DBSCAN::DistanceMatrix D = calc_dist_matrix();
+        dbscan_distance_matrix( D );
+    }
+
+    void DBSCAN_Matrix::test(){
+        // currently do nothing 
+        return;
+    }
 }

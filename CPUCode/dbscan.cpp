@@ -91,10 +91,6 @@ namespace clustering
         return m_labels;
     }
 
-    int DBSCAN::get_cluster_number() const{
-        return uf.get_count();
-    }
-
     void DBSCAN::output_result(const std::string filename) const {
         uint32_t size_data = cl_d.size1();
         uint32_t size_feature = cl_d.size2();
@@ -134,44 +130,6 @@ namespace clustering
         //    l = -1;
 		for(unsigned int i=0; i<m_labels.size(); i++)
 			m_labels[i] = -1;
-    }
-
-    // two public fit interface 
-    void DBSCAN::fit_distance_matrix() {
-        prepare_labels( cl_d.size1() );
-        const DBSCAN::DistanceMatrix D = calc_dist_matrix();
-        dbscan_distance_matrix( D );
-    }
-
-    void DBSCAN::fit_grid_based(){
-        prepare_labels(cl_d.size1());
-
-        hash_construct_grid();
-        determine_core_point_grid();
-
-        //double clock1 = get_clock();
-        merge_clusters();
-        //double clock2 = get_clock();
-        //cout<<clock2 - clock1<<endl;
-
-        determine_boarder_point();
-    }
-
-    void DBSCAN::fit_grid_reduced_precision() {
-        prepare_labels(cl_d.size1());
-
-        hash_construct_grid();
-        //detect_cell_size();
-        
-        reduce_precision(m_min_elems);
-
-        determine_core_point_grid_reduced();
-        merge_clusters_reduced();
-        determine_boarder_point_reduced();
-    }
-
-    void DBSCAN::test(){
-        return;
     }
 
 }

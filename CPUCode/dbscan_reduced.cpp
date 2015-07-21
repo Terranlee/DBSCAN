@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <functional>
 
-#include "dbscan.h"
+#include "dbscan_reduced.h"
 
 namespace clustering{
 
-    void DBSCAN::process_vector(std::vector<int>& vec){
+    DBSCAN_Reduced::DBSCAN_Reduced(double eps, size_t min_elems) : DBSCAN_Grid(eps, min_elems){}
+    DBSCAN_Reduced::~DBSCAN_Reduced(){}
+    
+    void DBSCAN_Reduced::process_vector(std::vector<int>& vec){
         double mid_x = 0.0;
         double mid_y = 0.0;
         for(unsigned int i=0; i<vec.size(); i++){
@@ -35,7 +38,7 @@ namespace clustering{
 
     // making the maximum number of points in each cell is max_num_point
     // do this by remove the points that are in the center of a cell
-    void DBSCAN::reduce_precision(unsigned int max_num_point){
+    void DBSCAN_Reduced::reduce_precision(unsigned int max_num_point){
         m_max_num_point = max_num_point;
         for(std::unordered_map<int, std::vector<int> >::iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             if(iter->second.size() <= max_num_point)
@@ -44,7 +47,7 @@ namespace clustering{
         }
     }
 
-    bool DBSCAN::search_in_neighbour_reduced(int point_id, int center_id){
+    bool DBSCAN_Reduced::search_in_neighbour_reduced(int point_id, int center_id){
         // TODO: dimension related function
         static const int num_neighbour = 21;
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
@@ -80,7 +83,7 @@ namespace clustering{
         return false;
     }
 
-    void DBSCAN::determine_core_point_grid_reduced(){
+    void DBSCAN_Reduced::determine_core_point_grid_reduced(){
         m_is_core.resize(cl_d.size1(), false);
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             //  here we use '>', because it should not include the central point itself
@@ -102,7 +105,7 @@ namespace clustering{
         //print_point_info(cl_d);
     }
 
-    void DBSCAN::merge_in_neighbour_reduced(int point_id, int center_id, const std::unordered_map<int, int>& reverse_find){
+    void DBSCAN_Reduced::merge_in_neighbour_reduced(int point_id, int center_id, const std::unordered_map<int, int>& reverse_find){
         static const int num_neighbour = 21;
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
@@ -138,7 +141,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN::merge_clusters_reduced(){
+    void DBSCAN_Reduced::merge_clusters_reduced(){
         // TODO: dimension related function
         
         // initialize the UnionFind uf in class DBSCAN
@@ -179,7 +182,7 @@ namespace clustering{
         //uf.print_union();
     }
 
-    int DBSCAN::find_nearest_in_neighbour_reduced(int point_id, int center_id){
+    int DBSCAN_Reduced::find_nearest_in_neighbour_reduced(int point_id, int center_id){
         // TODO: dimension related function
         // return the proper label of a un-clustered point
         // return -1 if this is a noise
@@ -218,7 +221,7 @@ namespace clustering{
         return which_label;
     }
 
-    void DBSCAN::determine_boarder_point_reduced(){
+    void DBSCAN_Reduced::determine_boarder_point_reduced(){
         for(unsigned int i=0; i<m_labels.size(); i++){
             if(m_labels[i] == -1){
                 // calculate which cell is this point in
@@ -232,7 +235,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN::detect_cell_size(){
+    void DBSCAN_Reduced::detect_cell_size(){
         unsigned int max_cell_size = 0;
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             if(iter->second.size() > max_cell_size)
@@ -241,5 +244,23 @@ namespace clustering{
         cout<<"the max cell size is:"<<max_cell_size<<endl;
     }
 
+    // virtual function derived from DBSCAN_Grid
+    void DBSCAN_Reduced::fit() {
+        prepare_labels(cl_d.size1());
+
+        hash_construct_grid();
+        //detect_cell_size();
+        
+        reduce_precision(m_min_elems);
+
+        determine_core_point_grid_reduced();
+        merge_clusters_reduced();
+        determine_boarder_point_reduced();
+    }
+
+    void DBSCAN_Reduced::test(){
+        // currently do nothing
+        return;
+    }
 }
 
