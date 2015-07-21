@@ -1,8 +1,0 @@
-DFEModel=MAIA, Origin: COMMAND_LINE, DataType: DFEMODEL, Type: MANDATORY
-maxFileName=DBSCAN, Origin: COMMAND_LINE, DataType: STRING, Type: MANDATORY
-target=DFE_SIM, Origin: COMMAND_LINE, DataType: ENUM, Type: MANDATORY
-enableMPCX=true, Origin: COMMAND_LINE, DataType: BOOL, Type: STANDARD
-MPPRStartCT=1, Origin: PARAMETER_CLASS, DataType: INT, Type: STANDARD
-MPPREndCT=1, Origin: PARAMETER_CLASS, DataType: INT, Type: STANDARD
-MPPRThreads=1, Origin: PARAMETER_CLASS, DataType: INT, Type: STANDARD
-MPPRRetryThreshold=0, Origin: PARAMETER_CLASS, DataType: INT, Type: STANDARD
