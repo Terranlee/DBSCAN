@@ -74,11 +74,22 @@ namespace clustering{
 
             // these represent the search neighbour routine
             // the change of cell_iter is fixed in all _in_neighbour function
-            cell_iter = cell_iter + 1;
-            if(i == 2)          cell_iter = center_id - (m_n_cols + 1) - 2;
-            else if(i == 7)     cell_iter = center_id - 2;
-            else if(i == 12)    cell_iter = center_id + (m_n_cols + 1) - 2;
-            else if(i == 17)    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
+            switch(i){
+                case 2:
+                    cell_iter = center_id - (m_n_cols + 1) - 2;
+                    break;
+                case 7:
+                    cell_iter = center_id - 2;
+                    break;
+                case 12:
+                    cell_iter = center_id + (m_n_cols + 1) - 2;
+                    break;
+                case 17:
+                    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
+                    break;
+                default:
+                    cell_iter = cell_iter + 1;
+            }
         }
         return false;
     }
@@ -133,11 +144,22 @@ namespace clustering{
                 }
             }
 
-            cell_iter = cell_iter + 1;
-            if(i == 2)          cell_iter = center_id - (m_n_cols + 1) - 2;
-            else if(i == 7)     cell_iter = center_id - 2;
-            else if(i == 12)    cell_iter = center_id + (m_n_cols + 1) - 2;
-            else if(i == 17)    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
+            switch(i){
+                case 2:
+                    cell_iter = center_id - (m_n_cols + 1) - 2;
+                    break;
+                case 7:
+                    cell_iter = center_id - 2;
+                    break;
+                case 12:
+                    cell_iter = center_id + (m_n_cols + 1) - 2;
+                    break;
+                case 17:
+                    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
+                    break;
+                default:
+                    cell_iter = cell_iter + 1;
+            }
         }
     }
 
@@ -212,11 +234,22 @@ namespace clustering{
                 }
             }
 
-            cell_iter = cell_iter + 1;
-            if(i == 2)          cell_iter = center_id - (m_n_cols + 1) - 2;
-            else if(i == 7)     cell_iter = center_id - 2;
-            else if(i == 12)    cell_iter = center_id + (m_n_cols + 1) - 2;
-            else if(i == 17)    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
+            switch(i){
+                case 2:
+                    cell_iter = center_id - (m_n_cols + 1) - 2;
+                    break;
+                case 7:
+                    cell_iter = center_id - 2;
+                    break;
+                case 12:
+                    cell_iter = center_id + (m_n_cols + 1) - 2;
+                    break;
+                case 17:
+                    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
+                    break;
+                default:
+                    cell_iter = cell_iter + 1;
+            }
         }
         return which_label;
     }

@@ -104,11 +104,11 @@ void test_dfe(){
 int main()
 {
     /*
-    //DBSCAN::Labels label_origin;
+    DBSCAN::Labels label_origin;
     DBSCAN::Labels label_grid;
     DBSCAN::Labels label_reduced;
 
-    //test_original(label_origin);
+    test_original(label_origin);
     test_grid(label_grid);
     test_reduced(label_reduced);
 

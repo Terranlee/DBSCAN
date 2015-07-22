@@ -40,7 +40,7 @@ namespace clustering{
         //vec.resize(m_max_num_point);
     }
 
-    void DBSCAN_DFE::set_reduced_precision(int r_num){
+    void DBSCAN_DFE::set_reduced_precision(unsigned int r_num){
         m_reduced_num = r_num;
     }
 
@@ -51,9 +51,48 @@ namespace clustering{
         int dx = center_key / (m_n_cols + 1);
         int dy = center_key % (m_n_cols + 1);
         // index is the position in merge_answer_cpu
-        int index = (dx + 1) * m_n_cols + j - 1;
+        int index = (dx + 1) * m_n_cols + dy - 1;
 
-        
+        // iterate on core points only
+        for(int i=0; i<num_neighbour; i++){
+            std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
+            if(got != m_hash_grid.end()){
+                for(unsigned int j=0; j<got->second.size(); j++){
+                    int which = got->second.at(j);
+                    if(!m_is_core[which])
+                        continue;
+
+                    float dist_sqr = 0.0;
+                    for(unsigned int k=0; k<cl_d.size2(); k++){
+                        float diff = cl_d(which, k) - cl_d(point_id, k);
+                        dist_sqr += diff * diff;
+                    }
+                    if(dist_sqr < m_eps_sqr){
+                        unsigned int fix = 0x00000001;
+                        fix = fix << (31 - i);
+                        merge_answer_cpu[index] |= fix;
+                    }
+                }
+            }
+
+            switch(i){
+                case 4:
+                    cell_iter = center_key - (m_n_cols + 1) - 2;
+                    break;
+                case 9:
+                    cell_iter = center_key - 2;
+                    break;
+                case 14:
+                    cell_iter = center_key + (m_n_cols + 1) - 2;
+                    break;
+                case 19:
+                    cell_iter = center_key + (m_n_cols + 1) * 2 - 2;
+                    break;
+                default:
+                    cell_iter = cell_iter + 1;
+            }
+        }
+
     }
 
     void DBSCAN_DFE::merge_clusters_cpu(){
@@ -67,10 +106,35 @@ namespace clustering{
                 int point_id = iter->second[i];
                 if(!m_is_core[point_id])
                     continue;
-
                 merge_neighbour_cpu(center_key, point_id);
             }
         }
+    }
+
+    void DBSCAN_DFE::decode_merge_answer_cpu(){
+        uf.init(m_hash_grid.size());
+        std::unordered_map<int, int> reverse_find;
+        int counter = 0;
+        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            reverse_find.insert(std::make_pair(iter->first, counter));
+            counter++;
+        }
+
+        const int num_neighbour = 25;
+        int num_cells = (m_n_rows + 4) * m_n_cols;
+        for(int index=0; index<num_cells; index++){
+            int dx = index / m_n_cols;
+            int dy = index % m_n_cols;
+            int key = (dx - 1) * (m_n_cols + 1) + dy + 1;
+            std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(key);
+            if(got == m_hash_grid.end())
+                continue;
+
+            for(int j=0; j<num_neighbour; j++){
+
+            }
+        }
+        
     }
 
     void DBSCAN_DFE::merge_clusters_dfe(){
@@ -109,6 +173,8 @@ namespace clustering{
         int num_cells = (m_n_rows + 4) * m_n_cols;
         int length = num_cells * m_reduced_num * 2;
         cout<<"points length : "<<length<<", cell length : "<<num_cells<<endl;
+        cout<<"hashed cell length : "<<m_hash_grid.size()<<endl;
+
         input_data = new float[length];
         merge_answer_dfe = new uint32_t[num_cells];
         merge_answer_cpu = new uint32_t[num_cells];
@@ -128,7 +194,7 @@ namespace clustering{
                 std::unordered_map<int, std::vector<int> >::iterator got = m_hash_grid.find(key);
                 if(got == m_hash_grid.end()){
                     // this grid is actually empty, add invalid data
-                    for(int iter=0; iter<m_reduced_num * 2; iter++)
+                    for(unsigned int iter=0; iter<m_reduced_num * 2; iter++)
                         input_data[index++] = invalid_data;
                 }                
                 else if(got->second.size() > m_reduced_num){
@@ -136,7 +202,7 @@ namespace clustering{
                     // this grid is not empty, and num of points > m_reduced_num, must all be core points
                     //counter++;  // for debug
                     process_vector(got->second);
-                    for(int iter=0; iter<m_reduced_num; iter++){
+                    for(unsigned int iter=0; iter<m_reduced_num; iter++){
                         int which = got->second[iter];
                         input_data[index++] = cl_d(which, 0);
                         input_data[index++] = cl_d(which, 1);
