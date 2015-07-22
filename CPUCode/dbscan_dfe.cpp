@@ -71,6 +71,7 @@ namespace clustering{
                         unsigned int fix = 0x00000001;
                         fix = fix << (31 - i);
                         merge_answer_cpu[index] |= fix;
+                        break;
                     }
                 }
             }
@@ -159,9 +160,11 @@ namespace clustering{
                         break;
                     default:
                         cell_iter = cell_iter + 1; 
-                }
-            }
-        }
+                } //endof switch
+            } //endof inner loop of neighbour
+        } //endof outer loop, num_cell iteration
+
+        cell_label_to_point_label(reverse_find);
     }
 
     void DBSCAN_DFE::merge_clusters_dfe(){
@@ -282,9 +285,10 @@ namespace clustering{
         // these two steps are related to the dataflow engine
         prepare_data();
         //merge_clusters_dfe();
-        //merge_clusters_cpu();
+        merge_clusters_cpu();
+        decode_merge_answer_cpu();
 
-        //determine_boarder_point();
+        determine_boarder_point();
     }
 
     void DBSCAN_DFE::test(){

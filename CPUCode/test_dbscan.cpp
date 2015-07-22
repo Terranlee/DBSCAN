@@ -79,7 +79,7 @@ void test_reduced(DBSCAN::Labels& label_reduced){
     cout<<"time is : "<<end - begin<<endl;
 
     dbs->reshape_labels();
-    dbs->output_result("output_grid");
+    dbs->output_result("output_reduced");
 
     DBSCAN::Labels lbr = dbs->get_labels();
     label_reduced.resize(lbr.size());
@@ -88,7 +88,7 @@ void test_reduced(DBSCAN::Labels& label_reduced){
     delete dbs;
 }
 
-void test_dfe(){
+void test_dfe(DBSCAN::Labels& label_dfe){
 
     DBSCAN* dbs = new DBSCAN_DFE(20000, 4);   // the papameter for s1.txt
     dbs->read_cluster_data(2, 5000, "../data/s1.txt");
@@ -99,22 +99,32 @@ void test_dfe(){
     float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
 
+    dbs->reshape_labels();
+    dbs->output_result("output_dfe");
+
+    DBSCAN::Labels lbr = dbs->get_labels();
+    label_dfe.resize(lbr.size());
+    std::copy(lbr.begin(), lbr.end(), label_dfe.begin());
+    cout<<endl;
+    delete dbs;
+
 }
 
 int main()
 {
-    /*
+    
     DBSCAN::Labels label_origin;
     DBSCAN::Labels label_grid;
-    DBSCAN::Labels label_reduced;
+    //DBSCAN::Labels label_reduced;
+    DBSCAN::Labels label_dfe;
 
     test_original(label_origin);
     test_grid(label_grid);
-    test_reduced(label_reduced);
+    //test_reduced(label_reduced);
+    test_dfe(label_dfe);
 
-    DBSCAN::cmp_result(label_reduced, label_grid);
-    */
+    DBSCAN::cmp_result(label_origin, label_grid);
+    DBSCAN::cmp_result(label_grid, label_dfe);
 
-    test_dfe();
     return 0;
 }
