@@ -4,7 +4,7 @@
 import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
 import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
-import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.KernelMath;
+//import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.KernelMath;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
 
@@ -25,8 +25,8 @@ class DBSCANKernel extends Kernel {
 	// minPts is not needed for the merging cluster algorithm
 	//private static DFEVar m_minPts;
 
-    protected DBSCANKernel(DBSCANParameters parameters) {
-        super(parameters);
+    protected DBSCANKernel(KernelParameters kp, DBSCANParameters parameters) {
+        super(kp);
 		
 		m_num_points_cell	= parameters.getNumPointsCell();
 		m_num_neighbour		= parameters.getNumNeighbour();
@@ -45,18 +45,18 @@ class DBSCANKernel extends Kernel {
 		
 		// for every input data coordinate, we output 3byte, 
 		// representing the merging relationship between different clusters
-		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(m_num_neighbour);
+		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(dfeBool(), m_num_neighbour);
 		DFEVector<DFEVar> output = outputType.newInstance(this);
 		for(int i=0; i<m_num_neighbour; i++)
-			output[i] = parallelCalculateCell(matrix[i], centerX, centerY);
+			output[i] <== parallelCalculateCell(matrix[i], centerX, centerY);
 		
 		DFEVar outputControl = control.count.simpleCounter(1);
         io.output("output", output, output.getType(), outputControl === 0);
     }
 	
 	private DFEVar parallelCalculateCell(ArrayList<DFEVar> cell, DFEVar centerX, DFEVar centerY){
-		DFEVar[] temp = new DFEVar[cell.size()];
-		for(int i=0; i<cell.size(); i++)
+		DFEVar[] temp = new DFEVar[cell.size() / 2];
+		for(int i=0; i<cell.size() / 2; i++)
 			temp[i] = judgeDistance(cell[2*i], cell[2*i+1], centerX, centerY);
 		DFEVar ret_val = orTree(temp);
 		return ret_val;

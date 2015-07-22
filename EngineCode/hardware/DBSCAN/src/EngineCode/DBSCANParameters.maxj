@@ -15,6 +15,10 @@ public class DBSCANParameters extends EngineParameters {
 	private static final String s_numRows = "numRows";
 	private static final String s_numPointsCell = "numPointsCell";
 	private static final String s_numNeighbour = "numNeighbour";
+	
+	public DBSCANParameters(String[] args){
+		super(args);
+	}
 
 	@Override
 	protected void declarations(){

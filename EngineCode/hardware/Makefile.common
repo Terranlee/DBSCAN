@@ -144,19 +144,20 @@ $(PRJ)_sim.o: $(SIMMAXDIR)/$(PRJ).max
 
 # Modified by Terranlee
 # Add multiple file compilation
-TEMPOBJS := $(patsubst %cpp,%o,$(CPUFILES))  
-CPUOBJS := $(notdir $(TEMPOBJS))
-%.o:%.cpp  
-	$(CPUCOMPILER) $(CFLAGS) -c $<  
 
-$(PRJ)_sim: $(PRJ)_sim.o $(CPUOBJS)
-	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
+#TEMPOBJS := $(patsubst %cpp,%o,$(CPUFILES))  
+#CPUOBJS := $(notdir $(TEMPOBJS))
+#%.o:%.cpp  
+#	$(CPUCOMPILER) $(CFLAGS) -c $<  
 
-#$(PRJ)_simc.o: $(CPUFILES)
-#	$(CPUCOMPILER) $^ $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
-
-#$(PRJ)_sim: $(PRJ)_sim.o $(PRJ)_simc.o
+#$(PRJ)_sim: $(PRJ)_sim.o $(CPUOBJS)
 #	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
+
+$(PRJ)_simc.o: $(CPUFILES)
+	$(CPUCOMPILER) $^ $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
+
+$(PRJ)_sim: $(PRJ)_sim.o $(PRJ)_simc.o
+	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
 
 runsim: $(PRJ)_sim
 	$(MAXCOMPILERSIM) -n $(USER)a -c$(DEVICENUM) -d$(NUMDEVICES) restart
