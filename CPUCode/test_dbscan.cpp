@@ -1,6 +1,7 @@
 #include "dbscan_matrix.h"
 #include "dbscan_grid.h"
 #include "dbscan_reduced.h"
+#include "dbscan_dfe.h"
 
 #include <algorithm>
 
@@ -87,8 +88,22 @@ void test_reduced(DBSCAN::Labels& label_reduced){
     delete dbs;
 }
 
+void test_dfe(){
+
+    DBSCAN* dbs = new DBSCAN_DFE(20000, 4);   // the papameter for s1.txt
+    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+
+    cout<<"start execution of dfe DBSCAN"<<endl;
+    float begin = DBSCAN::get_clock();
+    dbs->fit();
+    float end = DBSCAN::get_clock();
+    cout<<"time is : "<<end - begin<<endl;
+
+}
+
 int main()
 {
+    /*
     //DBSCAN::Labels label_origin;
     DBSCAN::Labels label_grid;
     DBSCAN::Labels label_reduced;
@@ -98,6 +113,8 @@ int main()
     test_reduced(label_reduced);
 
     DBSCAN::cmp_result(label_reduced, label_grid);
+    */
 
+    test_dfe();
     return 0;
 }

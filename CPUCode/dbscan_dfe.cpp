@@ -44,13 +44,32 @@ namespace clustering{
         m_reduced_num = r_num;
     }
 
+    void DBSCAN_DFE::merge_neighbour_cpu(int center_key, int point_id){
+        static const int num_neighbour = 25;
+        int cell_iter = center_key - 2 * (m_n_cols + 1) - 2;
+
+        int dx = center_key / (m_n_cols + 1);
+        int dy = center_key % (m_n_cols + 1);
+        // index is the position in merge_answer_cpu
+        int index = (dx + 1) * m_n_cols + j - 1;
+
+        
+    }
+
     void DBSCAN_DFE::merge_clusters_cpu(){
         int num_cells = (m_n_rows + 4) * m_n_cols;
         for(int i=0; i<num_cells; i++)
             merge_answer_cpu[i] = 0;
 
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            int center_key = iter->first;
+            for(unsigned int i=0; i<iter->second.size(); i++){
+                int point_id = iter->second[i];
+                if(!m_is_core[point_id])
+                    continue;
 
+                merge_neighbour_cpu(center_key, point_id);
+            }
         }
     }
 
@@ -84,6 +103,8 @@ namespace clustering{
     void DBSCAN_DFE::prepare_data(){
         const float invalid_data = std::numeric_limits<float>::max();
 
+        //int counter = 0;  //for debug
+
         // add two lines of invalid data at the begining and end of input_data
         int num_cells = (m_n_rows + 4) * m_n_cols;
         int length = num_cells * m_reduced_num * 2;
@@ -92,15 +113,16 @@ namespace clustering{
         merge_answer_dfe = new uint32_t[num_cells];
         merge_answer_cpu = new uint32_t[num_cells];
 
-        // add the beginning invalid data
+        // add the two lines of beginning invalid data
         int begin = 2 * m_n_cols * m_reduced_num * 2;
         for(int i=0; i<begin; i++)
             input_data[i] = invalid_data;
 
-        for(int i=3; i<m_n_rows; i++){
+        for(int i=2; i<m_n_rows + 2; i++){
             for(int j=0; j<m_n_cols; j++){
                 // the key is hash table is calculated with start point (1,1)
-                int key = (i - 2) * (m_n_cols + 1) + j + 1;
+                // the begining of i is 2, so i-1 will make it 1, starting from (1,1)
+                int key = (i - 1) * (m_n_cols + 1) + j + 1;
                 int index = (i * m_n_cols + j) * m_reduced_num * 2;
 
                 std::unordered_map<int, std::vector<int> >::iterator got = m_hash_grid.find(key);
@@ -112,6 +134,7 @@ namespace clustering{
                 else if(got->second.size() > m_reduced_num){
                     // only core points are added, because we are at merging cluster step
                     // this grid is not empty, and num of points > m_reduced_num, must all be core points
+                    //counter++;  // for debug
                     process_vector(got->second);
                     for(int iter=0; iter<m_reduced_num; iter++){
                         int which = got->second[iter];
@@ -122,6 +145,7 @@ namespace clustering{
                 else{
                     // this grid is not empty, and num of points < m_reduced_num
                     // some points are not core point, add only core points 
+                    //counter++;  // for debug
                     int end = index + m_reduced_num * 2;
                     for(unsigned int iter=0; iter<got->second.size(); iter++){
                         int which = got->second[iter];
@@ -136,10 +160,22 @@ namespace clustering{
             }// endof inner loop j
         }// endof outer loop i
 
-        // add the ending invalid data
+        // add the ending two lines of invalid data
         begin = (m_n_rows + 2) * m_n_cols * m_reduced_num * 2;
         for(int i=begin; i<length; i++)
             input_data[i] = invalid_data;
+
+        //cout<<counter<<" "<<m_hash_grid.size()<<endl; //for debug
+    }
+
+    void DBSCAN_DFE::test_results(){
+        // test the result from cpu and dfe, see if they are the same
+        int num_cells = (m_n_rows + 4) * m_n_cols;
+        int counter = 0;
+        for(int i=0; i<num_cells; i++)
+            if(merge_answer_dfe[i] == merge_answer_cpu[i])
+                counter++;
+        cout<<counter<<" same over "<<num_cells<<endl;
     }
 
     // virtual functions derived from DBSCAN_Grid
@@ -152,7 +188,7 @@ namespace clustering{
 
         // these two steps are related to the dataflow engine
         prepare_data();
-        merge_clusters_dfe();
+        //merge_clusters_dfe();
         //merge_clusters_cpu();
 
         //determine_boarder_point();

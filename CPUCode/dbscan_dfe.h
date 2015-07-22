@@ -30,7 +30,11 @@ namespace clustering{
 
         void prepare_data();
         void merge_clusters_dfe();
+        void test_results();
+
+        // two simulation function on cpu, trying to make the same result as the dataflow engine
         void merge_clusters_cpu();
+        void merge_neighbour_cpu(int center_key, int point_id);
     };
 }
 
