@@ -18,9 +18,9 @@ void test_original(DBSCAN::Labels& label_origin){
     //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
 
     cout<<"start execution of distance matrix DBSCAN"<<endl;
-    double begin = DBSCAN::get_clock();
+    float begin = DBSCAN::get_clock();
     dbs->fit();
-    double end = DBSCAN::get_clock();
+    float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
 
     dbs->reshape_labels();
@@ -45,9 +45,9 @@ void test_grid(DBSCAN::Labels& label_grid){
     //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
 
     cout<<"start execution of grid based DBSCAN"<<endl;
-    double begin = DBSCAN::get_clock();
+    float begin = DBSCAN::get_clock();
     dbs->fit();
-    double end = DBSCAN::get_clock();
+    float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
 
     dbs->reshape_labels();
@@ -72,9 +72,9 @@ void test_reduced(DBSCAN::Labels& label_reduced){
     //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
 
     cout<<"start execution of reduced grid based DBSCAN"<<endl;
-    double begin = DBSCAN::get_clock();
+    float begin = DBSCAN::get_clock();
     dbs->fit();
-    double end = DBSCAN::get_clock();
+    float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
 
     dbs->reshape_labels();

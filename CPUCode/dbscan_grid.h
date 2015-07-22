@@ -6,7 +6,7 @@
 namespace clustering{
     class DBSCAN_Grid : public DBSCAN{
     public:
-        DBSCAN_Grid(double eps, size_t min_elems);
+        DBSCAN_Grid(float eps, size_t min_elems);
         virtual ~DBSCAN_Grid();
         
         virtual void fit();
@@ -17,17 +17,17 @@ namespace clustering{
         // variables and functions for grid DBSCAN method
         // currently for 2D only
         // implemented in dbscan_grid.cpp
-        double m_cell_width;
+        float m_cell_width;
         int m_n_rows;
         int m_n_cols;
-        double m_min_x;
-        double m_min_y;
+        float m_min_x;
+        float m_min_y;
         std::vector<bool> m_is_core;
         std::unordered_map<int, std::vector<int> > m_hash_grid;
         UnionFind uf;
 
         void grid_init(const int features_num);
-        void getMinMax_grid(double* min_x, double* min_y, double* max_x, double* max_y );
+        void getMinMax_grid(float* min_x, float* min_y, float* max_x, float* max_y );
         void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find);
 
         // check in neighbour function, only check the adjacent cells which is possible

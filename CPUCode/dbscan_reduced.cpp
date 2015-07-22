@@ -7,28 +7,28 @@
 
 namespace clustering{
 
-    DBSCAN_Reduced::DBSCAN_Reduced(double eps, size_t min_elems) : DBSCAN_Grid(eps, min_elems){}
+    DBSCAN_Reduced::DBSCAN_Reduced(float eps, size_t min_elems) : DBSCAN_Grid(eps, min_elems){}
     DBSCAN_Reduced::~DBSCAN_Reduced(){}
     
     void DBSCAN_Reduced::process_vector(std::vector<int>& vec){
-        double mid_x = 0.0;
-        double mid_y = 0.0;
+        float mid_x = 0.0;
+        float mid_y = 0.0;
         for(unsigned int i=0; i<vec.size(); i++){
             int which = vec[i];
             mid_x += cl_d(which, 0);
             mid_y += cl_d(which, 1);
         }
-        mid_x = mid_x / (double) vec.size();
-        mid_y = mid_y / (double) vec.size();
+        mid_x = mid_x / (float) vec.size();
+        mid_y = mid_y / (float) vec.size();
         
-        std::vector<std::pair<double, int> > diff(vec.size());
+        std::vector<std::pair<float, int> > diff(vec.size());
         for(unsigned int i=0; i<vec.size(); i++){
             int which = vec[i];
-            double dx = cl_d(which, 0) - mid_x;
-            double dy = cl_d(which, 1) - mid_y;
+            float dx = cl_d(which, 0) - mid_x;
+            float dy = cl_d(which, 1) - mid_y;
             diff[i] = std::make_pair(dx * dx + dy * dy, which);
         }
-        std::sort(diff.begin(), diff.end(), std::greater<std::pair<double, int> >());
+        std::sort(diff.begin(), diff.end(), std::greater<std::pair<float, int> >());
 
         // for(unsigned int i=0; i<m_max_num_point; i++)
         for(unsigned int i=0; i<vec.size(); i++)
@@ -58,9 +58,9 @@ namespace clustering{
                 for(unsigned int j=0; j<got->second.size() && j < m_max_num_point; j++){
                     int which = got->second.at(j);
 
-                    double dist_sqr = 0.0;
+                    float dist_sqr = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        double diff = cl_d(which, k) - cl_d(point_id, k);
+                        float diff = cl_d(which, k) - cl_d(point_id, k);
                         dist_sqr += diff * diff;
                     }
 
@@ -118,9 +118,9 @@ namespace clustering{
                     if(!m_is_core[which])
                         continue;
 
-                    double dist_sqr = 0.0;
+                    float dist_sqr = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        double diff = cl_d(which, k) - cl_d(point_id, k);
+                        float diff = cl_d(which, k) - cl_d(point_id, k);
                         dist_sqr += diff * diff;
                     }
                     if(dist_sqr < m_eps_sqr){
@@ -190,8 +190,8 @@ namespace clustering{
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
         // iterate on core points only
-        double min_distance = m_eps_sqr;
-        double which_label = -1;
+        float min_distance = m_eps_sqr;
+        float which_label = -1;
         for(int i=0; i<num_neighbour; i++){
             std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
@@ -200,9 +200,9 @@ namespace clustering{
                     if(!m_is_core[which])
                         continue;
 
-                    double dist_sqr = 0.0;
+                    float dist_sqr = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        double diff = cl_d(which, k) - cl_d(point_id, k);
+                        float diff = cl_d(which, k) - cl_d(point_id, k);
                         dist_sqr += diff * diff;
                     }
                     if(dist_sqr < min_distance){

@@ -8,7 +8,7 @@
 
 namespace clustering{
 
-    DBSCAN_Matrix::DBSCAN_Matrix(double eps, size_t min_elems) : DBSCAN(eps, min_elems){}
+    DBSCAN_Matrix::DBSCAN_Matrix(float eps, size_t min_elems) : DBSCAN(eps, min_elems){}
     DBSCAN_Matrix::~DBSCAN_Matrix(){}
     
     const DBSCAN::DistanceMatrix DBSCAN_Matrix::calc_dist_matrix(){

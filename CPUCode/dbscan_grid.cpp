@@ -11,21 +11,21 @@
 #include "dbscan_grid.h"
 
 namespace clustering{
-    DBSCAN_Grid::DBSCAN_Grid(double eps, size_t min_elems) : DBSCAN(eps, min_elems){}
+    DBSCAN_Grid::DBSCAN_Grid(float eps, size_t min_elems) : DBSCAN(eps, min_elems){}
     DBSCAN_Grid::~DBSCAN_Grid(){}
     
     // the following are for grid base method
     void DBSCAN_Grid::grid_init(const int features_num){
-        double sq = sqrt(double(features_num));
-        double eps = sqrt(m_eps_sqr);
+        float sq = sqrt(float(features_num));
+        float eps = sqrt(m_eps_sqr);
         m_cell_width = eps / sq;
     }
 
-    void DBSCAN_Grid::getMinMax_grid(double* min_x, double* min_y, double* max_x, double* max_y){
+    void DBSCAN_Grid::getMinMax_grid(float* min_x, float* min_y, float* max_x, float* max_y){
         // TODO: dimension related function
-        double maxx, maxy, minx, miny;
-        maxx = maxy = std::numeric_limits<double>::min();
-        minx = miny = std::numeric_limits<double>::max();
+        float maxx, maxy, minx, miny;
+        maxx = maxy = std::numeric_limits<float>::min();
+        minx = miny = std::numeric_limits<float>::max();
         for(size_t i=0; i<cl_d.size1(); i++){
                 if(cl_d(i,0) > maxx)
                     maxx = cl_d(i,0);
@@ -49,7 +49,7 @@ namespace clustering{
             cout<<"only 2D data supported now!"<<endl;
         grid_init(features_num);
 
-        double min_x, min_y, max_x, max_y;
+        float min_x, min_y, max_x, max_y;
         getMinMax_grid(&min_x, &min_y, &max_x, &max_y);
         //cout<<endl;
         //cout<<"eps_sqr:"<<m_eps_sqr<<" minpts:"<<m_min_elems<<" cell_width:"<<m_cell_width<<endl;
@@ -91,9 +91,9 @@ namespace clustering{
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int which = got->second.at(j);
 
-                    double dist_sqr = 0.0;
+                    float dist_sqr = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        double diff = cl_d(which, k) - cl_d(point_id, k);
+                        float diff = cl_d(which, k) - cl_d(point_id, k);
                         dist_sqr += diff * diff;
                     }
 
@@ -151,9 +151,9 @@ namespace clustering{
                     if(!m_is_core[which])
                         continue;
 
-                    double dist_sqr = 0.0;
+                    float dist_sqr = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        double diff = cl_d(which, k) - cl_d(point_id, k);
+                        float diff = cl_d(which, k) - cl_d(point_id, k);
                         dist_sqr += diff * diff;
                     }
                     if(dist_sqr < m_eps_sqr){
@@ -248,8 +248,8 @@ namespace clustering{
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
         // iterate on core points only
-        double min_distance = m_eps_sqr;
-        double which_label = -1;
+        float min_distance = m_eps_sqr;
+        float which_label = -1;
         for(int i=0; i<num_neighbour; i++){
             std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
@@ -258,9 +258,9 @@ namespace clustering{
                     if(!m_is_core[which])
                         continue;
 
-                    double dist_sqr = 0.0;
+                    float dist_sqr = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        double diff = cl_d(which, k) - cl_d(point_id, k);
+                        float diff = cl_d(which, k) - cl_d(point_id, k);
                         dist_sqr += diff * diff;
                     }
                     if(dist_sqr < min_distance){
@@ -326,9 +326,9 @@ namespace clustering{
         hash_construct_grid();
         determine_core_point_grid();
 
-        //double clock1 = get_clock();
+        //float clock1 = get_clock();
         merge_clusters();
-        //double clock2 = get_clock();
+        //float clock2 = get_clock();
         //cout<<clock2 - clock1<<endl;
 
         determine_boarder_point();

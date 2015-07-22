@@ -7,7 +7,7 @@
 namespace clustering{
     class DBSCAN_Reduced : public DBSCAN_Grid{
     public:
-        DBSCAN_Reduced(double eps, size_t min_elems);
+        DBSCAN_Reduced(float eps, size_t min_elems);
         virtual ~DBSCAN_Reduced();
 
         virtual void fit();

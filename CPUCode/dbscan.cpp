@@ -43,13 +43,13 @@ namespace clustering
         for(unsigned int i=0; i<a.size(); i++)
             if(a[i] == b[i])
                 cnt_right++;
-        double rate = (double)cnt_right / (double)a.size();
+        float rate = (float)cnt_right / (float)a.size();
         cout<<"similarity: "<<rate<<endl;
     }
 
-    double DBSCAN::get_clock(){
+    float DBSCAN::get_clock(){
         clock_t t = clock();
-        return double(t) / double(CLOCKS_PER_SEC);
+        return float(t) / float(CLOCKS_PER_SEC);
     }
 
     std::ostream& operator<<(std::ostream& o, DBSCAN & d)
@@ -66,7 +66,7 @@ namespace clustering
 
     DBSCAN::DBSCAN(){    }
 
-    DBSCAN::DBSCAN(double eps, size_t min_elems)
+    DBSCAN::DBSCAN(float eps, size_t min_elems)
     :m_min_elems( min_elems ){
         // given eps, convert to eps_sqr for convenience
         m_eps_sqr = eps * eps;
@@ -75,7 +75,7 @@ namespace clustering
 
     DBSCAN::~DBSCAN(){}
 
-    void DBSCAN::init(double eps, size_t min_elems)
+    void DBSCAN::init(float eps, size_t min_elems)
     {
         // given eps, convert to eps_sqr for convenience
         m_eps_sqr = eps * eps;

@@ -127,6 +127,21 @@ dbscan.s:
 .PHONY : dbscan.s
 
 # target to build an object file
+dbscan_dfe.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_dfe.o
+.PHONY : dbscan_dfe.o
+
+# target to preprocess a source file
+dbscan_dfe.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_dfe.i
+.PHONY : dbscan_dfe.i
+
+# target to generate assembly for a file
+dbscan_dfe.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_dfe.s
+.PHONY : dbscan_dfe.s
+
+# target to build an object file
 dbscan_grid.o:
 	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.o
 .PHONY : dbscan_grid.o
@@ -213,6 +228,9 @@ help:
 	@echo "... dbscan.o"
 	@echo "... dbscan.i"
 	@echo "... dbscan.s"
+	@echo "... dbscan_dfe.o"
+	@echo "... dbscan_dfe.i"
+	@echo "... dbscan_dfe.s"
 	@echo "... dbscan_grid.o"
 	@echo "... dbscan_grid.i"
 	@echo "... dbscan_grid.s"

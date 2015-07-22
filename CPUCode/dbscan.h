@@ -17,9 +17,9 @@ namespace clustering
     {
     public:
         // data type defination
-        typedef ublas::vector<double> FeaturesWeights;
-        typedef ublas::matrix<double> ClusterData;
-        typedef ublas::matrix<double> DistanceMatrix;
+        typedef ublas::vector<float> FeaturesWeights;
+        typedef ublas::matrix<float> ClusterData;
+        typedef ublas::matrix<float> DistanceMatrix;
         typedef std::vector<uint32_t> Neighbors;
         typedef std::vector<int32_t> Labels;
 
@@ -27,16 +27,16 @@ namespace clustering
         // functions for all DBSCAN methods
         // implemented in dbscan.cpp
         static void cmp_result(const Labels& a, const Labels & b);
-        static double get_clock();
+        static float get_clock();
 
         // initialize, deconstruct and reset
         // use virtual deconstruct function, avoid memory leak
-        DBSCAN(double eps, size_t min_elems);
+        DBSCAN(float eps, size_t min_elems);
         DBSCAN();
         virtual ~DBSCAN();
 
         // data initialization/reset functions
-        void init(double eps, size_t min_elems);
+        void init(float eps, size_t min_elems);
         void reset();
         void gen_cluster_data( size_t features_num, size_t elements_num);
         void read_cluster_data( size_t features_num, size_t elements_num, std::string filename);
@@ -57,7 +57,7 @@ namespace clustering
         /*****************************************************************************************/
         // variables and functions for all DBSCAN methods
         // implemented in dbscan.cpp
-        double m_eps_sqr;
+        float m_eps_sqr;
         size_t m_min_elems;
         Labels m_labels;
         ClusterData cl_d;
