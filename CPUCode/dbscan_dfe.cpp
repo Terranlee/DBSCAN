@@ -114,6 +114,8 @@ namespace clustering{
     void DBSCAN_DFE::decode_merge_answer_cpu(){
         uf.init(m_hash_grid.size());
         std::unordered_map<int, int> reverse_find;
+        // icpc 12.1.4 does not support reserve function???
+        //reverse_find.reserve(m_hash_grid.size());
         int counter = 0;
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             reverse_find.insert(std::make_pair(iter->first, counter));
@@ -130,11 +132,36 @@ namespace clustering{
             if(got == m_hash_grid.end())
                 continue;
 
-            for(int j=0; j<num_neighbour; j++){
+            uint32_t ans = merge_answer_cpu[index];
+            int uf_center_index = reverse_find.find(key)->second;
+            int cell_iter = key - 2 * (m_n_cols + 1) - 2;
 
+            const uint32_t flag = 0x80000000;
+            for(int j=0; j<num_neighbour; j++){
+                uint32_t which = ans & flag;
+                if(which){
+                    int uf_cell_index = reverse_find.find(cell_iter)->second;
+                    uf.make_union(uf_cell_index, uf_center_index);
+                }
+                ans = ans << 1;
+                switch(j){
+                    case 4:
+                        cell_iter = key - (m_n_cols + 1) - 2;
+                        break;
+                    case 9:
+                        cell_iter = key - 2;
+                        break;
+                    case 14:
+                        cell_iter = key + (m_n_cols + 1) - 2;
+                        break;
+                    case 19:
+                        cell_iter = key + (m_n_cols + 1) * 2 - 2;
+                        break;
+                    default:
+                        cell_iter = cell_iter + 1; 
+                }
             }
         }
-        
     }
 
     void DBSCAN_DFE::merge_clusters_dfe(){
