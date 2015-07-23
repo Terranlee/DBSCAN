@@ -73,16 +73,18 @@ class DBSCANKernel extends Kernel {
 		// push pipeline factor = 0
 		// remove all the buffers in this operation, can do accumulation on output in 1 clock cycle
 		optimization.pushPipeliningFactor(0);
-		for(int i=0; i<m_num_neighbour; i++)
-			output[i] <== ( (outputControl === 0) ? output_point[i] : stream.offset(output[i], -1) | output_point[i] );
+		for(int i=0; i<m_num_neighbour; i++){
+			int where = bitWidthOfUINT32 - 1 - i;
+			output[where] <== ( (outputControl === 0) ? output_point[i] : stream.offset(output[where], -1) | output_point[i]);
+		}
 		optimization.popPipeliningFactor();
 	
 		// these are useless output
-		for(int i=m_num_neighbour; i<bitWidthOfUINT32; i++)
+		for(int i=0; i<bitWidthOfUINT32 - m_num_neighbour; i++)
 			output[i] <== invalidAnswer;
 	
 		// io.output only have value when the points in a cell is all processed
-        io.output("output", output, output.getType(), outputControl === m_num_points_cell * 2 - 1);
+        io.output("output", output, output.getType(), outputControl === (m_num_points_cell * 2 - 1));
     }
 	
 	private DFEVar parallelCalculateCell(ArrayList<DFEVar> cell, DFEVar centerX, DFEVar centerY){
@@ -107,15 +109,15 @@ class DBSCANKernel extends Kernel {
 	private void setCell(ArrayList<DFEVar> cell, int i, DFEVar centerX){
 		int cellOffset = 0;
 		if(i >= 0 && i <= 4)
-			cellOffset = -2 * m_num_cols + i - 2;
+			cellOffset = -2 * (m_num_cols) + i - 2;
 		else if(i >= 5 && i <= 9)
-			cellOffset = -1 * m_num_cols + i - 7;
+			cellOffset = -1 * (m_num_cols) + i - 7;
 		else if(i >= 10 && i <= 14)
 			cellOffset = i - 12;
 		else if(i >= 15 && i <= 19)
-			cellOffset = 1 * m_num_cols + i - 17;
+			cellOffset = 1 * (m_num_cols) + i - 17;
 		else if(i >= 20 && i <= 24)
-			cellOffset = 2 * m_num_cols + i - 22;
+			cellOffset = 2 * (m_num_cols) + i - 22;
 		// here, *2 because the dimension of data is 2
 		cellOffset = cellOffset * m_num_points_cell * 2;
 
@@ -133,7 +135,7 @@ class DBSCANKernel extends Kernel {
         DFEVar diffx = centerX - x;
         DFEVar diffy = centerY - y;
         DFEVar sqrDist = diffx * diffx + diffy * diffy;
-        return sqrDist <= m_sqr_eps;
+        return sqrDist < m_sqr_eps;
     }
 	
 	private DFEVar orTree(DFEVar[] input){

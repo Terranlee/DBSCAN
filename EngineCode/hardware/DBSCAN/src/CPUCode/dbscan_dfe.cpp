@@ -2,6 +2,7 @@
 #include <climits>
 #include <algorithm>
 #include <functional>
+#include <cstdio>
 
 #include "dbscan_dfe.h"
 
@@ -295,10 +296,19 @@ namespace clustering{
     void DBSCAN_DFE::test_results(){
         // test the result from cpu and dfe, see if they are the same
         int counter = 0;
-        for(int i=0; i<m_num_cells; i++)
+        int begin = 2 * m_n_cols;
+		int end = (m_n_rows + 2) * m_n_cols;
+
+		FILE* fp = fopen("output_diff", "w");
+		for(int i=begin; i<end; i++){
             if(merge_answer_dfe[i] == merge_answer_cpu[i])
                 counter++;
-        cout<<counter<<" same over "<<m_num_cells<<endl;
+			else
+				fprintf(fp, "%08x\t%08x\n", merge_answer_dfe[i], merge_answer_cpu[i]);
+		}
+		fclose(fp);
+
+        cout<<counter<<" same over "<<end - begin<<endl;
     }
 
     // virtual functions derived from DBSCAN_Grid
