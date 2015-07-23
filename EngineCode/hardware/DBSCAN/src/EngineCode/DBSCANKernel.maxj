@@ -4,27 +4,31 @@
 import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
 import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
-//import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.KernelMath;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
+import com.maxeler.maxcompiler.v0.utils.MathUtils;
 
 import java.util.ArrayList;
 
 class DBSCANKernel extends Kernel {
 
     private static int m_num_points_cell;
+
 	// we do not set it to 21 because the input data will be really difficult to reshape
-	// we set number of neighbour to 24, ignore the right-bottom corner
-	// 24bit / 8bit = 3, making it easy to represent which small clusters should be merged
+	// we set number of neighbour to 25, representing all the possible neighbour cells
 	private static int m_num_neighbour;
+
+	// number of rows for the input grid, currently must be set before the hardware compile
 	private static int m_num_rows;
 	private static DFEType m_dataType;
 
 	// two parameters for the algorithm, use scalarInput
-	private static DFEVar m_sqr_eps;
-	// minPts is not needed for the merging cluster algorithm
-	//private static DFEVar m_minPts;
-
+	// invalid data means that there are actually no data
+	private static DFEVar m_sqr_eps;	
+	private static DFEVar m_invalid_data;
+	
+	private static int bitWidthOfUINT32 = 32;
+	
     protected DBSCANKernel(KernelParameters kp, DBSCANParameters parameters) {
         super(kp);
 		
@@ -37,24 +41,52 @@ class DBSCANKernel extends Kernel {
 		DFEVar centerY = stream.offset(centerX, 1);
 		
 		m_sqr_eps = io.scalarInput("sqrEps", m_dataType);
-		//m_minPts = io.scalarInput("minPts", dfeInt(32));
+		m_invalid_data = io.scalarInput("invalidData", m_dataType);
 
 		// the first dimension refers to the cells, the second dimension refers to the points in that cell
 		ArrayList<ArrayList<DFEVar> > matrix = new ArrayList<ArrayList<DFEVar> >();
 		setMatrix(matrix, centerX);
 		
-		// for every input data coordinate, we output 3byte, 
-		// representing the merging relationship between different clusters
-		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(dfeBool(), m_num_neighbour);
-		DFEVector<DFEVar> output = outputType.newInstance(this);
-		for(int i=0; i<m_num_neighbour; i++)
-			output[i] <== parallelCalculateCell(matrix[i], centerX, centerY);
+		// check = 1 means this input data is valid, else means this input is invalid
+		// invalidAnswer = 0, means not connected if input is invalid
+		DFEVar check = (centerX !== m_invalid_data);
+		DFEVar invalidAnswer = constant.var(dfeBool(), 0);
 		
-		DFEVar outputControl = control.count.simpleCounter(1);
-        io.output("output", output, output.getType(), outputControl === 0);
+		// the relationship between different neighbour cells
+		DFEVectorType<DFEVar> outputPointType = new DFEVectorType<DFEVar>(dfeBool(), m_num_neighbour);
+		DFEVector<DFEVar> output_point = outputPointType.newInstance(this);
+		for(int i=0; i<m_num_neighbour; i++)
+			output_point[i] <== check ? parallelCalculateCell(matrix[i], centerX, centerY) : invalidAnswer;
+				
+		// for every input cell, we actually output a uint32_t, not 25 bits
+		// because the output length should be divided by 16, or it will cause low efficiency
+		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(dfeBool(), bitWidthOfUINT32);
+		DFEVector<DFEVar> output = outputType.newInstance(this);
+		
+		// outputControl, use this to control the output
+		// when outputControl = 0, means a new cell comes in, we just receive the result from parallelCalculateCell
+		// when outputControl = m_num_points_cell * 2 - 1, means a cell is finished processing, we update io.output
+		int outputBitWidth = MathUtils.bitsToAddress(m_num_points_cell * 2);
+		DFEVar outputControl = control.counter.simpleCounter(outputBitWidth, m_num_points_cell * 2);
+	
+		// push pipeline factor = 0
+		// remove all the buffers in this operation, can do accumulation on output in 1 clock cycle
+		optimization.pushPipeliningFactor(0);
+		for(int i=0; i<m_num_neighbour; i++)
+			output[i] = ( (outputControl === 0) ? output_point[i] : stream.offset(output[i], -1) | output_point[i] );
+		optimization.popPipeliningFactor();
+	
+		// these are useless output
+		for(int i=m_num_neighbour; i<bitWidthOfUINT32; i++)
+			output[i] = output_point[i % m_num_neighbour];
+	
+		// io.output only have value when the points in a cell is all processed
+        io.output("output", output, output.getType(), outputControl === m_num_points_cell * 2 - 1);
     }
 	
 	private DFEVar parallelCalculateCell(ArrayList<DFEVar> cell, DFEVar centerX, DFEVar centerY){
+		// return 1 means the current (centerX, centerY) should be connected to the neighbour cell
+		// return 0 means not connected
 		DFEVar[] temp = new DFEVar[cell.size() / 2];
 		for(int i=0; i<cell.size() / 2; i++)
 			temp[i] = judgeDistance(cell[2*i], cell[2*i+1], centerX, centerY);
@@ -81,7 +113,7 @@ class DBSCANKernel extends Kernel {
 			cellOffset = i - 12;
 		else if(i >= 15 && i <= 19)
 			cellOffset = 1 * m_num_rows + i - 17;
-		else if(i >= 20 && i <= 23)
+		else if(i >= 20 && i <= 24)
 			cellOffset = 2 * m_num_rows + i - 22;
 		// here, *2 because the dimension of data is 2
 		cellOffset = cellOffset * m_num_points_cell * 2;
@@ -103,20 +135,6 @@ class DBSCANKernel extends Kernel {
         return sqrDist <= m_sqr_eps;
     }
 	
-	/*
-	private DFEVar adderTree(DFEVar[] input){
-        // the input variable should be float or int
-        DFEVar[] sums = new DFEVar[input.length / 2 + (input.length % 2)];
-        for (int i = 0; i < input.length / 2; i++) {
-            sums[i] = input[2 * i] + input[2 * i + 1];
-        }
-        if (input.length % 2 == 1) {
-            sums[sums.length - 1] = input[input.length - 1];
-        }
-        return sums.length == 1 ? sums[0] : adderTree(sums);
-    }
-	*/
-
 	private DFEVar orTree(DFEVar[] input){
 	    // the input variable should be dfeBool
 		DFEVar[] or = new DFEVar[input.length / 2 + (input.length % 2)];
@@ -128,28 +146,6 @@ class DBSCANKernel extends Kernel {
 	    }
 	    return or.length == 1 ? or[0] : orTree(or);
 	}
-	
-	/*
-	private DFEVar minTree(DFEVar[] input){
-		// the input variable should be float or int
-		DFEVar[] minimum = new DFEVar[input.length / 2 + (input.length % 2)];
-		for (int i=0; i<input.length / 2; i++) {
-			minimum[i] = KernelMath.min(input[2 * i], input[2 * i + 1]);
-		}
-		if (input.length % 2 == 1) {
-			minimum[minimum.length - 1] = input[input.length - 1];
-		}
-		return minimum.length == 1 ? minimum[0] : minTree(minimum);
-	}
-	
-	private DFEVar safeOffset(DFEVar input, DFEVar cycle, int offset) {
-		// add pipelineFactor to remove the 1 cycle postpone by the buffer
-		optimization.pushPipeliningFactor(0);
-		DFEVar ret_val = cycle < -offset ? 0 : stream.offset(input, offset);
-		optimization.popPipeliningFactor();
-		return ret_val;											
-	}
-	*/
 
 }
 

@@ -286,6 +286,7 @@ namespace clustering{
         prepare_data();
         //merge_clusters_dfe();
         merge_clusters_cpu();
+		cout<<"cpu simulation end"<<endl;
         decode_merge_answer_cpu();
 
         determine_boarder_point();

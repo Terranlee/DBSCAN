@@ -1,4 +1,6 @@
+DBSCAN_sim
 *.o
+*.class
 answer*
 output*
 DBSCAN_MAIA_DFE_SIM/
