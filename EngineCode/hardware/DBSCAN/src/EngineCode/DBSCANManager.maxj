@@ -27,7 +27,7 @@ public class DBSCANManager extends CustomManager{
     }
 	
 	private void addConstant(DBSCANParameters params){
-		addMaxFileConstant("numRows",		params.getNumRows());
+		addMaxFileConstant("numCols",		params.getNumCols());
 		addMaxFileConstant("numPointsCell",	params.getNumPointsCell());
 		addMaxFileConstant("numNeighbour",	params.getNumNeighbour());
 		addMaxFileConstant("isFloat",		params.getInputType() instanceof DFEFloat ? 1 : 0);

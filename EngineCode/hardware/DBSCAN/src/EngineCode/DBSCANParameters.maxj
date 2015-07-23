@@ -12,7 +12,7 @@ public class DBSCANParameters extends EngineParameters {
 	//private static final String s_minPts = "minPts";
 	//private static final String s_sqrEps = "sqrEps";
 	private static final String s_inputType = "inputType";
-	private static final String s_numRows = "numRows";
+	private static final String s_numCols = "numCols";
 	private static final String s_numPointsCell = "numPointsCell";
 	private static final String s_numNeighbour = "numNeighbour";
 	
@@ -23,20 +23,20 @@ public class DBSCANParameters extends EngineParameters {
 	@Override
 	protected void declarations(){
 		declareParam(s_inputType,		DataType.DFETYPE,	Kernel.dfeFloat(8, 24));
-		declareParam(s_numRows,			DataType.INT,		66);
+		declareParam(s_numCols,			DataType.INT,		66);
 		declareParam(s_numPointsCell,	DataType.INT,		10);
 		declareParam(s_numNeighbour,	DataType.INT,		25);
 	}
 
 	public DFEType	getInputType()		{	return getParam(s_inputType);		}
-	public int		getNumRows()		{	return getParam(s_numRows);			}
+	public int		getNumCols()		{	return getParam(s_numCols);			}
 	public int		getNumPointsCell()	{	return getParam(s_numPointsCell);	}
 	public int		getNumNeighbour()	{	return getParam(s_numNeighbour);	}
 
 	@Override
 	protected void validate(){
-		if(getNumRows() <= 5){
-			throw new IllegalArgumentException("num of rows should be at least be 5");
+		if(getNumCols() <= 5){
+			throw new IllegalArgumentException("num of cols should be at least be 5");
 		}
 		if(getNumPointsCell() <= 0){
 			throw new IllegalArgumentException("num of points in a cell should > 0");

@@ -27,13 +27,17 @@ namespace clustering{
         float* input_data;
         uint32_t* merge_answer_dfe;
         uint32_t* merge_answer_cpu;
+		// we have to record the num of cells
+		// because the length of input/output stream must be divide by 16bytes
+		// so m_num_cells may be different from the original number of cells
+		int m_num_cells;
 		
 		// the handle for max file/ max engine, and its related functions
 		max_file_t* mf;
 		max_engine_t* me;
 
-		void check_parameters();
-		void prepare_max_file();
+		bool check_parameters();
+		bool prepare_max_file();
 		void release_max_file();
 
         // process_vector function is the same as the reduced precision algorithm

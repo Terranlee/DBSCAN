@@ -45,27 +45,31 @@ namespace clustering{
     }
 		
 	// check the parameters from CPU and DFE are the same
-	void DBSCAN_DFE::check_parameters(){
-		int dfe_num_rows = max_get_constant_uint64t(mf, "numRows");
+	bool DBSCAN_DFE::check_parameters(){
+		int dfe_num_cols = max_get_constant_uint64t(mf, "numCols");
 		int dfe_num_points_cell = max_get_constant_uint64t(mf, "numPointsCell");
 		int dfe_num_neighbour = max_get_constant_uint64t(mf, "numNeighbour");
-		if(dfe_num_rows != m_n_rows || dfe_num_points_cell != m_reduced_num || dfe_num_neighbour != 25){
+		if(dfe_num_cols != m_n_cols || dfe_num_points_cell != m_reduced_num || dfe_num_neighbour != 25){
 			cout<<"DFE configuration failed."<<endl;
 			cout<<"Parameters are as followed:"<<endl;
-			cout<<"dfe_num_rows : "<<dfe_num_rows<<endl;
-			cout<<"dfe_num_points_cell : "<<dfe_num_points_cell<<endl;
+			cout<<"dfe_num_cols : "<<dfe_num_cols<<",   m_n_cols : "<<m_n_cols<<endl;
+			cout<<"dfe_num_points_cell : "<<dfe_num_points_cell<<",   m_reduced_num : "<<m_reduced_num<<endl;
 			cout<<"dfe_num_neighbour : "<<dfe_num_neighbour<<endl;
-			exit(-1);
+			return false;
 		}
+		return true;
 	}
 	
 	// some preparation before using the dataflow engine
-	void DBSCAN_DFE::prepare_max_file(){
+	bool DBSCAN_DFE::prepare_max_file(){
 		cout<<"----------loading DFE---------"<<endl;
 		mf = DBSCAN_init();
-		check_parameters();
+		bool check = check_parameters();
+		if(!check)
+			return false;
 		me = max_load(mf, "*");
 		cout<<"----------loading DFE finished----------"<<endl;
+		return true;
 	}
 
 	// release the dataflow engine
@@ -126,8 +130,7 @@ namespace clustering{
     }
 
     void DBSCAN_DFE::merge_clusters_cpu(){
-        int num_cells = (m_n_rows + 4) * m_n_cols;
-        for(int i=0; i<num_cells; i++)
+        for(int i=0; i<m_num_cells; i++)
             merge_answer_cpu[i] = 0;
 
         for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
@@ -153,8 +156,7 @@ namespace clustering{
         }
 
         const int num_neighbour = 25;
-        int num_cells = (m_n_rows + 4) * m_n_cols;
-        for(int index=0; index<num_cells; index++){
+        for(int index=0; index<m_num_cells; index++){
             int dx = index / m_n_cols;
             int dy = index % m_n_cols;
             int key = (dx - 1) * (m_n_cols + 1) + dy + 1;
@@ -198,11 +200,11 @@ namespace clustering{
 
     void DBSCAN_DFE::merge_clusters_dfe(){
         // call dataflow engine computing
-		int num_cells = (m_n_rows + 4) * m_n_cols;
+		int num_points = m_num_cells * m_reduced_num;
 		float invalid = std::numeric_limits<float>::max();
 
 		DBSCAN_actions_t actions;
-		actions.param_N = num_cells;
+		actions.param_N = num_points;
 		actions.param_sqrEps = m_eps_sqr;
 		actions.param_invalidData = invalid;
 		actions.instream_input_cpu = input_data;
@@ -220,13 +222,20 @@ namespace clustering{
 
         // add two lines of invalid data at the begining and end of input_data
         int num_cells = (m_n_rows + 4) * m_n_cols;
-        int length = num_cells * m_reduced_num * 2;
-        cout<<"points length : "<<length<<", cell length : "<<num_cells<<endl;
-        cout<<"hashed cell length : "<<m_hash_grid.size()<<endl;
 
+		// the input/output stream length must be divided by 16bytes
+		// so the final length of stream may be different from the original one
+		// in 2D case, the number of cells must be divided by 4
+		while((num_cells % 4) != 0)
+			num_cells++;
+		m_num_cells = num_cells;
+		int length = m_num_cells * m_reduced_num * 2;
+
+        cout<<"points length : "<<length<<", cell length : "<<m_num_cells<<endl;
+        cout<<"hashed cell length : "<<m_hash_grid.size()<<endl;
         input_data = new float[length];
-        merge_answer_dfe = new uint32_t[num_cells];
-        merge_answer_cpu = new uint32_t[num_cells];
+        merge_answer_dfe = new uint32_t[m_num_cells];
+        merge_answer_cpu = new uint32_t[m_num_cells];
 
         // add the two lines of beginning invalid data
         int begin = 2 * m_n_cols * m_reduced_num * 2;
@@ -285,18 +294,18 @@ namespace clustering{
 
     void DBSCAN_DFE::test_results(){
         // test the result from cpu and dfe, see if they are the same
-        int num_cells = (m_n_rows + 4) * m_n_cols;
         int counter = 0;
-        for(int i=0; i<num_cells; i++)
+        for(int i=0; i<m_num_cells; i++)
             if(merge_answer_dfe[i] == merge_answer_cpu[i])
                 counter++;
-        cout<<counter<<" same over "<<num_cells<<endl;
+        cout<<counter<<" same over "<<m_num_cells<<endl;
     }
 
     // virtual functions derived from DBSCAN_Grid
     void DBSCAN_DFE::fit(){
         prepare_labels(cl_d.size1());
-        set_reduced_precision(m_min_elems);
+		// this 10 is the same number as the one in DBSCANParameter.maxj
+        set_reduced_precision(10);
 
         hash_construct_grid();
         determine_core_point_grid();
@@ -307,7 +316,9 @@ namespace clustering{
         merge_clusters_cpu();
 		
 		// the dfe version of merge clusters, compare with cpu result
-		prepare_max_file();
+		bool check = prepare_max_file();
+		if(!check)
+			return;
 		merge_clusters_dfe();
 		release_max_file();
 		
