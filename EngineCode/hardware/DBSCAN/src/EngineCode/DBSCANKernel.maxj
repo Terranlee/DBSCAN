@@ -42,12 +42,22 @@ class DBSCANKernel extends Kernel {
 		
 		m_sqr_eps = io.scalarInput("sqrEps", m_dataType);
 		m_invalid_data = io.scalarInput("invalidData", m_dataType);
+		
+		// cellControl, control when to swap to a new cell
+		// when cellControl == 0, means a new cell comes in
+		//		1. reset the matrix
+		//		2. output = output_point (just copy the new result from parallelCalculate)
+		// when cellControl == m_num_points_cell * 2 - 1, means a cell is processed
+		//		1. send output to io.output
+		int cellBitWidth = MathUtils.bitsToAddress(m_num_points_cell * 2);
+		DFEVar cellControl = control.count.simpleCounter(cellBitWidth, m_num_points_cell * 2);
+		DFEVar cellBeginX = stream.offset(centerX, cellControl, 0, m_num_points_cell * 2);
 
 		// the first dimension refers to the cells, the second dimension refers to the points in that cell
 		ArrayList<ArrayList<DFEVar> > matrix = new ArrayList<ArrayList<DFEVar> >();
-		setMatrix(matrix, centerX);
+		setMatrix(matrix, cellBeginX);
 		
-		// check = 1 means this input data is valid, and the current input is an X
+		// check = 1 means this input data is valid, and the current input is an X(not Y)
 		// invalidAnswer = 0, means not connected if input is invalid
 		DFEVar XYCounter = control.count.simpleCounter(1);
 		DFEVar check = (centerX !== m_invalid_data) & (XYCounter === 0);
@@ -64,18 +74,12 @@ class DBSCANKernel extends Kernel {
 		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(dfeBool(), bitWidthOfUINT32);
 		DFEVector<DFEVar> output = outputType.newInstance(this);
 		
-		// outputControl, use this to control the output
-		// when outputControl = 0, means a new cell comes in, we just receive the result from parallelCalculateCell
-		// when outputControl = m_num_points_cell * 2 - 1, means a cell is finished processing, we update io.output
-		int outputBitWidth = MathUtils.bitsToAddress(m_num_points_cell * 2);
-		DFEVar outputControl = control.count.simpleCounter(outputBitWidth, m_num_points_cell * 2);
-	
 		// push pipeline factor = 0
 		// remove all the buffers in this operation, can do accumulation on output in 1 clock cycle
 		optimization.pushPipeliningFactor(0);
 		for(int i=0; i<m_num_neighbour; i++){
 			int where = bitWidthOfUINT32 - 1 - i;
-			output[where] <== ( (outputControl === 0) ? output_point[i] : stream.offset(output[where], -1) | output_point[i]);
+			output[where] <== ( (cellControl === 0) ? output_point[i] : stream.offset(output[where], -1) | output_point[i]);
 		}
 		optimization.popPipeliningFactor();
 	
@@ -84,7 +88,7 @@ class DBSCANKernel extends Kernel {
 			output[i] <== invalidAnswer;
 	
 		// io.output only have value when the points in a cell is all processed
-        io.output("output", output, output.getType(), outputControl === (m_num_points_cell * 2 - 1));
+        io.output("output", output, output.getType(), cellControl === (m_num_points_cell * 2 - 1));
     }
 	
 	private DFEVar parallelCalculateCell(ArrayList<DFEVar> cell, DFEVar centerX, DFEVar centerY){
@@ -97,16 +101,16 @@ class DBSCANKernel extends Kernel {
 		return ret_val;
 	}
 
-	private void setMatrix(ArrayList<ArrayList<DFEVar> > matrix, DFEVar centerX){
+	private void setMatrix(ArrayList<ArrayList<DFEVar> > matrix, DFEVar cellBeginX){
 		// in the for loop, set every cell in the matrix
 		for(int i=0; i<m_num_neighbour; i++){
 			ArrayList<DFEVar> cell = new ArrayList<DFEVar>();
-			setCell(cell, i, centerX);
+			setCell(cell, i, cellBeginX);
 			matrix.add(cell);
 		}
 	}
 	
-	private void setCell(ArrayList<DFEVar> cell, int i, DFEVar centerX){
+	private void setCell(ArrayList<DFEVar> cell, int i, DFEVar cellBeginX){
 		int cellOffset = 0;
 		if(i >= 0 && i <= 4)
 			cellOffset = -2 * (m_num_cols) + i - 2;
@@ -123,8 +127,8 @@ class DBSCANKernel extends Kernel {
 
 		for(int j=0; j<m_num_points_cell; j++){
 			// in the for loop, set every points in the cell
-			DFEVar pointX = stream.offset(centerX, cellOffset + 2 * j);
-			DFEVar pointY = stream.offset(centerX, cellOffset + 2 * j + 1);
+			DFEVar pointX = stream.offset(cellBeginX, cellOffset + 2 * j);
+			DFEVar pointY = stream.offset(cellBeginX, cellOffset + 2 * j + 1);
 			cell.add(pointX);
 			cell.add(pointY);
 		}
