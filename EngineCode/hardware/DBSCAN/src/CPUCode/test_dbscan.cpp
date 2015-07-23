@@ -2,6 +2,7 @@
 //#include "dbscan_reduced.h"
 #include "dbscan_grid.h"
 #include "dbscan_dfe.h"
+#include "dbscan.h"
 
 #include <algorithm>
 
@@ -42,26 +43,25 @@ void test_grid(DBSCAN::Labels& label_grid){
     //DBSCAN dbs(2, 3);   // the papameter for 3spiral.txt
     //DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
 
-    DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    DBSCAN_Grid dbs(20000, 4);   // the papameter for s1.txt
+    dbs.read_cluster_data(2, 5000, "../data/s1.txt");
 
     //DBSCAN dbs(14000, 20);
     //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
 
     cout<<"start execution of grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
-    dbs->fit();
+    dbs.fit();
     float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
 
-    dbs->reshape_labels();
-    dbs->output_result("output_grid");
+    dbs.reshape_labels();
+    dbs.output_result("output_grid");
 
-    DBSCAN::Labels lbg = dbs->get_labels();
+    DBSCAN::Labels lbg = dbs.get_labels();
     label_grid.resize(lbg.size());
     std::copy(lbg.begin(), lbg.end(), label_grid.begin());
     cout<<endl;
-    delete dbs;
 }
 
 // this version of algorithm just compare dbscan_grid and dbscan_dfe
@@ -96,24 +96,22 @@ void test_reduced(DBSCAN::Labels& label_reduced){
 
 void test_dfe(DBSCAN::Labels& label_dfe){
 
-    DBSCAN* dbs = new DBSCAN_DFE(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    DBSCAN_DFE dbs(20000, 4);   // the papameter for s1.txt
+    dbs.read_cluster_data(2, 5000, "../data/s1.txt");
 
     cout<<"start execution of dfe DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
-    dbs->fit();
+    dbs.fit();
     float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
 
-    dbs->reshape_labels();
-    dbs->output_result("output_dfe");
+    dbs.reshape_labels();
+    dbs.output_result("output_dfe");
 
-    DBSCAN::Labels lbr = dbs->get_labels();
+    DBSCAN::Labels lbr = dbs.get_labels();
     label_dfe.resize(lbr.size());
     std::copy(lbr.begin(), lbr.end(), label_dfe.begin());
     cout<<endl;
-    delete dbs;
-
 }
 
 int main()

@@ -67,18 +67,18 @@ class DBSCANKernel extends Kernel {
 		// when outputControl = 0, means a new cell comes in, we just receive the result from parallelCalculateCell
 		// when outputControl = m_num_points_cell * 2 - 1, means a cell is finished processing, we update io.output
 		int outputBitWidth = MathUtils.bitsToAddress(m_num_points_cell * 2);
-		DFEVar outputControl = control.counter.simpleCounter(outputBitWidth, m_num_points_cell * 2);
+		DFEVar outputControl = control.count.simpleCounter(outputBitWidth, m_num_points_cell * 2);
 	
 		// push pipeline factor = 0
 		// remove all the buffers in this operation, can do accumulation on output in 1 clock cycle
 		optimization.pushPipeliningFactor(0);
 		for(int i=0; i<m_num_neighbour; i++)
-			output[i] = ( (outputControl === 0) ? output_point[i] : stream.offset(output[i], -1) | output_point[i] );
+			output[i] <== ( (outputControl === 0) ? output_point[i] : stream.offset(output[i], -1) | output_point[i] );
 		optimization.popPipeliningFactor();
 	
 		// these are useless output
 		for(int i=m_num_neighbour; i<bitWidthOfUINT32; i++)
-			output[i] = output_point[i % m_num_neighbour];
+			output[i] <== output_point[i % m_num_neighbour];
 	
 		// io.output only have value when the points in a cell is all processed
         io.output("output", output, output.getType(), outputControl === m_num_points_cell * 2 - 1);

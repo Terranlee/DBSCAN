@@ -209,7 +209,7 @@ namespace clustering{
 		actions.outstream_output_cpu = merge_answer_dfe;
 
         cout<<"---------doing dataflow computing--------"<<endl;
-		DFE_run(me, &actions);	
+		DBSCAN_run(me, &actions);	
 		cout<<"---------finish dataflow computing-------"<<endl;
     }
 
