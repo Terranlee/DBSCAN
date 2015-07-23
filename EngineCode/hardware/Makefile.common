@@ -144,20 +144,33 @@ $(PRJ)_sim.o: $(SIMMAXDIR)/$(PRJ).max
 
 # Modified by Terranlee
 # Add multiple file compilation
+# not a general template, only for DBSCAN project
 
-#TEMPOBJS := $(patsubst %cpp,%o,$(CPUFILES))  
-#CPUOBJS := $(notdir $(TEMPOBJS))
-#%.o:%.cpp  
-#	$(CPUCOMPILER) $(CFLAGS) -c $<  
+TEMP_OBJS := $(patsubst %cpp,%o,$(CPUFILES))
+CPU_OBJS := $(notdir $(TEMPOBJS))
 
-#$(PRJ)_sim: $(PRJ)_sim.o $(CPUOBJS)
-#	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
+# the following files does not require SLiC and Maxeler interface
+util.o: ../src/CPUCode/util.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+dbscan.o: ../src/CPUCode/dbscan.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+dbscan_grid.o: ../src/CPUCode/dbscan_grid.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+test_dbscan.o: ../src/CPUCode/test_dbscan.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
 
-$(PRJ)_simc.o: $(CPUFILES)
-	$(CPUCOMPILER) $^ $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
+# the following files requires SLiC and Maxeler interface
+dbscan_dfe.o: ../src/CPUCode/dbscan_dfe.cpp
+	$(CPUCOMPILER) $< $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
 
-$(PRJ)_sim: $(PRJ)_sim.o $(PRJ)_simc.o
+$(PRJ)_sim: $(PRJ)_sim.o $(CPU_OBJS)
 	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
+
+# The following 4 lines are the original makefile
+#$(PRJ)_simc.o: $(CPUFILES)
+#	$(CPUCOMPILER) $^ $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
+#$(PRJ)_sim: $(PRJ)_sim.o $(PRJ)_simc.o
+#	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
 
 runsim: $(PRJ)_sim
 	$(MAXCOMPILERSIM) -n $(USER)a -c$(DEVICENUM) -d$(NUMDEVICES) restart

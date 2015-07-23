@@ -23,7 +23,7 @@ public class DBSCANParameters extends EngineParameters {
 	@Override
 	protected void declarations(){
 		declareParam(s_inputType,		DataType.DFETYPE,	Kernel.dfeFloat(8, 24));
-		declareParam(s_numRows,			DataType.INT,		100);
+		declareParam(s_numRows,			DataType.INT,		66);
 		declareParam(s_numPointsCell,	DataType.INT,		10);
 		declareParam(s_numNeighbour,	DataType.INT,		25);
 	}

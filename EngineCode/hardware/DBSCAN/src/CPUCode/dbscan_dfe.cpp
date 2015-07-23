@@ -43,6 +43,35 @@ namespace clustering{
     void DBSCAN_DFE::set_reduced_precision(unsigned int r_num){
         m_reduced_num = r_num;
     }
+		
+	// check the parameters from CPU and DFE are the same
+	void DBSCAN_DFE::check_parameters(){
+		int dfe_num_rows = max_get_constant_uint64t(mf, "numRows");
+		int dfe_num_points_cell = max_get_constant_uint64t(mf, "numPointsCell");
+		int dfe_num_neighbour = max_get_constant_uint64t(mf, "numNeighbour");
+		if(dfe_num_rows != m_n_rows || dfe_num_points_cell != m_reduced_num || dfe_num_neighbour != 25){
+			cout<<"DFE configuration failed."<<endl;
+			cout<<"Parameters are as followed:"<<endl;
+			cout<<"dfe_num_rows : "<<dfe_num_rows<<endl;
+			cout<<"dfe_num_points_cell : "<<dfe_num_points_cell<<endl;
+			cout<<"dfe_num_neighbour : "<<dfe_num_neighbour<<endl;
+			exit(-1);
+		}
+	}
+	
+	// some preparation before using the dataflow engine
+	void DBSCAN_DFE::prepare_max_file(){
+		cout<<"----------loading DFE---------"<<endl;
+		mf = DBSCAN_init();
+		check_parameters();
+		me = max_load(mf, "*");
+		cout<<"----------loading DFE finished----------"<<endl;
+	}
+
+	// release the dataflow engine
+	void DBSCAN_DFE::release_max_file(){
+		max_unload(me);
+	}
 
     void DBSCAN_DFE::merge_neighbour_cpu(int center_key, int point_id){
         static const int num_neighbour = 25;
@@ -169,29 +198,19 @@ namespace clustering{
 
     void DBSCAN_DFE::merge_clusters_dfe(){
         // call dataflow engine computing
-        cout<<"doing dataflow computing"<<endl;
+		int num_cells = (m_n_rows + 4) * m_n_cols;
+		float invalid = std::numeric_limits<float>::max();
 
-        // the output answer is uint32_t because of the limit in DFE
-        // but actually there are only 24 cells that needed to be checked
-        /*
-        const int neighbour_to_check = 24;
+		DBSCAN_actions_t actions;
+		actions.param_N = num_cells;
+		actions.param_sqrEps = m_eps_sqr;
+		actions.param_invalidData = invalid;
+		actions.instream_input_cpu = input_data;
+		actions.outstream_output_cpu = merge_answer_dfe;
 
-        for(int i=3; i<m_n_rows; i++){
-            for(int j=0; j<m_n_cols; j++){
-                int key = (i - 2) * (m_n_cols + 1) + j + 1;
-                int index = i * m_n_cols + j;
-
-                std::unordered_map<int, std::vector<int> >::iterator got = m_hash_grid.find(key);
-                if(got == m_hash_grid.end())
-                    continue;
-
-                uint32_t cell_ans = merge_answer_dfe[index];
-                for(int i=0; i<neighbour_to_check; i++){
-
-                }
-            }
-        }
-        */
+        cout<<"---------doing dataflow computing--------"<<endl;
+		DFE_run(me, &actions);	
+		cout<<"---------finish dataflow computing-------"<<endl;
     }
 
     void DBSCAN_DFE::prepare_data(){
@@ -204,7 +223,6 @@ namespace clustering{
         int length = num_cells * m_reduced_num * 2;
         cout<<"points length : "<<length<<", cell length : "<<num_cells<<endl;
         cout<<"hashed cell length : "<<m_hash_grid.size()<<endl;
-		cout<<"number of cols : "<<m_n_cols<<endl;
 
         input_data = new float[length];
         merge_answer_dfe = new uint32_t[num_cells];
@@ -283,13 +301,22 @@ namespace clustering{
         hash_construct_grid();
         determine_core_point_grid();
 
-        // these two steps are related to the dataflow engine
         prepare_data();
-        //merge_clusters_dfe();
+		
+		// the cpu version of merge clusters, use as compare
         merge_clusters_cpu();
-		cout<<"cpu simulation end"<<endl;
-        decode_merge_answer_cpu();
-
+		
+		// the dfe version of merge clusters, compare with cpu result
+		prepare_max_file();
+		merge_clusters_dfe();
+		release_max_file();
+		
+		// test whether cpu and dfe can get the same result
+		// test of dfe ends here
+		test_results();
+		
+        // currently use the cpu result to 
+		decode_merge_answer_cpu();
         determine_boarder_point();
     }
 
