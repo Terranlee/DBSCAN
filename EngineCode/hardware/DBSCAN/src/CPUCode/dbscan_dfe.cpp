@@ -145,7 +145,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_DFE::decode_merge_answer_cpu(){
+    void DBSCAN_DFE::decode_merge_answer(uint32_t* merge_answer){
         uf.init(m_hash_grid.size());
         std::unordered_map<int, int> reverse_find;
         // icpc 12.1.4 does not support reserve function???
@@ -165,7 +165,7 @@ namespace clustering{
             if(got == m_hash_grid.end())
                 continue;
 
-            uint32_t ans = merge_answer_cpu[index];
+            uint32_t ans = merge_answer[index];
             int uf_center_index = reverse_find.find(key)->second;
             int cell_iter = key - 2 * (m_n_cols + 1) - 2;
 
@@ -337,7 +337,7 @@ namespace clustering{
 		test_results();
 		
         // currently use the cpu result to 
-		decode_merge_answer_cpu();
+		decode_merge_answer(merge_answer_dfe);
         determine_boarder_point();
     }
 

@@ -51,7 +51,7 @@ namespace clustering{
         // two simulation function on cpu, trying to make the same result as the dataflow engine
         void merge_clusters_cpu();
         void merge_neighbour_cpu(int center_key, int point_id);
-        void decode_merge_answer_cpu();
+        void decode_merge_answer(uint32_t* merge_answer);
     };
 }
 
