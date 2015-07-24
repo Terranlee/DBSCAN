@@ -9,14 +9,11 @@ using namespace clustering;
 
 void test_original(DBSCAN::Labels& label_origin){
 
-    //DBSCAN dbs(2, 3);   // the papameter for 3spiral.txt
-    //DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
+    //DBSCAN* dbs = new DBSCAN_Matrix(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Matrix(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
-
-    //DBSCAN dbs(10000, 4);
-    //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
+    DBSCAN* dbs = new DBSCAN_Matrix(10000, 4);
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     cout<<"start execution of distance matrix DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -35,15 +32,12 @@ void test_original(DBSCAN::Labels& label_origin){
 }
 
 void test_grid(DBSCAN::Labels& label_grid){
-    
-    //DBSCAN dbs(2, 3);   // the papameter for 3spiral.txt
-    //DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
 
-    DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    //DBSCAN dbs(14000, 20);
-    //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
+    DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     cout<<"start execution of grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -63,14 +57,11 @@ void test_grid(DBSCAN::Labels& label_grid){
 
 void test_reduced(DBSCAN::Labels& label_reduced){
     
-    //DBSCAN dbs(2, 3);   // the papameter for 3spiral.txt
-    //DBSCAN::ClusterData cl_d = DBSCAN::read_cluster_data(2, 312, "../../data/3spiral.txt");
+    //DBSCAN* dbs = new DBSCAN_Reduced(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Reduced(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
-
-    //DBSCAN dbs(14000, 20);
-    //dbs.read_cluster_data(2, 25000, "data/5times_s1.txt");
+    DBSCAN* dbs = new DBSCAN_Reduced(10000, 4);
+    dbs->read_cluster_data(2, 5000, "../data/5times_s1.txt");
 
     cout<<"start execution of reduced grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -90,9 +81,12 @@ void test_reduced(DBSCAN::Labels& label_reduced){
 
 void test_dfe(DBSCAN::Labels& label_dfe){
 
-    DBSCAN* dbs = new DBSCAN_DFE(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    //DBSCAN* dbs = new DBSCAN_DFE(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
+    DBSCAN* dbs = new DBSCAN_DFE(10000, 4);
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    
     cout<<"start execution of dfe DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
     dbs->fit();
