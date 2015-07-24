@@ -157,6 +157,21 @@ dbscan_matrix.s:
 .PHONY : dbscan_matrix.s
 
 # target to build an object file
+dbscan_reduced.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.o
+.PHONY : dbscan_reduced.o
+
+# target to preprocess a source file
+dbscan_reduced.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.i
+.PHONY : dbscan_reduced.i
+
+# target to generate assembly for a file
+dbscan_reduced.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.s
+.PHONY : dbscan_reduced.s
+
+# target to build an object file
 test_dbscan.o:
 	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.o
 .PHONY : test_dbscan.o
@@ -204,6 +219,9 @@ help:
 	@echo "... dbscan_matrix.o"
 	@echo "... dbscan_matrix.i"
 	@echo "... dbscan_matrix.s"
+	@echo "... dbscan_reduced.o"
+	@echo "... dbscan_reduced.i"
+	@echo "... dbscan_reduced.s"
 	@echo "... test_dbscan.o"
 	@echo "... test_dbscan.i"
 	@echo "... test_dbscan.s"
