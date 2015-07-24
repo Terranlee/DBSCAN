@@ -111,95 +111,173 @@ test_dbscan/fast:
 	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/build
 .PHONY : test_dbscan/fast
 
-# target to build an object file
-dbscan.o:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.o
+dbscan.o: dbscan.cpp.o
 .PHONY : dbscan.o
 
-# target to preprocess a source file
-dbscan.i:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.i
+# target to build an object file
+dbscan.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.cpp.o
+.PHONY : dbscan.cpp.o
+
+dbscan.i: dbscan.cpp.i
 .PHONY : dbscan.i
 
-# target to generate assembly for a file
-dbscan.s:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.s
+# target to preprocess a source file
+dbscan.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.cpp.i
+.PHONY : dbscan.cpp.i
+
+dbscan.s: dbscan.cpp.s
 .PHONY : dbscan.s
 
-# target to build an object file
-dbscan_grid.o:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.o
+# target to generate assembly for a file
+dbscan.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan.cpp.s
+.PHONY : dbscan.cpp.s
+
+dbscan_grid.o: dbscan_grid.cpp.o
 .PHONY : dbscan_grid.o
 
-# target to preprocess a source file
-dbscan_grid.i:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.i
+# target to build an object file
+dbscan_grid.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.cpp.o
+.PHONY : dbscan_grid.cpp.o
+
+dbscan_grid.i: dbscan_grid.cpp.i
 .PHONY : dbscan_grid.i
 
-# target to generate assembly for a file
-dbscan_grid.s:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.s
+# target to preprocess a source file
+dbscan_grid.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.cpp.i
+.PHONY : dbscan_grid.cpp.i
+
+dbscan_grid.s: dbscan_grid.cpp.s
 .PHONY : dbscan_grid.s
 
-# target to build an object file
-dbscan_matrix.o:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.o
+# target to generate assembly for a file
+dbscan_grid.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.cpp.s
+.PHONY : dbscan_grid.cpp.s
+
+dbscan_matrix.o: dbscan_matrix.cpp.o
 .PHONY : dbscan_matrix.o
 
-# target to preprocess a source file
-dbscan_matrix.i:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.i
+# target to build an object file
+dbscan_matrix.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.cpp.o
+.PHONY : dbscan_matrix.cpp.o
+
+dbscan_matrix.i: dbscan_matrix.cpp.i
 .PHONY : dbscan_matrix.i
 
-# target to generate assembly for a file
-dbscan_matrix.s:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.s
+# target to preprocess a source file
+dbscan_matrix.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.cpp.i
+.PHONY : dbscan_matrix.cpp.i
+
+dbscan_matrix.s: dbscan_matrix.cpp.s
 .PHONY : dbscan_matrix.s
 
-# target to build an object file
-dbscan_reduced.o:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.o
+# target to generate assembly for a file
+dbscan_matrix.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_matrix.cpp.s
+.PHONY : dbscan_matrix.cpp.s
+
+dbscan_reduced.o: dbscan_reduced.cpp.o
 .PHONY : dbscan_reduced.o
 
-# target to preprocess a source file
-dbscan_reduced.i:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.i
+# target to build an object file
+dbscan_reduced.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.cpp.o
+.PHONY : dbscan_reduced.cpp.o
+
+dbscan_reduced.i: dbscan_reduced.cpp.i
 .PHONY : dbscan_reduced.i
 
-# target to generate assembly for a file
-dbscan_reduced.s:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.s
+# target to preprocess a source file
+dbscan_reduced.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.cpp.i
+.PHONY : dbscan_reduced.cpp.i
+
+dbscan_reduced.s: dbscan_reduced.cpp.s
 .PHONY : dbscan_reduced.s
 
+# target to generate assembly for a file
+dbscan_reduced.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.cpp.s
+.PHONY : dbscan_reduced.cpp.s
+
+dbscan_rehash.o: dbscan_rehash.cpp.o
+.PHONY : dbscan_rehash.o
+
 # target to build an object file
-test_dbscan.o:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.o
+dbscan_rehash.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_rehash.cpp.o
+.PHONY : dbscan_rehash.cpp.o
+
+dbscan_rehash.i: dbscan_rehash.cpp.i
+.PHONY : dbscan_rehash.i
+
+# target to preprocess a source file
+dbscan_rehash.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_rehash.cpp.i
+.PHONY : dbscan_rehash.cpp.i
+
+dbscan_rehash.s: dbscan_rehash.cpp.s
+.PHONY : dbscan_rehash.s
+
+# target to generate assembly for a file
+dbscan_rehash.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_rehash.cpp.s
+.PHONY : dbscan_rehash.cpp.s
+
+test_dbscan.o: test_dbscan.cpp.o
 .PHONY : test_dbscan.o
 
-# target to preprocess a source file
-test_dbscan.i:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.i
+# target to build an object file
+test_dbscan.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.cpp.o
+.PHONY : test_dbscan.cpp.o
+
+test_dbscan.i: test_dbscan.cpp.i
 .PHONY : test_dbscan.i
 
-# target to generate assembly for a file
-test_dbscan.s:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.s
+# target to preprocess a source file
+test_dbscan.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.cpp.i
+.PHONY : test_dbscan.cpp.i
+
+test_dbscan.s: test_dbscan.cpp.s
 .PHONY : test_dbscan.s
 
-# target to build an object file
-util.o:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.o
+# target to generate assembly for a file
+test_dbscan.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/test_dbscan.cpp.s
+.PHONY : test_dbscan.cpp.s
+
+util.o: util.cpp.o
 .PHONY : util.o
 
-# target to preprocess a source file
-util.i:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.i
+# target to build an object file
+util.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.cpp.o
+.PHONY : util.cpp.o
+
+util.i: util.cpp.i
 .PHONY : util.i
 
-# target to generate assembly for a file
-util.s:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.s
+# target to preprocess a source file
+util.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.cpp.i
+.PHONY : util.cpp.i
+
+util.s: util.cpp.s
 .PHONY : util.s
+
+# target to generate assembly for a file
+util.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/util.cpp.s
+.PHONY : util.cpp.s
 
 # Help Target
 help:
@@ -222,6 +300,9 @@ help:
 	@echo "... dbscan_reduced.o"
 	@echo "... dbscan_reduced.i"
 	@echo "... dbscan_reduced.s"
+	@echo "... dbscan_rehash.o"
+	@echo "... dbscan_rehash.i"
+	@echo "... dbscan_rehash.s"
 	@echo "... test_dbscan.o"
 	@echo "... test_dbscan.i"
 	@echo "... test_dbscan.s"
