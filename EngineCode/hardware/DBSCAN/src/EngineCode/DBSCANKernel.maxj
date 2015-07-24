@@ -51,11 +51,10 @@ class DBSCANKernel extends Kernel {
 		//		1. send output to io.output
 		int cellBitWidth = MathUtils.bitsToAddress(m_num_points_cell * 2);
 		DFEVar cellControl = control.count.simpleCounter(cellBitWidth, m_num_points_cell * 2);
-		DFEVar cellBeginX = stream.offset(centerX, cellControl, 0, m_num_points_cell * 2);
 
 		// the first dimension refers to the cells, the second dimension refers to the points in that cell
 		ArrayList<ArrayList<DFEVar> > matrix = new ArrayList<ArrayList<DFEVar> >();
-		setMatrix(matrix, cellBeginX);
+		setMatrix(matrix, centerX, cellControl);
 		
 		// check = 1 means this input data is valid, and the current input is an X(not Y)
 		// invalidAnswer = 0, means not connected if input is invalid
@@ -101,17 +100,18 @@ class DBSCANKernel extends Kernel {
 		return ret_val;
 	}
 
-	private void setMatrix(ArrayList<ArrayList<DFEVar> > matrix, DFEVar cellBeginX){
+	private void setMatrix(ArrayList<ArrayList<DFEVar> > matrix, DFEVar centerX, DFEVar cellControl){
 		// in the for loop, set every cell in the matrix
 		for(int i=0; i<m_num_neighbour; i++){
 			ArrayList<DFEVar> cell = new ArrayList<DFEVar>();
-			setCell(cell, i, cellBeginX);
+			setCell(cell, i, centerX, cellControl);
 			matrix.add(cell);
 		}
 	}
 	
-	private void setCell(ArrayList<DFEVar> cell, int i, DFEVar cellBeginX){
+	private void setCell(ArrayList<DFEVar> cell, int i, DFEVar centerX, DFEVar cellControl){
 		int cellOffset = 0;
+		// offset of the different cells in matrix
 		if(i >= 0 && i <= 4)
 			cellOffset = -2 * (m_num_cols) + i - 2;
 		else if(i >= 5 && i <= 9)
@@ -127,8 +127,16 @@ class DBSCANKernel extends Kernel {
 
 		for(int j=0; j<m_num_points_cell; j++){
 			// in the for loop, set every points in the cell
-			DFEVar pointX = stream.offset(cellBeginX, cellOffset + 2 * j);
-			DFEVar pointY = stream.offset(cellBeginX, cellOffset + 2 * j + 1);
+			DFEVar pointX = centerX.getType().newInstance(this);
+			DFEVar pointY = centerX.getType().newInstance(this);
+			
+			// only change the matrix when cellControl === 0
+			// which means that a new cell comes in
+			optimization.pushPipeliningFactor(0);
+			pointX <== (cellControl === 0) ? stream.offset(centerX, cellOffset + 2 * j) : stream.offset(pointX, -1);
+			pointY <== (cellControl === 0) ? stream.offset(centerX, cellOffset + 2 * j + 1) : stream.offset(pointY, -1);
+			optimization.popPipeliningFactor();
+
 			cell.add(pointX);
 			cell.add(pointY);
 		}
