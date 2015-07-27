@@ -43,6 +43,10 @@ namespace clustering{
         for(int i=0; i<num_neighbour; i++){
             std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
+                int belong_index = got->second.ufID;
+                if(uf.find(cell_index) == uf.find(belong_index))
+                    continue;
+                
                 for(unsigned int j=0; j<got->second.data.size(); j++){
                     int which = got->second.data.at(j);
                     if(!m_is_core[which])
@@ -94,7 +98,18 @@ namespace clustering{
 
         rehash_data_merge();
 
+        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            int cell_id = iter->first;
+            for(unsigned int i=0; i<iter->second.data.size(); i++){
+                int point_id = iter->second.data[i];
+                if(!m_is_core[point_id])
+                    continue;
 
+                merge_in_neighbour_rehash(point_id, cell_id);
+            }
+        }
+
+        cell_label_to_point_label();
     }
 
     void DBSCAN_Rehash::fit(){
@@ -106,6 +121,8 @@ namespace clustering{
         determine_core_point_grid();
 
         merge_clusters_rehash();
+
+        determine_boarder_point();
     }
 
     void DBSCAN_Rehash::test(){
