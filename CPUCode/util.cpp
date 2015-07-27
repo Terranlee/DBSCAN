@@ -1,5 +1,7 @@
 #include "util.h"
 
+/************************************************************************/
+// The following functions are for the union find data structure
 UnionFind::UnionFind(){}
 
 UnionFind::UnionFind(int size){
@@ -57,6 +59,98 @@ void UnionFind::print_union() const{
 }
 
 void UnionFind::test(){
-
+    // currently do nothing here
+    return;
 }
 
+/************************************************************************/
+// The following functions are for the multi-iteration data structure
+MultiIteration::MultiIteration(int d){
+    dim = d;
+    // do #length iterations on each side of one dimension
+    length = std::ceil( std::sqrt(float(d)) );
+    start.resize(d);
+    stop.resize(d);
+}
+
+void MultiIteration::set_max(const std::vector<int>& max){
+    max_val.resize(max.size());
+    std::copy(max.begin(), max.end(), max_val.begin());
+    assert(dim = max_val.size());
+}
+
+void MultiIteration::set_start(const std::vector<int>& s){
+    // point to the first cell in neighbour
+    std::copy(s.begin(), s.end(), start.begin());
+    for(unsigned int i=0; i<start.size(); i++)
+        start[i] -= length;
+    std::copy(s.begin(), s.end(), stop.begin());
+    for(unsigned int i=0; i<stop.size(); i++)
+        stop[i] += length;
+}
+
+void MultiIteration::test(){
+    // currently do nothing here
+    return;
+}
+
+/*
+// the decode function is not possible using this hash function
+void MultiIteration::decode(HashType hashKey, std::vector<int>& vec){
+    // do not call vec.resize in this function
+    // allocate the memory outside this function
+    for(int i=dim-1; i>=1; i--){
+        vec[i] = hashKey % max_val[i-1];
+        hashKey = hashKey / max_val[i];
+    }
+    vec[0] = hashKey;
+}
+*/
+
+void MultiIteration::next(){
+    int end = dim - 1;
+    if(start[end] == stop[end]){
+        start[end] = stop[end] - 2 * length;
+        for(int i=end-1; i>=0; i--){
+            if(start[i] == stop[i])
+                start[i] = stop[i] - 2 * length;
+            else{
+                start[i]++;
+                break;
+            }
+        }
+        return;
+    }
+    start[end]++;
+}
+
+HashType MultiIteration::get_hash(){
+    // TODO: is it okay to use int as the hashKey?
+    // maybe too short in high dimension dataset
+    HashType hashKey = 0;
+    for(int i=0; i<dim-1; i++){
+        hashKey += start[i];
+        hashKey *= max_val[i];
+    }
+    hashKey += start[dim-1];
+    return hashKey;
+}
+
+HashType MultiIteration::hash(const std::vector<int>& vec){
+    HashType hashKey = 0;
+    for(int i=0; i<dim-1; i++){
+        hashKey += vec[i];
+        hashKey *= max_val[i];
+    }
+    hashKey += vec[dim-1];
+    return hashKey;
+}
+
+const std::vector<int>& MultiIteration::get_vec(){
+    return start;
+}
+
+HashType MultiIteration::get_next(){
+    next();
+    return get_hash();
+}

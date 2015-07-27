@@ -3,6 +3,7 @@
 #include <cmath>
 #include <climits>
 #include <cassert>
+#include <algorithm>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -21,52 +22,42 @@ namespace clustering{
         m_cell_width = eps / sq;
     }
 
-    void DBSCAN_Grid::getMinMax_grid(float* min_x, float* min_y, float* max_x, float* max_y){
-        // TODO: dimension related function
-        float maxx, maxy, minx, miny;
-        maxx = maxy = std::numeric_limits<float>::min();
-        minx = miny = std::numeric_limits<float>::max();
-        for(size_t i=0; i<cl_d.size1(); i++){
-                if(cl_d(i,0) > maxx)
-                    maxx = cl_d(i,0);
-                if(cl_d(i,0) < minx)
-                    minx = cl_d(i,0);
-                if(cl_d(i,1) > maxy)
-                    maxy = cl_d(i,1);
-                if(cl_d(i,1) < miny)
-                    miny = cl_d(i,1);
+    void DBSCAN_Grid::getMinMax_grid(std::vector<float>& min_vec, std::vector<float>& max_vec){
+        assert(min_vec.size() == cl_d.size2());
+        assert(max_vec.size() == cl_d.size2());
+        for(unsigned int i=0; i<cl_d.size1(); i++){
+            for(unsigned int j=0; j<cl_d.size2(); j++){
+                if(cl_d(i, j) > max_vec[j])
+                    max_vec[j] = cl_d(i, j);
+                if(cl_d(i, j) < min_vec[j])
+                    min_vec[j] = cl_d(i, j);
+            }
         }
-        *max_x = maxx;
-        *max_y = maxy;
-        *min_x = minx;
-        *min_y = miny;
     }
 
     void DBSCAN_Grid::hash_construct_grid(){
-        // TODO: dimension related function
-        int features_num = cl_d.size2();
-        if(features_num != 2)
-            cout<<"only 2D data supported now!"<<endl;
+        unsigned int features_num = cl_d.size2();
         grid_init(features_num);
 
-        float min_x, min_y, max_x, max_y;
-        getMinMax_grid(&min_x, &min_y, &max_x, &max_y);
-        //cout<<endl;
-        //cout<<"eps_sqr:"<<m_eps_sqr<<" minpts:"<<m_min_elems<<" cell_width:"<<m_cell_width<<endl;
-        //cout<<"minx:"<<min_x<<" miny:"<<min_y<<" maxx:"<<max_x<<" maxy:"<<max_y<<endl;
-        m_min_x = min_x;
-        m_min_y = min_y;
-        int nRows = int((max_x - min_x) / m_cell_width) + 1;
-        int nCols = int((max_y - min_y) / m_cell_width) + 1;
+        std::vector<float> min_vec(features_num, std::numeric_limits<float>::max());
+        std::vector<float> max_vec(features_num, std::numeric_limits<float>::min());
+        getMinMax_grid(min_vec, max_vec);
+        
+        m_min_val.resize(features_num);
+        std::copy(min_vec.begin(), min_vec.end(), m_min_val.begin());
 
-        int length = cl_d.size1();
+        m_n_cnt.resize(features_num);
+        for(unsigned int i=0; i<features_num; i++)
+            m_n_cnt[i] = int((max_vec[i] - min_vec[i]) / m_cell_width) + 1;
+
+        unsigned int length = cl_d.size1();
         int uf_counter = 0;
         for(int i=0; i<length; i++){
             int dx = int((cl_d(i,0) - min_x) / m_cell_width) + 1;
             int dy = int((cl_d(i,1) - min_y) / m_cell_width) + 1;
             int key = dx * (nCols + 1) + dy;
 
-            std::unordered_map<int, Cell >::iterator got = m_hash_grid.find(key);
+            std::unordered_map<HashType, Cell>::iterator got = m_hash_grid.find(key);
             if(got == m_hash_grid.end()){
                 Cell c;
                 c.ufID = uf_counter++;
