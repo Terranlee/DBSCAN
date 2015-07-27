@@ -42,33 +42,23 @@ private:
     int length;
     std::vector<int> max_val;
 
-    // the following members are set during each iteration
-    // start[0] represents the outer loop, start[start.size()-1] represents the inner loop
-    std::vector<int> start;
-    std::vector<int> stop;
+    // this member is set during a neighbour iteration
+    HashType value;
+    std::vector<int> iter;
 
 public:
     MultiIteration();
     MultiIteration(unsigned int d);
     void set_dimension(unsigned int d);
     void set_max(const std::vector<int>& max);
-    void set_start(const std::vector<int>& s);
+    void set_start(HashType val);
     void test();
 
-    // the decode function is not possible using current hash function
-    // avoid using this function
-    //void decode(HashType hashKey, std::vector<int>& vec);
-
-    // next() : iterate to the next neighbour
-    // get_hash() : get the hashKey of the current cell
+    // next() : iterate to the next neighbour, return its key in hash_grid
     // hash() : return the hash code
-    // get_vec() : get the vector representation of the current cell
-    // get_next() : the combination of both next() and get()
-    void next();
-    HashType get_hash();
-    HashType hash(const std::vector<int>& vec);
-    const std::vector<int>& get_vec();
-    HashType get_next();
+    HashType next();
+    HashType get() const;
+    HashType hash(const std::vector<int>& vec) const;
 };
 
 #endif

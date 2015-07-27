@@ -8,6 +8,7 @@ Designed for CPU execute and DataFlow Engine acceleration
 ## Algorithms  
 1. Brute force (use distance matrix)  
 2. Grid based (by [Ade Gunawan](http://alexandria.tue.nl/extra1/afstversl/wsk-i/gunawan2013.pdf))  
+   (add support for multi-dimension input data using grid based algorithm)
 3. Reduced precision grid based (approximate DBSCAN with controllable precision)  
 4. Rehash grid based algorithm (use hashing to reduce the number of distance calculation)  
 5. Dataflow version (acceleration supported by Maxeler Dataflow Engine)  

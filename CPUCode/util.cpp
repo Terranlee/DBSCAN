@@ -74,8 +74,7 @@ void MultiIteration::set_dimension(unsigned int d){
     dim = d;
     // do #length iterations on each side of one dimension
     length = std::ceil( std::sqrt(float(d)) );
-    start.resize(d);
-    stop.resize(d);
+    iter.resize(dim);
 }
 
 void MultiIteration::set_max(const std::vector<int>& max){
@@ -84,14 +83,16 @@ void MultiIteration::set_max(const std::vector<int>& max){
     assert(dim = max_val.size());
 }
 
-void MultiIteration::set_start(const std::vector<int>& s){
-    // point to the first cell in neighbour
-    std::copy(s.begin(), s.end(), start.begin());
-    for(unsigned int i=0; i<start.size(); i++)
-        start[i] -= length;
-    std::copy(s.begin(), s.end(), stop.begin());
-    for(unsigned int i=0; i<stop.size(); i++)
-        stop[i] += length;
+void MultiIteration::set_start(HashType val){
+    // this function get the center of neighbours
+    // and then set to the beginning cell of the neighbours
+    value = val;
+    for(unsigned int i=0; i<dim; i++)
+        iter[i] = -1 * length;
+    for(unsigned int i=0; i<dim-1; i++)
+        value -= length * max_val[i];
+    value -= length;
+    // now value is the key to the beginning cell of neighbours
 }
 
 void MultiIteration::test(){
@@ -99,46 +100,31 @@ void MultiIteration::test(){
     return;
 }
 
-/*
-// the decode function is not possible using this hash function
-void MultiIteration::decode(HashType hashKey, std::vector<int>& vec){
-    // do not call vec.resize in this function
-    // allocate the memory outside this function
-    for(int i=dim-1; i>=1; i--){
-        vec[i] = hashKey % max_val[i-1];
-        hashKey = hashKey / max_val[i];
-    }
-    vec[0] = hashKey;
+HashType MultiIteration::get() const{
+    return value;
 }
-*/
 
-void MultiIteration::next(){
-    int end = dim - 1;
-    if(start[end] == stop[end]){
-        start[end] = stop[end] - 2 * length;
+HashType MultiIteration::next(){
+    unsigned int end = dim - 1;
+    if(iter[end] == length){
+        iter[end] = -1 * length;
+        value -= length * 2;
         for(int i=end-1; i>=0; i--){
-            if(start[i] == stop[i])
-                start[i] = stop[i] - 2 * length;
+            if(iter[i] == length){
+                iter[i] = -1 * length;
+                value -= max_val[i] * length * 2;
+            }
             else{
-                start[i]++;
+                iter[i]++;
+                value += max_val[i];
                 break;
             }
         }
         return;
     }
-    start[end]++;
-}
-
-HashType MultiIteration::get_hash(){
-    // TODO: is it okay to use int as the hashKey?
-    // maybe too short in high dimension dataset
-    HashType hashKey = 0;
-    for(int i=0; i<dim-1; i++){
-        hashKey += start[i];
-        hashKey *= max_val[i];
-    }
-    hashKey += start[dim-1];
-    return hashKey;
+    iter[end]++;
+    value += 1;
+    return value;
 }
 
 HashType MultiIteration::hash(const std::vector<int>& vec){
@@ -151,11 +137,3 @@ HashType MultiIteration::hash(const std::vector<int>& vec){
     return hashKey;
 }
 
-const std::vector<int>& MultiIteration::get_vec(){
-    return start;
-}
-
-HashType MultiIteration::get_next(){
-    next();
-    return get_hash();
-}

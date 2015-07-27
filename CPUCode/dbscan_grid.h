@@ -25,7 +25,7 @@ namespace clustering{
         
         std::vector<bool> m_is_core;
         std::unordered_map<HashType, Cell> m_hash_grid;
-        
+
         // MultiIteration is used for iteration in multiple dimension
         // UnionFind is the union_find structure representing the relationship of neighbour cells
         // See util.cpp for details
@@ -33,11 +33,11 @@ namespace clustering{
         UnionFind uf;
 
         void grid_init(const int features_num);
-        void getMinMax_grid(std::vector<float>& min, std::vector<float>& max);
+        void getMinMax_grid(std::vector<float>& min, std::vector<float>& max) const;
         void cell_label_to_point_label();
 
         // check in neighbour function, only check the adjacent cells which is possible
-        bool search_in_neighbour(int point_id, int cell_id);
+        bool search_in_neighbour(int point_id, HashType cell_id);
         void merge_in_neighbour(int point_id, int cell_id);
         int find_nearest_in_neighbour(int point_id, int cell_id);
     

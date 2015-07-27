@@ -36,6 +36,7 @@ namespace clustering{
     }
 
     void DBSCAN_Grid::hash_construct_grid(){
+        // do some initialization and detect the size of the grid
         unsigned int features_num = cl_d.size2();
         grid_init(features_num);
 
@@ -74,8 +75,9 @@ namespace clustering{
         }
     }
 
-    bool DBSCAN_Grid::search_in_neighbour(int point_id, int center_id){
+    bool DBSCAN_Grid::search_in_neighbour(int point_id, HashType center_id){
         // TODO: dimension related function
+        mi.
         static const int num_neighbour = 21;
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
         unsigned int counter = 0;
@@ -123,7 +125,7 @@ namespace clustering{
 
     void DBSCAN_Grid::determine_core_point_grid(){
         m_is_core.resize(cl_d.size1(), false);
-        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             //  here we use '>', because it should not include the central point itself
             if(iter->second.data.size() > m_min_elems){
                 for(unsigned int i=0; i<iter->second.data.size(); i++){
@@ -132,7 +134,7 @@ namespace clustering{
                 }
             }
             else{
-                int cell_id = iter->first;
+                HashType cell_id = iter->first;
                 for(unsigned int i=0; i<iter->second.data.size(); i++){
                     int point_id = iter->second.data.at(i);
                     bool result = search_in_neighbour(point_id, cell_id);
@@ -301,14 +303,16 @@ namespace clustering{
 
     void DBSCAN_Grid::print_grid_info() const{
         cout<<"-----------print hash grid-----------"<<endl;
-        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-            int key = iter->first;
-            int dx = key / (m_n_cols + 1);
-            int dy = key % (m_n_cols + 1);
-            cout<<"[key:"<<key<<" dx:"<<dx<<" dy:"<<dy<<"]"<<endl;
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            HashType key = iter->first;
+            // can not decode the key using the hash function in util.cpp
+            cout<<"key : "<<key<<endl;
             for(unsigned int j=0; j<iter->second.data.size(); j++){
                 int which = iter->second.data[j];
-                cout<<"("<<cl_d(which,0)<<","<<cl_d(which,1)<<")  ";
+                cout<<"("
+                for(unsigned int k=0; k<cl_d.size2(); k++)
+                    cout<<cl_d(j, k)<<",";
+                cout<<")"<<endl;
             }
             cout<<endl;
         }
@@ -319,8 +323,11 @@ namespace clustering{
         // this function should be called after the init of m_is_core and m_labels
         cout<<"-----------print point information-----------"<<endl;
         for(unsigned int i=0; i<cl_d.size1(); i++){
-            cout<<"("<<cl_d(i,0)<<","<<cl_d(i,1)<<")     ";
-            cout<<"["<<m_labels[i]<<" "<<m_is_core[i]<<"]"<<endl;
+            cout<<"(";
+            for(unsigned int j=0; j<cl_d.size2(); j++)
+                cout<<cl_d(i,j)<<",";
+            cout<<")       [";
+            cout<<m_labels[i]<<" "<<m_is_core[i]<<"]"<<endl;
         }
         cout<<"-------------------------------------"<<endl;
     }
