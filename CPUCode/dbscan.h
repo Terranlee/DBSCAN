@@ -13,16 +13,26 @@ using std::endl;
 
 namespace clustering
 {
+    // data type defination
+    typedef ublas::vector<float> FeaturesWeights;
+    typedef ublas::matrix<float> ClusterData;
+    typedef ublas::matrix<float> DistanceMatrix;
+    typedef std::vector<uint32_t> Neighbors;
+    typedef std::vector<int32_t> Labels;
+
+    // all the information for a cell
+    // use this in the grid based algorithm
+    struct Cell{
+        // the ID of this cell in union_find
+        // use it in function merge_clusters
+        int ufID;
+        // the index of points in ClusterData
+        std::vector<int> data;
+    };
+
     class DBSCAN
     {
     public:
-        // data type defination
-        typedef ublas::vector<float> FeaturesWeights;
-        typedef ublas::matrix<float> ClusterData;
-        typedef ublas::matrix<float> DistanceMatrix;
-        typedef std::vector<uint32_t> Neighbors;
-        typedef std::vector<int32_t> Labels;
-
         /*****************************************************************************************/
         // functions for all DBSCAN methods
         // implemented in dbscan.cpp
