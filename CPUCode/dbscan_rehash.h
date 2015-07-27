@@ -23,11 +23,12 @@ namespace clustering{
         // We will see if there are any improvements in performance
 
 
-        std::vector<int> m_point_to_cell;
+        std::vector<int> m_point_to_uf;
 
         // rehash the data into a new grid with offset==eps/sqrt(2)/2
         // this will merge the neighbour cells without distance calculation
         void rehash_data_merge();
+        void merge_in_neighbour_rehash(int point_id, int center_id);
         void merge_clusters_rehash();
     };
 
