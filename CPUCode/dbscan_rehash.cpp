@@ -19,7 +19,7 @@ namespace clustering{
 
             int dx = int((cl_d(i,0) - min_x) / m_cell_width) + 1;
             int dy = int((cl_d(i,1) - min_y) / m_cell_width) + 1;
-            int key = dx * (m_n_cols) + dy;
+            int key = dx * (m_n_cols + 1) + dy;
 
             std::unordered_map<int, int>::iterator got = new_grid.find(key);
             if(got == new_grid.end()){
@@ -29,7 +29,6 @@ namespace clustering{
                 int belong_id = got->second;
                 int center_id = m_point_to_uf[i];
                 uf.make_union(belong_id, center_id);
-                got->second = m_point_to_uf[i];
             }
         }
     }
@@ -44,27 +43,25 @@ namespace clustering{
             std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
                 // the difference between grid based algorithm and rehash algorithm
-                // many neighbour cells may be merged already
+                // many neighbour cells may be merged already at the rehash function
                 int belong_index = got->second.ufID;
-                if(uf.find(cell_index) == uf.find(belong_index))
-                    continue;
-                
-                for(unsigned int j=0; j<got->second.data.size(); j++){
-                    int which = got->second.data.at(j);
-                    if(!m_is_core[which])
-                        continue;
+                if(uf.find(cell_index) != uf.find(belong_index)){
+                    for(unsigned int j=0; j<got->second.data.size(); j++){
+                        int which = got->second.data.at(j);
+                        if(!m_is_core[which])
+                            continue;
 
-                    float dist_sqr = 0.0;
-                    for(unsigned int k=0; k<cl_d.size2(); k++){
-                        float diff = cl_d(which, k) - cl_d(point_id, k);
-                        dist_sqr += diff * diff;
+                        float dist_sqr = 0.0;
+                        for(unsigned int k=0; k<cl_d.size2(); k++){
+                            float diff = cl_d(which, k) - cl_d(point_id, k);
+                            dist_sqr += diff * diff;
+                        }
+                        if(dist_sqr < m_eps_sqr){
+                            uf.make_union(belong_index, cell_index);
+                            break;
+                        }
                     }
-                    if(dist_sqr < m_eps_sqr){
-                        int belong_index = got->second.ufID;
-                        uf.make_union(belong_index, cell_index);
-                        break;
-                    }
-                }
+                } //endof if(uf.find() != uf.find())
             }
 
             switch(i){
