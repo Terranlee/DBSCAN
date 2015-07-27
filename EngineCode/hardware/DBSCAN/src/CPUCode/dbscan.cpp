@@ -13,7 +13,7 @@
 namespace clustering
 {
     void DBSCAN::read_cluster_data(size_t features_num, size_t elements_num, std::string filename){
-        cl_d = DBSCAN::ClusterData(elements_num, features_num);
+        cl_d = ClusterData(elements_num, features_num);
         std::ifstream fin(filename.data());
         for(size_t i=0; i<elements_num; i++)
             for(size_t j=0; j<features_num; j++)
@@ -29,7 +29,7 @@ namespace clustering
     }
 
     void DBSCAN::gen_cluster_data( size_t features_num, size_t elements_num ){
-        cl_d = DBSCAN::ClusterData(elements_num, features_num);
+        cl_d = ClusterData(elements_num, features_num);
         for (size_t i = 0; i < elements_num; ++i){
             for (size_t j = 0; j < features_num; ++j)
                 cl_d(i, j) = (-1.0 + rand() * (2.0) / RAND_MAX);
@@ -55,7 +55,7 @@ namespace clustering
     std::ostream& operator<<(std::ostream& o, DBSCAN & d)
     {
 		// icpc 12.1.4 does not support auto
-		DBSCAN::Labels lb = d.get_labels();
+		Labels lb = d.get_labels();
 		for(unsigned int i=0; i<lb.size(); i++)
 			o << lb[i] << " ";
         //for(const auto & l : d.get_labels())
@@ -86,7 +86,7 @@ namespace clustering
         m_labels.clear();
     }
 
-    const DBSCAN::Labels & DBSCAN::get_labels() const{
+    const Labels & DBSCAN::get_labels() const{
         return m_labels;
     }
 

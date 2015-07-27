@@ -23,16 +23,16 @@ namespace clustering{
         float m_min_x;
         float m_min_y;
         std::vector<bool> m_is_core;
-        std::unordered_map<int, std::vector<int> > m_hash_grid;
+        std::unordered_map<int, Cell> m_hash_grid;
         UnionFind uf;
 
         void grid_init(const int features_num);
         void getMinMax_grid(float* min_x, float* min_y, float* max_x, float* max_y );
-        void cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find);
+        void cell_label_to_point_label();
 
         // check in neighbour function, only check the adjacent cells which is possible
         bool search_in_neighbour(int point_id, int cell_id);
-        void merge_in_neighbour(int point_id, int cell_id, const std::unordered_map<int, int>& reverse);
+        void merge_in_neighbour(int point_id, int cell_id);
         int find_nearest_in_neighbour(int point_id, int cell_id);
     
         // testing function

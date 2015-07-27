@@ -146,8 +146,8 @@ $(PRJ)_sim.o: $(SIMMAXDIR)/$(PRJ).max
 # Add multiple file compilation
 # not a general template, only for DBSCAN project
 
-TEMP_OBJS := $(patsubst %cpp,%o,$(CPUFILES))
-CPU_OBJS := $(notdir $(TEMP_OBJS))
+SIM_TEMP_OBJS := $(patsubst %cpp,%o,$(CPUFILES))
+SIM_CPU_OBJS := $(notdir $(SIM_TEMP_OBJS))
 
 # the following files does not require SLiC and Maxeler interface
 util.o: ../src/CPUCode/util.cpp
@@ -163,7 +163,7 @@ dbscan_dfe.o: ../src/CPUCode/dbscan_dfe.cpp
 test_dbscan.o: ../src/CPUCode/test_dbscan.cpp
 	$(CPUCOMPILER) $< $(ALL_FLAGS) -I$(SIMMAXDIR) -D__SIM__ -DDESIGN_NAME=$(PRJ) -c -o $@
 
-$(PRJ)_sim: $(PRJ)_sim.o $(CPU_OBJS)
+$(PRJ)_sim: $(PRJ)_sim.o $(SIM_CPU_OBJS)
 	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
 
 # The following 4 lines are the original makefile
@@ -201,10 +201,28 @@ $(DFEMAXDIR)/$(PRJ).max: $(ENGINEFILES)
 $(PRJ)_dfe.o: $(DFEMAXDIR)/$(PRJ).max
 	$(SLICCOMPILE) $< $@
 
-$(PRJ)_dfec.o: $(CPUFILES)
+# Modified by Terranlee
+# The following commands are the same as the simulation one
+DFE_CPU_OBJS := DFE_util.o DFE_dbscan.o DFE_dbscan_grid.o DFE_dbscan_dfe.o DFE_test_dbscan.o 
+
+# The following files does not requires SLiC interface
+DFE_util.o: ../src/CPUCode/util.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+DFE_dbscan.o: ../src/CPUCode/dbscan.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+DFE_dbscan_grid.o: ../src/CPUCode/dbscan_grid.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+
+# The following files requires SLiC interface
+DFE_dbscan_dfe.o: ../src/CPUCode/dbscan_dfe.cpp
+	$(CPUCOMPILER) $< $(ALL_FLAGS) -I$(DFEMAXDIR) -DDESIGN_NAME=$(PRJ) -c -o $@
+DFE_test_dbscan.o: ../src/CPUCode/test_dbscan.cpp
 	$(CPUCOMPILER) $< $(ALL_FLAGS) -I$(DFEMAXDIR) -DDESIGN_NAME=$(PRJ) -c -o $@
 
-$(PRJ)_dfe: $(PRJ)_dfe.o $(PRJ)_dfec.o
+#$(PRJ)_dfec.o: $(CPUFILES)
+#	$(CPUCOMPILER) $< $(ALL_FLAGS) -I$(DFEMAXDIR) -DDESIGN_NAME=$(PRJ) -c -o $@
+
+$(PRJ)_dfe: $(PRJ)_dfe.o $(DFE_CPU_OBJS)
 	$(CPUCOMPILER) $(ALL_FLAGS) -o $@ $^ $(LFLAGS)
 
 build: $(PRJ)_dfe

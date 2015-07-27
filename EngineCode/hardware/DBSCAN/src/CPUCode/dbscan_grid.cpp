@@ -60,19 +60,21 @@ namespace clustering{
         int nCols = int((max_y - min_y) / m_cell_width) + 1;
 
         int length = cl_d.size1();
+        int uf_counter = 0;
         for(int i=0; i<length; i++){
             int dx = int((cl_d(i,0) - min_x) / m_cell_width) + 1;
             int dy = int((cl_d(i,1) - min_y) / m_cell_width) + 1;
             int key = dx * (nCols + 1) + dy;
 
-            std::unordered_map<int, std::vector<int> >::iterator got = m_hash_grid.find(key);
+            std::unordered_map<int, Cell >::iterator got = m_hash_grid.find(key);
             if(got == m_hash_grid.end()){
-                std::vector<int> intvec;
-                intvec.push_back(i);
-                m_hash_grid.insert(std::make_pair(key,intvec));
+                Cell c;
+                c.ufID = uf_counter++;
+                c.data.push_back(i);
+                m_hash_grid.insert(std::make_pair(key,c));
             }
             else
-                got->second.push_back(i);
+                got->second.data.push_back(i);
         }
         m_n_rows = nRows;
         m_n_cols = nCols;
@@ -86,10 +88,10 @@ namespace clustering{
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
         unsigned int counter = 0;
         for(int i=0; i<num_neighbour; i++){
-            std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
+            std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
-                for(unsigned int j=0; j<got->second.size(); j++){
-                    int which = got->second.at(j);
+                for(unsigned int j=0; j<got->second.data.size(); j++){
+                    int which = got->second.data.at(j);
 
                     float dist_sqr = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -129,18 +131,18 @@ namespace clustering{
 
     void DBSCAN_Grid::determine_core_point_grid(){
         m_is_core.resize(cl_d.size1(), false);
-        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             //  here we use '>', because it should not include the central point itself
-            if(iter->second.size() > m_min_elems){
-                for(unsigned int i=0; i<iter->second.size(); i++){
-                    int which = iter->second.at(i);
+            if(iter->second.data.size() > m_min_elems){
+                for(unsigned int i=0; i<iter->second.data.size(); i++){
+                    int which = iter->second.data.at(i);
                     m_is_core[which] = true;
                 }
             }
             else{
                 int cell_id = iter->first;
-                for(unsigned int i=0; i<iter->second.size(); i++){
-                    int point_id = iter->second.at(i);
+                for(unsigned int i=0; i<iter->second.data.size(); i++){
+                    int point_id = iter->second.data.at(i);
                     bool result = search_in_neighbour(point_id, cell_id);
                     m_is_core[point_id] = result;
                 }
@@ -149,16 +151,17 @@ namespace clustering{
         //print_point_info(cl_d);
     }
 
-    void DBSCAN_Grid::merge_in_neighbour(int point_id, int center_id, const std::unordered_map<int, int>& reverse_find){
+    void DBSCAN_Grid::merge_in_neighbour(int point_id, int center_id){
         static const int num_neighbour = 21;
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
+        int cell_index = m_hash_grid.find(center_id)->second.ufID;
         // iterate on core points only
         for(int i=0; i<num_neighbour; i++){
-            std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
+            std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
-                for(unsigned int j=0; j<got->second.size(); j++){
-                    int which = got->second.at(j);
+                for(unsigned int j=0; j<got->second.data.size(); j++){
+                    int which = got->second.data.at(j);
                     if(!m_is_core[which])
                         continue;
 
@@ -168,11 +171,9 @@ namespace clustering{
                         dist_sqr += diff * diff;
                     }
                     if(dist_sqr < m_eps_sqr){
-                        int belong_index = reverse_find.find(cell_iter)->second;
-                        int cell_index = reverse_find.find(center_id)->second;
+                        int belong_index = got->second.ufID;
                         uf.make_union(belong_index, cell_index);
                         break;
-                        //return cell_iter;
                     }
                 }
             }
@@ -196,16 +197,18 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_Grid::cell_label_to_point_label(const std::unordered_map<int, int>& reverse_find){
-        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+    void DBSCAN_Grid::cell_label_to_point_label(){
+        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             // key is the index in the hash_grid, key_index is the corresponding index in the union_find structure
-            int key = iter->first;
-            int key_index = (int)reverse_find.find(key)->second;
+            int key_index = iter->second.ufID;
             int root = uf.find(key_index);
             if(uf.get_size(root) == 1){
+                // this small cluster does not merge to any other small clusters
+                // maybe it is a own cluster
+                // or maybe all of the points in this small cluster are noise(may change in determing_border())
                 bool has_core = false;
-                for(unsigned int i=0; i<iter->second.size(); i++){
-                    int which = iter->second[i];
+                for(unsigned int i=0; i<iter->second.data.size(); i++){
+                    int which = iter->second.data[i];
                     if(m_is_core[which] == true){
                         has_core = true;
                         break;
@@ -214,8 +217,8 @@ namespace clustering{
                 if(!has_core)
                     root = -1;
             } // endof if(uf.get_size(root) == 1)
-            for(unsigned int i=0; i<iter->second.size(); i++){
-                int which = iter->second[i];
+            for(unsigned int i=0; i<iter->second.data.size(); i++){
+                int which = iter->second.data[i];
                 m_labels[which] = root;
             }
         } // endof for(std::unorderedmap::iterator)
@@ -227,39 +230,17 @@ namespace clustering{
         // initialize the UnionFind uf in class DBSCAN
         uf.init(m_hash_grid.size());
 
-        // TODO: how to deal with the reverse_find structure?
-        // map the cell.key to a linear number
-        std::unordered_map<int, int> reverse_find;
-		// icpc 12.1.4 does not support reserve for unordered_map???
-        //reverse_find.reserve(m_hash_grid.size());
-        int index = 0;
-        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-            reverse_find.insert(std::make_pair(iter->first, index));
-            index++;
-        }
-
-        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             int cell_id = iter->first;
-            for(unsigned int i=0; i<iter->second.size(); i++){
-                int point_id = iter->second[i];
+            for(unsigned int i=0; i<iter->second.data.size(); i++){
+                int point_id = iter->second.data[i];
                 if(!m_is_core[point_id])
                     continue;
 
-                merge_in_neighbour(point_id, cell_id, reverse_find);
-                // for debug
-                /*
-                int dx1 = cell_id / (m_n_cols + 1);
-                int dy1 = cell_id % (m_n_cols + 1);
-                int dx2 = belong_id / (m_n_cols + 1);
-                int dy2 = belong_id % (m_n_cols + 1);
-                cout<<"("<<dx1<<","<<dy1<<")  -- ("<<dx2<<","<<dy2<<")"<<endl; 
-                */
+                merge_in_neighbour(point_id, cell_id);
             }
         }
-        cell_label_to_point_label(reverse_find);
-
-        //print_point_info(cl_d);
-        //uf.print_union();
+        cell_label_to_point_label();
     }
 
     int DBSCAN_Grid::find_nearest_in_neighbour(int point_id, int center_id){
@@ -273,10 +254,10 @@ namespace clustering{
         float min_distance = m_eps_sqr;
         float which_label = -1;
         for(int i=0; i<num_neighbour; i++){
-            std::unordered_map<int, std::vector<int> >::const_iterator got = m_hash_grid.find(cell_iter);
+            std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
-                for(unsigned int j=0; j<got->second.size(); j++){
-                    int which = got->second.at(j);
+                for(unsigned int j=0; j<got->second.data.size(); j++){
+                    int which = got->second.data[j];
                     if(!m_is_core[which])
                         continue;
 
@@ -328,13 +309,13 @@ namespace clustering{
 
     void DBSCAN_Grid::print_grid_info() const{
         cout<<"-----------print hash grid-----------"<<endl;
-        for(std::unordered_map<int, std::vector<int> >::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             int key = iter->first;
             int dx = key / (m_n_cols + 1);
             int dy = key % (m_n_cols + 1);
             cout<<"[key:"<<key<<" dx:"<<dx<<" dy:"<<dy<<"]"<<endl;
-            for(unsigned int j=0; j<iter->second.size(); j++){
-                int which = iter->second.at(j);
+            for(unsigned int j=0; j<iter->second.data.size(); j++){
+                int which = iter->second.data[j];
                 cout<<"("<<cl_d(which,0)<<","<<cl_d(which,1)<<")  ";
             }
             cout<<endl;
