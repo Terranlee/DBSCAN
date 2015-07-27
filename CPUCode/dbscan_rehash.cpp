@@ -34,7 +34,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_Grid::merge_in_neighbour_rehash(int point_id, int center_id){
+    void DBSCAN_Rehash::merge_in_neighbour_rehash(int point_id, int center_id){
         static const int num_neighbour = 21;
         int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
 
@@ -43,6 +43,8 @@ namespace clustering{
         for(int i=0; i<num_neighbour; i++){
             std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
+                // the difference between grid based algorithm and rehash algorithm
+                // many neighbour cells may be merged already
                 int belong_index = got->second.ufID;
                 if(uf.find(cell_index) == uf.find(belong_index))
                     continue;

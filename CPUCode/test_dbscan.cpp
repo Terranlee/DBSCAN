@@ -66,7 +66,7 @@ void test_reduced(Labels& label_reduced){
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
     DBSCAN* dbs = new DBSCAN_Reduced(10000, 4);
-    dbs->read_cluster_data(2, 5000, "../data/5times_s1.txt");
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     cout<<"start execution of reduced grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -80,6 +80,29 @@ void test_reduced(Labels& label_reduced){
     Labels lbr = dbs->get_labels();
     label_reduced.resize(lbr.size());
     std::copy(lbr.begin(), lbr.end(), label_reduced.begin());
+    cout<<endl;
+    delete dbs;
+}
+
+void test_rehashed(Labels& label_rehashed){
+
+    //DBSCAN* dbs = new DBSCAN_Rehash(20000, 4);
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+
+    DBSCAN* dbs = new DBSCAN_Rehash(10000, 4);
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    cout<<"start execution of rehash grid based DBSCAN"<<endl;
+    float begin = DBSCAN::get_clock();
+    dbs->fit();
+    float end = DBSCAN::get_clock();
+    cout<<"time is : "<<end - begin<<endl;
+
+    dbs->reshape_labels();
+    dbs->output_result("output_rehash");
+    Labels lbr = dbs->get_labels();
+    label_rehashed.resize(lbr.size());
+    std::copy(lbr.begin(), lbr.end(), label_rehashed.begin());
     cout<<endl;
     delete dbs;
 }
@@ -118,14 +141,17 @@ int main()
     Labels label_grid;
     //Labels label_reduced;
     //Labels label_dfe;
+    Labels label_rehashed;
 
     test_original(label_origin);
     test_grid(label_grid);
     //test_reduced(label_reduced);
     //test_dfe(label_dfe);
+    test_rehashed(label_rehashed);
 
     DBSCAN::cmp_result(label_origin, label_grid);
     //DBSCAN::cmp_result(label_grid, label_dfe);
+    DBSCAN::cmp_result(label_origin, label_rehashed);
 
     return 0;
 }
