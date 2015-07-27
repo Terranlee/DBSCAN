@@ -50,12 +50,17 @@ namespace clustering{
         for(unsigned int i=0; i<features_num; i++)
             m_n_cnt[i] = int((max_vec[i] - min_vec[i]) / m_cell_width) + 1;
 
-        unsigned int length = cl_d.size1();
+        std::vector<int> temp(m_n_cnt.size());
+        for(unsigned int i=0; i<m_n_cnt.size(); i++)
+            temp[i] = m_n_cnt[i] + 1;
+        mi.set_dimension(features_num);
+        mi.set_max(temp);
+
         int uf_counter = 0;
-        for(int i=0; i<length; i++){
-            int dx = int((cl_d(i,0) - min_x) / m_cell_width) + 1;
-            int dy = int((cl_d(i,1) - min_y) / m_cell_width) + 1;
-            int key = dx * (nCols + 1) + dy;
+        for(unsigned int i=0; i<cl_d.size1(); i++){
+            for(unsigned int j=0; j<cl_d.size2(); j++)
+                temp[i] = int((cl_d(i, j) - m_min_val[j]) / m_cell_width) + 1;
+            HashType key = mi.hash(temp[i]);
 
             std::unordered_map<HashType, Cell>::iterator got = m_hash_grid.find(key);
             if(got == m_hash_grid.end()){
@@ -67,10 +72,6 @@ namespace clustering{
             else
                 got->second.data.push_back(i);
         }
-        m_n_rows = nRows;
-        m_n_cols = nCols;
-        //cout<<"n_rows:"<<m_n_rows<<" n_cols:"<<m_n_cols<<endl;
-        //print_grid_info(cl_d);
     }
 
     bool DBSCAN_Grid::search_in_neighbour(int point_id, int center_id){

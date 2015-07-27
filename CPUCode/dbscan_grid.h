@@ -19,11 +19,17 @@ namespace clustering{
         // implemented in dbscan_grid.cpp
         float m_cell_width;
 
+        // the following two vector shows the features about the grid
         std::vector<float> m_min_val;
         std::vector<int> m_n_cnt;
         
         std::vector<bool> m_is_core;
         std::unordered_map<HashType, Cell> m_hash_grid;
+        
+        // MultiIteration is used for iteration in multiple dimension
+        // UnionFind is the union_find structure representing the relationship of neighbour cells
+        // See util.cpp for details
+        MultiIteration mi;
         UnionFind uf;
 
         void grid_init(const int features_num);

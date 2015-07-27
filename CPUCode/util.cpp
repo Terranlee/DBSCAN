@@ -65,7 +65,12 @@ void UnionFind::test(){
 
 /************************************************************************/
 // The following functions are for the multi-iteration data structure
-MultiIteration::MultiIteration(int d){
+MultiIteration::MultiIteration(){}
+MultiIteration::MultiIteration(unsigned int d){
+    set_dimension(d);
+}
+
+void MultiIteration::set_dimension(unsigned int d){
     dim = d;
     // do #length iterations on each side of one dimension
     length = std::ceil( std::sqrt(float(d)) );

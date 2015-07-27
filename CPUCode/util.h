@@ -48,7 +48,9 @@ private:
     std::vector<int> stop;
 
 public:
-    MultiIteration(int d);
+    MultiIteration();
+    MultiIteration(unsigned int d);
+    void set_dimension(unsigned int d);
     void set_max(const std::vector<int>& max);
     void set_start(const std::vector<int>& s);
     void test();
