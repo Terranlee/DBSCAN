@@ -15,10 +15,11 @@ namespace clustering{
 
     private:
         /*****************************************************************************************/
-        // variables and functions for reduced precision implementation
-        // the number of points in each cell is fixed, making the length of iteration to be fixed
-        // the precision of the following implementation will be reduced
-        // implemented in dbscan_reduced.cpp
+        // Variables and functions for reduced precision implementation
+        // The number of points in each cell is fixed, making the length of iteration to be fixed
+        // The dataflow version of DBSCAN is based on this method, because hardware only support fixed length loop
+        // The precision of the following implementation is controlled by m_max_num_point
+        // Implemented in dbscan_reduced.cpp
         unsigned int m_max_num_point;
 
         void process_vector(std::vector<int>& vec);

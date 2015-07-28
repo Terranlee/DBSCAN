@@ -7,7 +7,7 @@ namespace clustering{
     DBSCAN_Rehash::DBSCAN_Rehash(float eps, size_t min_elems) : DBSCAN_Grid(eps, min_elems){}
     DBSCAN_Rehash::~DBSCAN_Rehash(){}
 
-    void DBSCAN_Rehash::rehash_data_merge(){
+    void DBSCAN_Rehash::rehash_data(){
         // move the grid m_cell_width / 2 to get a new grid
         std::unordered_map<HashType, int> new_grid;
 
@@ -82,7 +82,7 @@ namespace clustering{
             }
         }
 
-        rehash_data_merge();
+        rehash_data();
 
         for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             HashType center_key = iter->first;
