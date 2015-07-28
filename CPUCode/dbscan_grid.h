@@ -37,9 +37,9 @@ namespace clustering{
         void cell_label_to_point_label();
 
         // check in neighbour function, only check the adjacent cells which is possible
-        bool search_in_neighbour(int point_id, HashType cell_id);
-        void merge_in_neighbour(int point_id, int cell_id);
-        int find_nearest_in_neighbour(int point_id, int cell_id);
+        bool search_in_neighbour(int point_id, HashType cell_key);
+        void merge_in_neighbour(int point_id, HashType cell_key);
+        int find_nearest_in_neighbour(int point_id, HashType cell_key);
     
         // testing function
         void print_grid_info() const;

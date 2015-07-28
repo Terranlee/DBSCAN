@@ -75,6 +75,10 @@ void MultiIteration::set_dimension(unsigned int d){
     // do #length iterations on each side of one dimension
     length = std::ceil( std::sqrt(float(d)) );
     iter.resize(dim);
+    int width = length * 2 + 1;
+    counter = int( pow( float(width), float(dim)) ) - 1;
+    // for debug
+    cout<<"dim:"<<dim<<" length:"<<length<<" counter:"<<counter<<endl;
 }
 
 void MultiIteration::set_max(const std::vector<int>& max){
@@ -87,9 +91,9 @@ void MultiIteration::set_start(HashType val){
     // this function get the center of neighbours
     // and then set to the beginning cell of the neighbours
     value = val;
-    for(unsigned int i=0; i<dim; i++)
+    for(int i=0; i<dim; i++)
         iter[i] = -1 * length;
-    for(unsigned int i=0; i<dim-1; i++)
+    for(int i=0; i<dim-1; i++)
         value -= length * max_val[i];
     value -= length;
     // now value is the key to the beginning cell of neighbours
@@ -120,14 +124,14 @@ HashType MultiIteration::next(){
                 break;
             }
         }
-        return;
+        return value;
     }
     iter[end]++;
     value += 1;
     return value;
 }
 
-HashType MultiIteration::hash(const std::vector<int>& vec){
+HashType MultiIteration::hash(const std::vector<int>& vec) const{
     HashType hashKey = 0;
     for(int i=0; i<dim-1; i++){
         hashKey += vec[i];
@@ -137,3 +141,6 @@ HashType MultiIteration::hash(const std::vector<int>& vec){
     return hashKey;
 }
 
+int MultiIteration::get_counter() const{
+    return counter;
+}

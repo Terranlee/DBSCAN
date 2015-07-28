@@ -41,6 +41,7 @@ private:
     int dim;
     int length;
     std::vector<int> max_val;
+    int counter;
 
     // this member is set during a neighbour iteration
     HashType value;
@@ -55,10 +56,13 @@ public:
     void test();
 
     // next() : iterate to the next neighbour, return its key in hash_grid
+    // get()  : get the current hash value
     // hash() : return the hash code
+    // get_counter() : get the number of iteration that is needed in this dimension
     HashType next();
     HashType get() const;
     HashType hash(const std::vector<int>& vec) const;
+    int get_counter() const;
 };
 
 #endif
