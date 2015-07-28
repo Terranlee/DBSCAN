@@ -58,11 +58,11 @@ namespace clustering{
         mi.set_max(temp);
 
         int uf_counter = 0;
-        for(unsigned int i=0; i<cl_d.size1(); i++){
+        int length = (int)cl_d.size1();
+        for(int i=0; i<length; i++){
             for(unsigned int j=0; j<cl_d.size2(); j++)
-                temp[i] = int((cl_d(i, j) - m_min_val[j]) / m_cell_width) + 1;
+                temp[j] = int((cl_d(i, j) - m_min_val[j]) / m_cell_width) + 1;
             HashType key = mi.hash(temp);
-
             std::unordered_map<HashType, Cell>::iterator got = m_hash_grid.find(key);
             if(got == m_hash_grid.end()){
                 Cell c;
@@ -288,10 +288,7 @@ namespace clustering{
         hash_construct_grid();
         determine_core_point_grid();
 
-        //float clock1 = get_clock();
         merge_clusters();
-        //float clock2 = get_clock();
-        //cout<<clock2 - clock1<<endl;
 
         determine_boarder_point();
     }
