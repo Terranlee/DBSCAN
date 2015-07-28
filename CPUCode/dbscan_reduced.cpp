@@ -215,12 +215,16 @@ namespace clustering{
         prepare_labels(cl_d.size1());
 
         hash_construct_grid();
-        //detect_cell_size();
         
         reduce_precision(m_min_elems);
 
         determine_core_point_grid_reduced();
+
+        float begin = get_clock();
         merge_clusters_reduced();
+        float end = get_clock();
+        cout<<end - begin<<endl;
+        
         determine_boarder_point_reduced();
     }
 

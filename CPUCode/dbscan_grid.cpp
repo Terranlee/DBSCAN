@@ -288,8 +288,11 @@ namespace clustering{
         hash_construct_grid();
         determine_core_point_grid();
 
+        float begin = get_clock();
         merge_clusters();
-
+        float end = get_clock();
+        cout<<end - begin<<endl;
+        
         determine_boarder_point();
     }
 
