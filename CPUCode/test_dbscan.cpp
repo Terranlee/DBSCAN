@@ -1,12 +1,15 @@
 #include "dbscan_matrix.h"
 #include "dbscan_grid.h"
-//#include "dbscan_reduced.h"
-//#include "dbscan_rehash.h"
+#include "dbscan_reduced.h"
+#include "dbscan_rehash.h"
 
-// include dbscan_dfe.h only when you have the maxeler environment
+// the dfe version of DBSCAN does not support dimension > 3
+// checkout to branch main for code that are able to run on DFE
+/*
 #ifdef DESIGN_NAME
     #include "dbscan_dfe.h"
 #endif
+*/
 
 #include <algorithm>
 
@@ -60,7 +63,7 @@ void test_grid(Labels& label_grid){
     delete dbs;
 }
 
-/*
+
 void test_reduced(Labels& label_reduced){
     
     //DBSCAN* dbs = new DBSCAN_Reduced(20000, 4);   // the papameter for s1.txt
@@ -84,9 +87,8 @@ void test_reduced(Labels& label_reduced){
     cout<<endl;
     delete dbs;
 }
-*/
 
-/*
+
 void test_rehashed(Labels& label_rehashed){
 
     //DBSCAN* dbs = new DBSCAN_Rehash(20000, 4);
@@ -109,8 +111,8 @@ void test_rehashed(Labels& label_rehashed){
     cout<<endl;
     delete dbs;
 }
-*/
 
+/*
 // test dbscan on dfe only when you have maxeler environment
 #ifdef DESIGN_NAME
     void test_dfe(Labels& label_dfe){
@@ -137,25 +139,24 @@ void test_rehashed(Labels& label_rehashed){
         delete dbs;
     }
 #endif
+*/
 
 int main()
 {
     
     Labels label_origin;
     Labels label_grid;
-    //Labels label_reduced;
-    //Labels label_dfe;
-    //Labels label_rehashed;
+    Labels label_reduced;
+    Labels label_rehashed;
 
     test_original(label_origin);
     test_grid(label_grid);
-    //test_reduced(label_reduced);
-    //test_dfe(label_dfe);
-    //test_rehashed(label_rehashed);
+    test_reduced(label_reduced);
+    test_rehashed(label_rehashed);
 
     DBSCAN::cmp_result(label_origin, label_grid);
-    //DBSCAN::cmp_result(label_grid, label_dfe);
-    //DBSCAN::cmp_result(label_origin, label_rehashed);
-
+    DBSCAN::cmp_result(label_origin, label_rehashed);
+    DBSCAN::cmp_result(label_origin, label_reduced);
+    
     return 0;
 }
