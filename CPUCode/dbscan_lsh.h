@@ -21,7 +21,10 @@ namespace clustering{
         // This is a approximate method, precision controlled by LSH dimension and the number of merge iteration
         // Implemented in dbscan_lsh.cpp
         
+        // a map between the index of point to the index of its cell in union find structure
         std::vector<int> m_point_to_uf;
+        // a new grid to merge the original cells in the original grid
+        std::vector<HashType> m_new_grid;
 
         // the collection of all hash functions
         LSH m_hash;
@@ -29,8 +32,9 @@ namespace clustering{
         // use locality sensitive hashing to rehash the data, and assign them to new grids
         // this can be accelerated by dataflow engine
         void rehash_data();
+        void merge_in_projection();
+        void calculate_new_width();
 
-        void merge_in_neighbour_lsh();
         void merge_clusters_lsh();
     };
 }
