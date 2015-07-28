@@ -29,7 +29,7 @@ namespace clustering{
         void rehash_data_merge();
 
 
-        void merge_in_neighbour_rehash(int point_id, int center_id);
+        void merge_in_neighbour_rehash(int point_id, HashType center_key);
         void merge_clusters_rehash();
     };
 

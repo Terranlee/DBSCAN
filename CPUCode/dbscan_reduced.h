@@ -26,9 +26,9 @@ namespace clustering{
 
         // same function as the grid based algorithm
         // only add a restriction about the number of points in each cells
-        bool search_in_neighbour_reduced(int point_id, int cell_id);
-        void merge_in_neighbour_reduced(int point_id, int cell_id);
-        int find_nearest_in_neighbour_reduced(int point_id, int cell_id);
+        bool search_in_neighbour_reduced(int point_id, HashType cell_key);
+        void merge_in_neighbour_reduced(int point_id, HashType cell_key);
+        int find_nearest_in_neighbour_reduced(int point_id, HashType cell_key);
 
         // the following three functions are new defined for this algorithm
         void determine_core_point_grid_reduced();
