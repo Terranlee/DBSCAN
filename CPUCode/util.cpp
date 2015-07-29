@@ -145,35 +145,4 @@ int MultiIteration::get_counter() const{
     return counter;
 }
 
-/************************************************************************/
-// The following functions are for the locality sensitive hashing method
-LSH::LSH(){}
-LSH::LSH(int din, int dout){
-    set_dimensions(din, dout);
-}
 
-void LSH::set_dimensions(int din, int dout){
-    // the function matrix has dout lines, and din rows
-    // the line of the matrix can be used to do projection
-    m_hash = Functions(dout, din);
-}
-
-void LSH::generate(){
-    // may be changed to srand((unsigned) time(NULL))
-    srand(0);
-    for(unsigned int i=0; i<m_hash.size1(); i++)
-        for(unsigned int j=0; j<m_hash.size2(); j++)
-            m_hash(i, j) = MULTIPLIER * float(rand()) / float(RAND_MAX);
-}
-
-unsigned int LSH::get_out_dimension() const{
-    return m_hash.size1();
-}
-
-void LSH::test(){
-    for(unsigned int i=0; i<m_hash.size1(); i++){
-        for(unsigned int j=0; j<m_hash.size2(); j++)
-            cout<<m_hash(i, j)<<"\t";
-        cout<<endl;
-    }
-}
