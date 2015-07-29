@@ -1,14 +1,12 @@
 #include <iostream>
 #include <cmath>
 #include <fstream>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 #include "dbscan_lsh.h"
 
 namespace clustering{
     DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Grid(eps, min_elems){}
-    DBSCAN_LSH::DBSCAN_LSH(){}
+    DBSCAN_LSH::~DBSCAN_LSH(){}
 
     void DBSCAN_LSH::hash_set_dimensions(){
         // the function matrix has dout lines, and din rows
@@ -62,9 +60,9 @@ namespace clustering{
                 temp[j] = int((mult[j] - m_new_min_val[j]) / m_new_cell_width) + 1;
             // make final hash
             HashType ans = 0;
-            for(int j=0; j<DOUT; j++){
+            for(unsigned int j=0; j<DOUT; j++){
                 ans += temp[j];
-                ans << 10;
+                ans = ans << 10;
             }
             m_new_grid[i] = ans;
         }
@@ -118,9 +116,15 @@ namespace clustering{
         // currently exclude the un_core points during the merge step
         // later they should be excluded during the data preparation step
         for(int i=0; i<10; i++){
+            int cnt = uf.get_count();
+
             hash_generate();
             rehash_data_projection();
             merge_after_projection();
+            
+            // this is some preparation for the heuristic algorithm
+            // use this to determine the threshold in the iteration
+            cout<<uf.get_count() - cnt<<endl;
         }
     }
 

@@ -2,6 +2,7 @@
 #include "dbscan_grid.h"
 #include "dbscan_reduced.h"
 #include "dbscan_rehash.h"
+#include "dbscan_lsh.h"
 
 // the dfe version of DBSCAN does not support dimension > 3
 // checkout to branch main for code that are able to run on DFE
@@ -112,6 +113,29 @@ void test_rehashed(Labels& label_rehashed){
     delete dbs;
 }
 
+void test_lsh(Labels& label_lsh){
+
+    //DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+
+    DBSCAN* dbs = new DBSCAN_LSH(10000, 4);
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    cout<<"start execution of lsh based DBSCAN"<<endl;
+    float begin = DBSCAN::get_clock();
+    dbs->fit();
+    float end = DBSCAN::get_clock();
+    cout<<"time is : "<<end - begin<<endl;
+
+    dbs->reshape_labels();
+    dbs->output_result("output_lsh");
+    Labels lbr = dbs->get_labels();
+    label_lsh.resize(lbr.size());
+    std::copy(lbr.begin(), lbr.end(), label_lsh.begin());
+    cout<<endl;
+    delete dbs;
+}
+
 /*
 // test dbscan on dfe only when you have maxeler environment
 #ifdef DESIGN_NAME
@@ -148,15 +172,18 @@ int main()
     Labels label_grid;
     Labels label_reduced;
     Labels label_rehashed;
+    Labels label_lsh;
 
     test_original(label_origin);
     test_grid(label_grid);
     test_reduced(label_reduced);
     test_rehashed(label_rehashed);
+    test_lsh(label_lsh);
 
     DBSCAN::cmp_result(label_origin, label_grid);
     DBSCAN::cmp_result(label_origin, label_rehashed);
     DBSCAN::cmp_result(label_origin, label_reduced);
+    DBSCAN::cmp_result(label_origin, label_lsh);
     
     return 0;
 }

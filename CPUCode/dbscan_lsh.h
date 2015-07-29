@@ -58,7 +58,7 @@ namespace clustering{
         // this can be accelerated by dataflow engine
         void rehash_data_projection();
         void merge_after_projection();
-        void calculate_new_width(unsigned int dout);
+        void calculate_new_width();
 
         void merge_clusters_lsh();
     };
