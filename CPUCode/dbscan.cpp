@@ -2,6 +2,8 @@
 #include <fstream>
 #include <time.h>
 #include <cassert>
+#include <algorithm>
+#include <functional>
 #include <map>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
@@ -45,6 +47,29 @@ namespace clustering
                 cnt_right++;
         float rate = (float)cnt_right / (float)a.size();
         cout<<"similarity: "<<rate<<endl;
+        get_max(a);
+        get_max(b);
+    }
+
+    void DBSCAN::get_max(const Labels& a){
+        std::map<int, int> mapping;
+        for(unsigned int i=0; i<a.size(); i++){
+            std::map<int, int>::iterator got = mapping.find(a[i]);
+            if(got == mapping.end())
+                mapping.insert(std::make_pair(a[i], 1));
+            else
+                got->second++;
+        }
+
+        std::vector<int> max_size(mapping.size());
+        int index = 0;
+        for(std::map<int, int>::const_iterator iter = mapping.begin(); iter != mapping.end(); ++iter)
+            max_size[index++] = iter->second;
+        sort(max_size.begin(), max_size.end(), std::greater<int>());
+        int sz = std::min(20, (int)max_size.size());
+        cout<<endl;
+        for(int i=0; i<sz; i++)
+            cout<<"size : "<<max_size[i]<<endl;
     }
 
     float DBSCAN::get_clock(){
@@ -107,6 +132,8 @@ namespace clustering
     }
 
     void DBSCAN::reshape_labels(){
+        // the answer of the previews version of reshape_labels may be influenced by the sequence of the answer
+        
         unsigned int size_data = m_labels.size();
         int index = 0;
         std::map<int, int> mapping;

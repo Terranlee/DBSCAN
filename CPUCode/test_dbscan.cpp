@@ -42,11 +42,11 @@ void test_original(Labels& label_origin){
 
 void test_grid(Labels& label_grid){
 
-    //DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
-    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
+    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     cout<<"start execution of grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -115,11 +115,11 @@ void test_rehashed(Labels& label_rehashed){
 
 void test_lsh(Labels& label_lsh){
 
-    //DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
-    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
+    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_LSH(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_LSH(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     cout<<"start execution of lsh based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();

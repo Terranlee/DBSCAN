@@ -1,4 +1,5 @@
 #include <iostream>
+#include <time.h>
 #include <cmath>
 #include <fstream>
 
@@ -41,7 +42,7 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps;
+        m_new_cell_width = eps * 0.9;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){
@@ -74,7 +75,7 @@ namespace clustering{
             HashType ans = 0;
             for(unsigned int j=0; j<DOUT; j++){
                 ans += temp[j];
-                ans = ans << 10;
+                ans = ans << 8;
             }
             m_new_grid[i] = ans;
         }
@@ -119,15 +120,10 @@ namespace clustering{
 
         calculate_new_width();
         hash_set_dimensions();
-
-        // TODO:
-        // currently do the rehash and merge for a fixed number of iterations
-        // later it should be updated to a heuristic version with a threshold to break
-
         // TODO:
         // currently exclude the un_core points during the merge step
         // later they should be excluded during the data preparation step
-        for(int i=0; i<30; i++){
+        for(int i=0; i<50; i++){
             int cnt = uf.get_count();
 
             hash_generate();
@@ -136,7 +132,14 @@ namespace clustering{
             
             // this is some preparation for the heuristic algorithm
             // use this to determine the threshold in the iteration
-            cout<<cnt - uf.get_count()<<endl;
+            int diff = cnt - uf.get_count();
+            cout<<"merge : "<<diff<<endl;
+            
+            if(diff < 5){
+                cout<<"after "<<i<<"iterations, algorithm stop"<<endl;
+                break;
+            }
+            
         }
 
         cell_label_to_point_label();
