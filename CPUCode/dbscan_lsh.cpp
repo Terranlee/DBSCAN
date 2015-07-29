@@ -48,14 +48,14 @@ namespace clustering{
     void DBSCAN_LSH::rehash_data_projection(){
         // use locality sensitive hashing to reassign the data to another grid
         // select a random data as the 
-        int rnd = rand() % cl_d.size1();
-        for(unsigned int i=0; i<DOUT; i++){
-            // TODO:
-            // these projection calculation may be changed to boost functions
-            float mini = 0.0f;
-            for(unsigned int j=0; j<cl_d.size2(); j++)
-                mini += cl_d(rnd, j) * m_hash(i, j);
-            m_new_min_val[i] = mini;
+        for(unsigned int red = 0; red < REDUNDANT; red++){
+            int rnd = rand() % cl_d.size1();
+            for(unsigned int i=0; i<DOUT; i++){
+                float mini = 0.0f;
+                for(unsigned int j=0; j<cl_d.size2(); j++)
+                    mini += cl_d(rnd, j) * m_hash(i, j);
+                m_new_min_val[red][i] = mini;
+            }
         }
 
         std::vector<int> temp(DOUT);
@@ -69,47 +69,62 @@ namespace clustering{
                 mult[j] = data;
             }
             // calculate index in each dimension
-            for(unsigned int j=0; j<DOUT; j++)
-                temp[j] = int((mult[j] - m_new_min_val[j]) / m_new_cell_width) + 1;
-            // make final hash
-            HashType ans = 0;
-            for(unsigned int j=0; j<DOUT; j++){
-                ans += temp[j];
-                ans = ans << 8;
+            for(unsigned int red = 0; red < REDUNDANT; red++){
+                for(unsigned int j=0; j<DOUT; j++)
+                    temp[j] = int((mult[j] - m_new_min_val[red][j]) / m_new_cell_width) + 1;
+                // make final hash
+                HashType ans = 0;
+                for(unsigned int j=0; j<DOUT; j++){
+                    ans += temp[j];
+                    ans = ans << 8;
+                }
+                m_new_grid[red][i] = ans;
             }
-            m_new_grid[i] = ans;
         }
     }
 
-    void DBSCAN_LSH::merge_after_projection(){
+    int DBSCAN_LSH::merge_after_projection(){
         // if the points are in the same cell in the new grid in DOUT space
         // their clusters should be merged together in the original space
 
         // this function is similar to DBSCAN_Rehash::rehash_data
-        std::unordered_map<HashType, int> merge_map;
-        for(unsigned int i=0; i<cl_d.size1(); i++){
-            if(!m_is_core[i])
-                continue;
+        int total_merge_counter = 0;
+        for(unsigned int red=0; red<REDUNDANT; red++){
+            int begin = uf.get_count();
+            std::unordered_map<HashType, int> merge_map;
+            for(unsigned int i=0; i<cl_d.size1(); i++){
+                if(!m_is_core[i])
+                    continue;
 
-            HashType key = m_new_grid[i];
-            std::unordered_map<HashType, int>::iterator got = merge_map.find(key);
-            if(got == merge_map.end()){
-                merge_map.insert(std::make_pair(key, m_point_to_uf[i]));
+                HashType key = m_new_grid[red][i];
+                std::unordered_map<HashType, int>::iterator got = merge_map.find(key);
+                if(got == merge_map.end()){
+                    merge_map.insert(std::make_pair(key, m_point_to_uf[i]));
+                }
+                else{
+                    int belong_id = got->second;
+                    int center_id = m_point_to_uf[i];
+                    uf.make_union(belong_id, center_id);
+                }
             }
-            else{
-                int belong_id = got->second;
-                int center_id = m_point_to_uf[i];
-                uf.make_union(belong_id, center_id);
-            }
+            int diff = begin - uf.get_count();
+            cout<<"merge : "<<diff<<" clusters"<<endl;
+            total_merge_counter += diff;
         }
+        cout<<endl;
+        return total_merge_counter;
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        m_new_grid.resize(cl_d.size1());
-        m_new_min_val.resize(DOUT);
-        m_point_to_uf.resize(cl_d.size1());
+        m_new_min_val.resize(REDUNDANT);
+        m_new_grid.resize(REDUNDANT);
+        for(unsigned int i=0; i<REDUNDANT; i++){
+            m_new_min_val[i].resize(DOUT);
+            m_new_grid[i].resize(cl_d.size1());
+        }
         uf.init(cl_d.size1());
 
+        m_point_to_uf.resize(cl_d.size1());
         for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             int ufid = iter->second.ufID;
             for(unsigned int i=0; i<iter->second.data.size(); i++){
@@ -124,22 +139,15 @@ namespace clustering{
         // currently exclude the un_core points during the merge step
         // later they should be excluded during the data preparation step
         for(int i=0; i<50; i++){
-            int cnt = uf.get_count();
 
             hash_generate();
             rehash_data_projection();
-            merge_after_projection();
+            int merge_counter = merge_after_projection();
             
-            // this is some preparation for the heuristic algorithm
-            // use this to determine the threshold in the iteration
-            int diff = cnt - uf.get_count();
-            cout<<"merge : "<<diff<<endl;
-            
-            if(diff < 5){
+            if(merge_counter < (int)3 * REDUNDANT){
                 cout<<"after "<<i<<"iterations, algorithm stop"<<endl;
                 break;
             }
-            
         }
 
         cell_label_to_point_label();

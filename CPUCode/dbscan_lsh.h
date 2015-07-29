@@ -13,7 +13,10 @@ namespace clustering{
 
         virtual void fit();
         virtual void test();
-    
+        
+        typedef std::vector<float> NewCenter;
+        typedef std::vector<HashType> NewGrid;
+
     protected:
         /*****************************************************************************************/
         // Variables and functions for LSH DBSCAN method
@@ -39,21 +42,27 @@ namespace clustering{
         void hash_set_dimensions();
         void hash_generate();
 
-
         // a map between the index of point to the index of its cell in union find structure
         std::vector<int> m_point_to_uf;
-        // a new grid to merge the original cells in the original grid
-        std::vector<HashType> m_new_grid;
 
+        // after each locality sensitive hashing
+        // we construct REDUNDANT numbers of new grids using different center point
+        // and use these new grids to merge the small clusters
+        static constexpr unsigned int REDUNDANT = 4;
+        std::vector<NewGrid> m_new_grid;
         // we have m_min_val in dbscan_grid.h
         // during the rehash, we have to set another new minimum value using this vector
-        std::vector<float> m_new_min_val;
+        std::vector<NewCenter> m_new_min_val;
+
+        // the width of the cell in the new space
         float m_new_cell_width;
 
         // use locality sensitive hashing to rehash the data, and assign them to new grids
         // this can be accelerated by dataflow engine
         void rehash_data_projection();
-        void merge_after_projection();
+        // return the number of small clusters that are merged in this iteration
+        // use the return value to terminate the program
+        int merge_after_projection();
         void calculate_new_width();
 
         void merge_clusters_lsh();
