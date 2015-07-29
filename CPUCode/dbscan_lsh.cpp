@@ -37,19 +37,60 @@ namespace clustering{
 
     void DBSCAN_LSH::rehash_data_projection(){
         // use locality sensitive hashing to reassign the data to another grid
+        // use the first data in cl_d as the min_val, set it as the zero point 
         for(unsigned int i=0; i<DOUT; i++){
+            // TODO:
+            // these projection calculation may be changed to boost functions
             float mini = 0.0f;
             for(unsigned int j=0; j<cl_d.size2(); j++)
-
-            m_new_min_val[i] = 
+                mini += cl_d(0, j) * m_hash(i, j);
+            m_new_min_val[i] = mini;
         }
-        for(unsigned int i=0; i<cl_d.size1(); i++){
 
+        std::vector<int> temp(DOUT);
+        std::vector<float> mult(DOUT);
+        for(unsigned int i=0; i<cl_d.size1(); i++){
+            // make projection
+            for(unsigned int j=0; j<DOUT; j++){
+                float data = 0.0f;
+                for(unsigned int k=0; k<cl_d.size2(); k++)
+                    data += cl_d(i, k) * m_hash(j, k);
+                mult[j] = data;
+            }
+            // calculate index in each dimension
+            for(unsigned int j=0; j<DOUT; j++)
+                temp[j] = int((mult[j] - m_new_min_val[j]) / m_new_cell_width) + 1;
+            // make final hash
+            HashType ans = 0;
+            for(int j=0; j<DOUT; j++){
+                ans += temp[j];
+                ans << 10;
+            }
+            m_new_grid[i] = ans;
         }
     }
 
     void DBSCAN_LSH::merge_after_projection(){
+        // if the points are in the same cell in the new grid in DOUT space
+        // their clusters should be merged together in the original space
 
+        // this function is similar to DBSCAN_Rehash::rehash_data
+        std::unordered_map<HashType, int> merge_map;
+        for(unsigned int i=0; i<cl_d.size1(); i++){
+            if(!m_is_core[i])
+                continue;
+
+            HashType key = m_new_grid[i];
+            std::unordered_map<HashType, int>::iterator got = merge_map.find(key);
+            if(got == merge_map.end()){
+                merge_map.insert(std::make_pair(key, m_point_to_uf[i]));
+            }
+            else{
+                int belong_id = got->second;
+                int center_id = m_point_to_uf[i];
+                uf.make_union(belong_id, center_id);
+            }
+        }
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
@@ -72,6 +113,10 @@ namespace clustering{
         // TODO:
         // currently do the rehash and merge for a fixed number of iterations
         // later it should be updated to a heuristic version with a threshold to break
+
+        // TODO:
+        // currently exclude the un_core points during the merge step
+        // later they should be excluded during the data preparation step
         for(int i=0; i<10; i++){
             hash_generate();
             rehash_data_projection();
