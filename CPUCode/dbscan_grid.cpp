@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include <climits>
+#include <limits>
 #include <cassert>
 #include <algorithm>
 #include <boost/numeric/ublas/matrix.hpp>

@@ -12,14 +12,25 @@ namespace clustering{
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
         m_hash = Functions(DOUT, cl_d.size2());
+        srand(0);
     }
 
     void DBSCAN_LSH::hash_generate(){
         // may be changed to srand((unsigned) time(NULL))
-        srand(0);
         for(unsigned int i=0; i<m_hash.size1(); i++)
             for(unsigned int j=0; j<m_hash.size2(); j++)
-                m_hash(i, j) = MULTIPLIER * float(rand()) / float(RAND_MAX);
+                m_hash(i, j) = float(rand()) / float(RAND_MAX);
+
+        // the parameter of the hash function need to be formalized
+        // dist = inner_product(point, hyperplane_parameter) / norm2(hyperplane_parameter)
+        for(unsigned int i=0; i<m_hash.size1(); i++){
+            float sqr_sum = 0.0f;
+            for(unsigned int j=0; j<m_hash.size2(); j++)
+                sqr_sum += m_hash(i, j) * m_hash(i, j);
+            float sqrt_sum = std::sqrt(sqr_sum);
+            for(unsigned int j=0; j<m_hash.size2(); j++)
+                m_hash(i, j) /= sqrt_sum;
+        }
     }
 
     void DBSCAN_LSH::calculate_new_width(){
@@ -30,18 +41,19 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps * 0.5;
+        m_new_cell_width = eps;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){
         // use locality sensitive hashing to reassign the data to another grid
-        // use the first data in cl_d as the min_val, set it as the zero point 
+        // select a random data as the 
+        int rnd = rand() % cl_d.size1();
         for(unsigned int i=0; i<DOUT; i++){
             // TODO:
             // these projection calculation may be changed to boost functions
             float mini = 0.0f;
             for(unsigned int j=0; j<cl_d.size2(); j++)
-                mini += cl_d(0, j) * m_hash(i, j);
+                mini += cl_d(rnd, j) * m_hash(i, j);
             m_new_min_val[i] = mini;
         }
 
@@ -115,7 +127,7 @@ namespace clustering{
         // TODO:
         // currently exclude the un_core points during the merge step
         // later they should be excluded during the data preparation step
-        for(int i=0; i<10; i++){
+        for(int i=0; i<30; i++){
             int cnt = uf.get_count();
 
             hash_generate();
@@ -124,8 +136,10 @@ namespace clustering{
             
             // this is some preparation for the heuristic algorithm
             // use this to determine the threshold in the iteration
-            cout<<uf.get_count() - cnt<<endl;
+            cout<<cnt - uf.get_count()<<endl;
         }
+
+        cell_label_to_point_label();
     }
 
     void DBSCAN_LSH::fit(){

@@ -168,22 +168,22 @@ void test_lsh(Labels& label_lsh){
 int main()
 {
     
-    Labels label_origin;
+    //Labels label_origin;
     Labels label_grid;
-    Labels label_reduced;
-    Labels label_rehashed;
+    //Labels label_reduced;
+    //Labels label_rehashed;
     Labels label_lsh;
 
-    test_original(label_origin);
+    //test_original(label_origin);
     test_grid(label_grid);
-    test_reduced(label_reduced);
-    test_rehashed(label_rehashed);
+    //test_reduced(label_reduced);
+    //test_rehashed(label_rehashed);
     test_lsh(label_lsh);
 
-    DBSCAN::cmp_result(label_origin, label_grid);
-    DBSCAN::cmp_result(label_origin, label_rehashed);
-    DBSCAN::cmp_result(label_origin, label_reduced);
-    DBSCAN::cmp_result(label_origin, label_lsh);
+    //DBSCAN::cmp_result(label_origin, label_grid);
+    //DBSCAN::cmp_result(label_origin, label_rehashed);
+    //DBSCAN::cmp_result(label_origin, label_reduced);
+    DBSCAN::cmp_result(label_grid, label_lsh);
     
     return 0;
 }
