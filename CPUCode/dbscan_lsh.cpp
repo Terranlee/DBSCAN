@@ -144,7 +144,7 @@ namespace clustering{
             rehash_data_projection();
             int merge_counter = merge_after_projection();
             
-            if(merge_counter < (int)3 * REDUNDANT){
+            if(merge_counter < int(3 * REDUNDANT)){
                 cout<<"after "<<i<<"iterations, algorithm stop"<<endl;
                 break;
             }
