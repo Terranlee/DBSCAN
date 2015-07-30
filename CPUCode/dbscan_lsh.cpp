@@ -73,10 +73,14 @@ namespace clustering{
                 for(unsigned int j=0; j<DOUT; j++)
                     temp[j] = int((mult[j] - m_new_min_val[red][j]) / m_new_cell_width) + 1;
                 // make final hash
-                HashType ans = 0;
-                for(unsigned int j=0; j<DOUT; j++){
-                    ans += temp[j];
-                    ans = ans << 8;
+                DimType ans(0,0);
+                for(unsigned int j=0; j<DOUT/2; j++){
+                    ans.first += temp[j];
+                    ans.first = ans.first << 16;
+                }
+                for(unsigned int j=DOUT/2; j<DOUT; j++){
+                    ans.second += temp[j];
+                    ans.second = ans.second << 16;
                 }
                 m_new_grid[red][i] = ans;
             }
@@ -91,13 +95,13 @@ namespace clustering{
         int total_merge_counter = 0;
         for(unsigned int red=0; red<REDUNDANT; red++){
             int begin = uf.get_count();
-            std::unordered_map<HashType, int> merge_map;
+            MergeMap merge_map;
             for(unsigned int i=0; i<cl_d.size1(); i++){
                 if(!m_is_core[i])
                     continue;
 
-                HashType key = m_new_grid[red][i];
-                std::unordered_map<HashType, int>::iterator got = merge_map.find(key);
+                DimType key = m_new_grid[red][i];
+                MergeMap::iterator got = merge_map.find(key);
                 if(got == merge_map.end()){
                     merge_map.insert(std::make_pair(key, m_point_to_uf[i]));
                 }

@@ -14,8 +14,23 @@ namespace clustering{
         virtual void fit();
         virtual void test();
         
+        template<typename T>
+        class PairHash{
+        public:
+            size_t operator()(const std::pair<T, T>& p) const{
+                return std::hash<T>()(p.first) ^ (std::hash<T>()(p.second));
+            }
+        };
+
+        // DimType is the output hash result in high dimension(8 dimension)
+        // use int128 to represent the hash result, 
+        // so the data range in each dimension is [-32768, 32767],
+        // should be enough for most cases
+        typedef std::pair<int64_t, int64_t> DimType;
+        typedef std::vector<DimType> NewGrid;
+        typedef std::unordered_map<DimType, int, PairHash<int64_t> > MergeMap;
+
         typedef std::vector<float> NewCenter;
-        typedef std::vector<HashType> NewGrid;
 
     protected:
         /*****************************************************************************************/
