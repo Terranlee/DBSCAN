@@ -24,7 +24,7 @@ public class DBSCANParameters extends EngineParameters {
 	protected void declarations(){
 		declareParam(s_inputType,		DataType.DFETYPE,	Kernel.dfeFloat(8, 24));
 		declareParam(s_numCols,			DataType.INT,		66);
-		declareParam(s_numPointsCell,	DataType.INT,		10);
+		declareParam(s_numPointsCell,	DataType.INT,		8);
 		declareParam(s_numNeighbour,	DataType.INT,		25);
 	}
 

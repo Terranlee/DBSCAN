@@ -307,8 +307,8 @@ namespace clustering{
     // virtual functions derived from DBSCAN_Grid
     void DBSCAN_DFE::fit(){
         prepare_labels(cl_d.size1());
-        // this 10 is the same number as the one in DBSCANParameter.maxj
-        set_reduced_precision(10);
+        // this 8 is the same number as the one in DBSCANParameter.maxj
+        set_reduced_precision(8);
 
         // step1 and step2 is the same as the grid based algorithm
         // because the most time consuming process is in step3

@@ -84,6 +84,7 @@ MAXDEBUG=maxdebug
 MAXRENDERGRAPHS=maxRenderGraphs
 MAXCOMPILERSIM=maxcompilersim
 
+#MAXOS_HW=/vol/cc/opt/maxeler/maxcompiler-2013.2.2/lib/maxeleros-sim/lib/libmaxeleros.so
 MAXOS_HW=/opt/maxeler/maxeleros/lib/libmaxeleros.so
 MAXOS_SIM=$(MAXELEROSDIR_SIM)/lib/libmaxeleros.so
 

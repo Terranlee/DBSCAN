@@ -41,8 +41,7 @@ public class DBSCANManager extends CustomManager{
 		InterfaceParam invalidData = engine_interface.addParam("invalidData", CPUTypes.FLOAT);
 
 		// for each cell, iterate m_num_points_cell cycle, to determine all the points in this center cell
-		// now the dimension is 2, and we have N * 2 input numbers
-        engine_interface.setTicks(s_kernelName, N * 2);
+        engine_interface.setTicks(s_kernelName, N);
 		engine_interface.setScalar(s_kernelName, "sqrEps", sqrEps);
 		engine_interface.setScalar(s_kernelName, "invalidData", invalidData);
 
