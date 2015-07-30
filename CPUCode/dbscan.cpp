@@ -66,7 +66,7 @@ namespace clustering
         for(std::map<int, int>::const_iterator iter = mapping.begin(); iter != mapping.end(); ++iter)
             max_size[index++] = iter->second;
         sort(max_size.begin(), max_size.end(), std::greater<int>());
-        int sz = std::min(20, (int)max_size.size());
+        int sz = std::min(10, (int)max_size.size());
         cout<<endl;
         for(int i=0; i<sz; i++)
             cout<<"size : "<<max_size[i]<<endl;

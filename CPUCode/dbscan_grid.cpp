@@ -51,6 +51,11 @@ namespace clustering{
         for(unsigned int i=0; i<features_num; i++)
             m_n_cnt[i] = int((max_vec[i] - min_vec[i]) / m_cell_width) + 1;
 
+        // for debug
+        for(unsigned int i=0; i<features_num; i++)
+            cout<<m_n_cnt[i]<<" ";
+        cout<<endl;
+
         std::vector<int> temp(m_n_cnt.size());
         for(unsigned int i=0; i<m_n_cnt.size(); i++)
             temp[i] = m_n_cnt[i] + 1;
@@ -190,7 +195,7 @@ namespace clustering{
         uf.init(m_hash_grid.size());
 
         for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-            int cell_key = iter->first;
+            HashType cell_key = iter->first;
             for(unsigned int i=0; i<iter->second.data.size(); i++){
                 int point_id = iter->second.data[i];
                 if(!m_is_core[point_id])

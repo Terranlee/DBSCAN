@@ -48,9 +48,6 @@ namespace clustering{
         Functions m_hash;
 
         // the output dimension of LSH
-        // TODO:
-        // currently we set the output dimension to be 6
-        // later it should be update to another suitable number when we have enough experiments
         static constexpr unsigned int DOUT = 8;
 
         // two functions to generate the hash functions

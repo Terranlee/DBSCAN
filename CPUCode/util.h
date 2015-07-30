@@ -46,6 +46,8 @@ private:
     // these three members are set during a DBSCAN execution
     int dim;
     int length;
+    
+    std::vector<HashType> diff;
     std::vector<int> max_val;
     int counter;
 

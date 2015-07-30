@@ -13,7 +13,8 @@ namespace clustering{
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
         m_hash = Functions(DOUT, cl_d.size2());
-        srand(0);
+        srand(unsigned(time(NULL)));
+        //srand(0);
     }
 
     void DBSCAN_LSH::hash_generate(){
@@ -42,7 +43,7 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps * 0.9;
+        m_new_cell_width = eps * 0.5;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){

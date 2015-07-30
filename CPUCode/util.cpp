@@ -83,8 +83,12 @@ void MultiIteration::set_dimension(unsigned int d){
 
 void MultiIteration::set_max(const std::vector<int>& max){
     max_val.resize(max.size());
+    diff.resize(max.size());
     std::copy(max.begin(), max.end(), max_val.begin());
-    assert(dim = max_val.size());
+
+    diff[diff.size()-1] = 1;
+    for(int i=diff.size()-2; i>=0; i--)
+        diff[i] = diff[i+1] * max[i];
 }
 
 void MultiIteration::set_start(HashType val){
@@ -93,9 +97,8 @@ void MultiIteration::set_start(HashType val){
     value = val;
     for(int i=0; i<dim; i++)
         iter[i] = -1 * length;
-    for(int i=0; i<dim-1; i++)
-        value -= length * max_val[i];
-    value -= length;
+    for(int i=0; i<dim; i++)
+        value -= length * diff[i];
     // now value is the key to the beginning cell of neighbours
 }
 
@@ -109,25 +112,17 @@ HashType MultiIteration::get() const{
 }
 
 HashType MultiIteration::next(){
-    unsigned int end = dim - 1;
-    if(iter[end] == length){
-        iter[end] = -1 * length;
-        value -= length * 2;
-        for(int i=end-1; i>=0; i--){
-            if(iter[i] == length){
-                iter[i] = -1 * length;
-                value -= max_val[i] * length * 2;
-            }
-            else{
-                iter[i]++;
-                value += max_val[i];
-                break;
-            }
+    for(int i=dim-1; i>=0; i--){
+        if(iter[i] == length){
+            iter[i] = -1 * length;
+            value -= diff[i] * length * 2;
         }
-        return value;
+        else{
+            iter[i]++;
+            value += diff[i];
+            break;
+        }
     }
-    iter[end]++;
-    value += 1;
     return value;
 }
 
