@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include <climits>
+#include <limits>
 #include <cassert>
+#include <algorithm>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/io.hpp>
@@ -21,52 +22,53 @@ namespace clustering{
         m_cell_width = eps / sq;
     }
 
-    void DBSCAN_Grid::getMinMax_grid(float* min_x, float* min_y, float* max_x, float* max_y){
-        // TODO: dimension related function
-        float maxx, maxy, minx, miny;
-        maxx = maxy = std::numeric_limits<float>::min();
-        minx = miny = std::numeric_limits<float>::max();
-        for(size_t i=0; i<cl_d.size1(); i++){
-                if(cl_d(i,0) > maxx)
-                    maxx = cl_d(i,0);
-                if(cl_d(i,0) < minx)
-                    minx = cl_d(i,0);
-                if(cl_d(i,1) > maxy)
-                    maxy = cl_d(i,1);
-                if(cl_d(i,1) < miny)
-                    miny = cl_d(i,1);
+    void DBSCAN_Grid::getMinMax_grid(std::vector<float>& min_vec, std::vector<float>& max_vec) const{
+        assert(min_vec.size() == cl_d.size2());
+        assert(max_vec.size() == cl_d.size2());
+        for(unsigned int i=0; i<cl_d.size1(); i++){
+            for(unsigned int j=0; j<cl_d.size2(); j++){
+                if(cl_d(i, j) > max_vec[j])
+                    max_vec[j] = cl_d(i, j);
+                if(cl_d(i, j) < min_vec[j])
+                    min_vec[j] = cl_d(i, j);
+            }
         }
-        *max_x = maxx;
-        *max_y = maxy;
-        *min_x = minx;
-        *min_y = miny;
     }
 
     void DBSCAN_Grid::hash_construct_grid(){
-        // TODO: dimension related function
-        int features_num = cl_d.size2();
-        if(features_num != 2)
-            cout<<"only 2D data supported now!"<<endl;
+        // do some initialization and detect the size of the grid
+        unsigned int features_num = cl_d.size2();
         grid_init(features_num);
 
-        float min_x, min_y, max_x, max_y;
-        getMinMax_grid(&min_x, &min_y, &max_x, &max_y);
-        //cout<<endl;
-        //cout<<"eps_sqr:"<<m_eps_sqr<<" minpts:"<<m_min_elems<<" cell_width:"<<m_cell_width<<endl;
-        //cout<<"minx:"<<min_x<<" miny:"<<min_y<<" maxx:"<<max_x<<" maxy:"<<max_y<<endl;
-        m_min_x = min_x;
-        m_min_y = min_y;
-        int nRows = int((max_x - min_x) / m_cell_width) + 1;
-        int nCols = int((max_y - min_y) / m_cell_width) + 1;
+        std::vector<float> min_vec(features_num, std::numeric_limits<float>::max());
+        std::vector<float> max_vec(features_num, std::numeric_limits<float>::min());
+        getMinMax_grid(min_vec, max_vec);
+        
+        m_min_val.resize(features_num);
+        std::copy(min_vec.begin(), min_vec.end(), m_min_val.begin());
 
-        int length = cl_d.size1();
+        m_n_cnt.resize(features_num);
+        for(unsigned int i=0; i<features_num; i++)
+            m_n_cnt[i] = int((max_vec[i] - min_vec[i]) / m_cell_width) + 1;
+
+        // for debug
+        for(unsigned int i=0; i<features_num; i++)
+            cout<<m_n_cnt[i]<<" ";
+        cout<<endl;
+
+        std::vector<int> temp(m_n_cnt.size());
+        for(unsigned int i=0; i<m_n_cnt.size(); i++)
+            temp[i] = m_n_cnt[i] + 1;
+        mi.set_dimension(features_num);
+        mi.set_max(temp);
+
         int uf_counter = 0;
+        int length = (int)cl_d.size1();
         for(int i=0; i<length; i++){
-            int dx = int((cl_d(i,0) - min_x) / m_cell_width) + 1;
-            int dy = int((cl_d(i,1) - min_y) / m_cell_width) + 1;
-            int key = dx * (nCols + 1) + dy;
-
-            std::unordered_map<int, Cell >::iterator got = m_hash_grid.find(key);
+            for(unsigned int j=0; j<cl_d.size2(); j++)
+                temp[j] = int((cl_d(i, j) - m_min_val[j]) / m_cell_width) + 1;
+            HashType key = mi.hash(temp);
+            std::unordered_map<HashType, Cell>::iterator got = m_hash_grid.find(key);
             if(got == m_hash_grid.end()){
                 Cell c;
                 c.ufID = uf_counter++;
@@ -76,19 +78,16 @@ namespace clustering{
             else
                 got->second.data.push_back(i);
         }
-        m_n_rows = nRows;
-        m_n_cols = nCols;
-        //cout<<"n_rows:"<<m_n_rows<<" n_cols:"<<m_n_cols<<endl;
-        //print_grid_info(cl_d);
     }
 
-    bool DBSCAN_Grid::search_in_neighbour(int point_id, int center_id){
-        // TODO: dimension related function
-        static const int num_neighbour = 21;
-        int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
+    bool DBSCAN_Grid::search_in_neighbour(int point_id, HashType center_key){
+        mi.set_start(center_key);
+        HashType cell_iter = mi.get();
         unsigned int counter = 0;
-        for(int i=0; i<num_neighbour; i++){
-            std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
+        int num_of_neighbour = mi.get_counter();
+
+        for(int i=0; i<num_of_neighbour; i++){
+            std::unordered_map<HashType, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
                 for(unsigned int j=0; j<got->second.data.size(); j++){
                     int which = got->second.data.at(j);
@@ -106,32 +105,14 @@ namespace clustering{
                         return true;
                 }
             }
-
-            // these represent the search neighbour routine
-            // the change of cell_iter is fixed in all _in_neighbour function
-            switch(i){
-                case 2:
-                    cell_iter = center_id - (m_n_cols + 1) - 2;
-                    break;
-                case 7:
-                    cell_iter = center_id - 2;
-                    break;
-                case 12:
-                    cell_iter = center_id + (m_n_cols + 1) - 2;
-                    break;
-                case 17:
-                    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
-                    break;
-                default:
-                    cell_iter = cell_iter + 1;
-            }        
+            cell_iter = mi.next();        
         }
         return false;
     }
 
     void DBSCAN_Grid::determine_core_point_grid(){
         m_is_core.resize(cl_d.size1(), false);
-        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             //  here we use '>', because it should not include the central point itself
             if(iter->second.data.size() > m_min_elems){
                 for(unsigned int i=0; i<iter->second.data.size(); i++){
@@ -140,25 +121,33 @@ namespace clustering{
                 }
             }
             else{
-                int cell_id = iter->first;
+                HashType cell_key = iter->first;
                 for(unsigned int i=0; i<iter->second.data.size(); i++){
                     int point_id = iter->second.data.at(i);
-                    bool result = search_in_neighbour(point_id, cell_id);
+                    bool result = search_in_neighbour(point_id, cell_key);
                     m_is_core[point_id] = result;
                 }
             }
         }
+        /*
         //print_point_info(cl_d);
+        int cnt = 0;
+        for(unsigned int i=0; i<m_is_core.size(); i++)
+            if(m_is_core[i] == true)
+                cnt++;
+        cout<<cnt<<" "<<m_is_core.size()<<endl;
+        */
     }
 
-    void DBSCAN_Grid::merge_in_neighbour(int point_id, int center_id){
-        static const int num_neighbour = 21;
-        int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
+    void DBSCAN_Grid::merge_in_neighbour(int point_id, HashType center_key){
+        mi.set_start(center_key);
+        HashType cell_iter = mi.get();
+        int num_of_neighbour = mi.get_counter();
+        int cell_index = m_hash_grid.find(center_key)->second.ufID;
 
-        int cell_index = m_hash_grid.find(center_id)->second.ufID;
         // iterate on core points only
-        for(int i=0; i<num_neighbour; i++){
-            std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
+        for(int i=0; i<num_of_neighbour; i++){
+            std::unordered_map<HashType, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
                 for(unsigned int j=0; j<got->second.data.size(); j++){
                     int which = got->second.data.at(j);
@@ -177,28 +166,12 @@ namespace clustering{
                     }
                 }
             }
-
-            switch(i){
-                case 2:
-                    cell_iter = center_id - (m_n_cols + 1) - 2;
-                    break;
-                case 7:
-                    cell_iter = center_id - 2;
-                    break;
-                case 12:
-                    cell_iter = center_id + (m_n_cols + 1) - 2;
-                    break;
-                case 17:
-                    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
-                    break;
-                default:
-                    cell_iter = cell_iter + 1;
-            }        
+            cell_iter = mi.next();
         }
     }
 
     void DBSCAN_Grid::cell_label_to_point_label(){
-        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             // key is the index in the hash_grid, key_index is the corresponding index in the union_find structure
             int key_index = iter->second.ufID;
             int root = uf.find(key_index);
@@ -224,37 +197,35 @@ namespace clustering{
         } // endof for(std::unorderedmap::iterator)
     }
 
-    void DBSCAN_Grid::merge_clusters(){
-        // TODO: dimension related function
-        
+    void DBSCAN_Grid::merge_clusters(){        
         // initialize the UnionFind uf in class DBSCAN
         uf.init(m_hash_grid.size());
 
-        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-            int cell_id = iter->first;
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            HashType cell_key = iter->first;
             for(unsigned int i=0; i<iter->second.data.size(); i++){
                 int point_id = iter->second.data[i];
                 if(!m_is_core[point_id])
                     continue;
 
-                merge_in_neighbour(point_id, cell_id);
+                merge_in_neighbour(point_id, cell_key);
             }
         }
         cell_label_to_point_label();
     }
 
-    int DBSCAN_Grid::find_nearest_in_neighbour(int point_id, int center_id){
-        // TODO: dimension related function
+    int DBSCAN_Grid::find_nearest_in_neighbour(int point_id, HashType cell_key){
         // return the proper label of a un-clustered point
         // return -1 if this is a noise
-        static const int num_neighbour = 21;
-        int cell_iter = center_id - 2 * (m_n_cols + 1) - 1;
+        mi.set_start(cell_key);
+        HashType cell_iter = mi.get();
+        int num_of_neighbour = mi.get_counter();
 
         // iterate on core points only
         float min_distance = m_eps_sqr;
         float which_label = -1;
-        for(int i=0; i<num_neighbour; i++){
-            std::unordered_map<int, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
+        for(int i=0; i<num_of_neighbour; i++){
+            std::unordered_map<HashType, Cell>::const_iterator got = m_hash_grid.find(cell_iter);
             if(got != m_hash_grid.end()){
                 for(unsigned int j=0; j<got->second.data.size(); j++){
                     int which = got->second.data[j];
@@ -272,34 +243,18 @@ namespace clustering{
                     }
                 }
             }
-
-            switch(i){
-                case 2:
-                    cell_iter = center_id - (m_n_cols + 1) - 2;
-                    break;
-                case 7:
-                    cell_iter = center_id - 2;
-                    break;
-                case 12:
-                    cell_iter = center_id + (m_n_cols + 1) - 2;
-                    break;
-                case 17:
-                    cell_iter = center_id + (m_n_cols + 1) * 2 - 1;
-                    break;
-                default:
-                    cell_iter = cell_iter + 1;
-            }
+            cell_iter = mi.next();
         }
         return which_label;
     }
 
     void DBSCAN_Grid::determine_boarder_point(){
+        std::vector<int> temp(m_min_val.size());
         for(unsigned int i=0; i<m_labels.size(); i++){
             if(m_labels[i] == -1){
-                // calculate which cell is this point in
-                int dx = int((cl_d(i,0) - m_min_x) / m_cell_width) + 1;
-                int dy = int((cl_d(i,1) - m_min_y) / m_cell_width) + 1;
-                int key = dx * (m_n_cols + 1) + dy;
+                for(unsigned int k=0; k<cl_d.size2(); k++)
+                    temp[k] = int((cl_d(i, k) - m_min_val[k]) / m_cell_width) + 1;
+                HashType key = mi.hash(temp);
 
                 int label = find_nearest_in_neighbour(i, key);
                 m_labels[i] = label;
@@ -309,14 +264,16 @@ namespace clustering{
 
     void DBSCAN_Grid::print_grid_info() const{
         cout<<"-----------print hash grid-----------"<<endl;
-        for(std::unordered_map<int, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-            int key = iter->first;
-            int dx = key / (m_n_cols + 1);
-            int dy = key % (m_n_cols + 1);
-            cout<<"[key:"<<key<<" dx:"<<dx<<" dy:"<<dy<<"]"<<endl;
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            HashType key = iter->first;
+            // can not decode the key using the hash function in util.cpp
+            cout<<"key : "<<key<<endl;
             for(unsigned int j=0; j<iter->second.data.size(); j++){
                 int which = iter->second.data[j];
-                cout<<"("<<cl_d(which,0)<<","<<cl_d(which,1)<<")  ";
+                cout<<"(";
+                for(unsigned int k=0; k<cl_d.size2(); k++)
+                    cout<<cl_d(which, k)<<",";
+                cout<<")"<<endl;
             }
             cout<<endl;
         }
@@ -327,8 +284,11 @@ namespace clustering{
         // this function should be called after the init of m_is_core and m_labels
         cout<<"-----------print point information-----------"<<endl;
         for(unsigned int i=0; i<cl_d.size1(); i++){
-            cout<<"("<<cl_d(i,0)<<","<<cl_d(i,1)<<")     ";
-            cout<<"["<<m_labels[i]<<" "<<m_is_core[i]<<"]"<<endl;
+            cout<<"(";
+            for(unsigned int j=0; j<cl_d.size2(); j++)
+                cout<<cl_d(i,j)<<",";
+            cout<<")       [";
+            cout<<m_labels[i]<<" "<<m_is_core[i]<<"]"<<endl;
         }
         cout<<"-------------------------------------"<<endl;
     }
@@ -337,14 +297,15 @@ namespace clustering{
     void DBSCAN_Grid::fit(){
         prepare_labels(cl_d.size1());
 
+        float begin, end;
         hash_construct_grid();
-        determine_core_point_grid();
+        determine_core_point_grid();        
 
-        //float clock1 = get_clock();
+        begin = get_clock();
         merge_clusters();
-        //float clock2 = get_clock();
-        //cout<<clock2 - clock1<<endl;
-
+        end = get_clock();
+        cout<<end - begin<<endl;
+        
         determine_boarder_point();
     }
 
