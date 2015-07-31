@@ -31,7 +31,7 @@ namespace clustering{
                 sqr_sum += m_hash(i, j) * m_hash(i, j);
             float sqrt_sum = std::sqrt(sqr_sum);
             for(unsigned int j=0; j<m_hash.size2(); j++)
-                m_hash(i, j) /= sqrt_sum;
+                    m_hash(i, j) /= sqrt_sum;
         }
     }
 
@@ -43,7 +43,7 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps * 0.5;
+        m_new_cell_width = eps * 0.8;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){
@@ -104,12 +104,36 @@ namespace clustering{
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = merge_map.find(key);
                 if(got == merge_map.end()){
-                    merge_map.insert(std::make_pair(key, m_point_to_uf[i]));
+                    std::vector<int> intvec;
+                    intvec.push_back(i);
+                    merge_map.insert(std::make_pair(key, intvec));
                 }
                 else{
-                    int belong_id = got->second;
+                    for(unsigned int j=0; j<got->second.size(); j++){
+                        int id1 = got->second[j];
+                        float dist = 0.0;
+                        for(unsigned int k=0; k<cl_d.size2(); k++){
+                            float diff = cl_d(id1, k) - cl_d(i, k);
+                            dist += diff * diff;
+                        }
+                        if(dist <= m_eps_sqr){
+                            int belong_id = m_point_to_uf[id1];
+                            int center_id = m_point_to_uf[i];
+                            uf.make_union(belong_id, center_id);
+                            break;
+                        }
+                    }
+                    got->second.push_back(i);
+                    /*
+                    else{
+                        got->second = i;
+                    }
+                    */
+                    /*
+                    int belong_id = m_point_to_uf[got->second];
                     int center_id = m_point_to_uf[i];
                     uf.make_union(belong_id, center_id);
+                    */
                 }
             }
             int diff = begin - uf.get_count();
@@ -150,7 +174,7 @@ namespace clustering{
             int merge_counter = merge_after_projection();
             
             if(merge_counter < int(3 * REDUNDANT)){
-                cout<<"after "<<i<<"iterations, algorithm stop"<<endl;
+                cout<<"after "<<i<<" iterations, algorithm stop"<<endl;
                 break;
             }
         }
@@ -161,17 +185,24 @@ namespace clustering{
     void DBSCAN_LSH::fit(){
         prepare_labels(cl_d.size1());
 
+        float begin;
+        begin = get_clock();
         hash_construct_grid();
+        cout<<get_clock() - begin<<endl;
+
+        begin = get_clock();
         determine_core_point_grid();
+        cout<<get_clock() - begin<<endl;
 
         // the merge clusters step is the most time consuming
         // try to improve the performance of this part
-        float begin = get_clock();
+        begin = get_clock();
         merge_clusters_lsh();
-        float end = get_clock();
-        cout<<end - begin<<endl;
+        cout<<get_clock() - begin<<endl;
 
+        begin = get_clock();
         determine_boarder_point();
+        cout<<get_clock() - begin<<endl;
     }
 
     void DBSCAN_LSH::test(){

@@ -129,7 +129,14 @@ namespace clustering{
                 }
             }
         }
+        /*
         //print_point_info(cl_d);
+        int cnt = 0;
+        for(unsigned int i=0; i<m_is_core.size(); i++)
+            if(m_is_core[i] == true)
+                cnt++;
+        cout<<cnt<<" "<<m_is_core.size()<<endl;
+        */
     }
 
     void DBSCAN_Grid::merge_in_neighbour(int point_id, HashType center_key){
@@ -290,12 +297,13 @@ namespace clustering{
     void DBSCAN_Grid::fit(){
         prepare_labels(cl_d.size1());
 
+        float begin, end;
         hash_construct_grid();
-        determine_core_point_grid();
+        determine_core_point_grid();        
 
-        float begin = get_clock();
+        begin = get_clock();
         merge_clusters();
-        float end = get_clock();
+        end = get_clock();
         cout<<end - begin<<endl;
         
         determine_boarder_point();

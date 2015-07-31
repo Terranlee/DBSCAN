@@ -28,7 +28,7 @@ namespace clustering{
         // should be enough for most cases
         typedef std::pair<int64_t, int64_t> DimType;
         typedef std::vector<DimType> NewGrid;
-        typedef std::unordered_map<DimType, int, PairHash<int64_t> > MergeMap;
+        typedef std::unordered_map<DimType, std::vector<int>, PairHash<int64_t> > MergeMap;
 
         typedef std::vector<float> NewCenter;
 
