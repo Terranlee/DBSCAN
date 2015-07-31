@@ -1,10 +1,10 @@
 #ifndef __DBSCAN_LSH_H__
 #define __DBSCAN_LSH_H__
 
-#include "dbscan_grid.h"
+#include "dbscan_reduced.h"
 
 namespace clustering{
-    class DBSCAN_LSH : public DBSCAN_Grid{
+    class DBSCAN_LSH : public DBSCAN_Reduced{
     public:
         typedef ublas::matrix<float> Functions;
 

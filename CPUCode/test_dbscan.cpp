@@ -135,7 +135,7 @@ void test_lsh(Labels& label_lsh){
 
     // high dimension data
     DBSCAN* dbs = new DBSCAN_LSH(200, 8);
-    dbs->read_cluster_data(5, 25000, "../data/dim5.txt");
+    dbs->read_cluster_data(5, 1000000, "../data/dim5.txt");
 
     cout<<"start execution of lsh based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -184,18 +184,18 @@ void test_lsh(Labels& label_lsh){
 int main()
 {
     
-    Labels label_origin;
+    //Labels label_origin;
     //Labels label_grid;
     //Labels label_reduced;
     //Labels label_rehashed;
     Labels label_lsh;
 
-    test_original(label_origin);
+    //test_original(label_origin);
     //test_grid(label_grid);
     //test_reduced(label_reduced);
     //test_rehashed(label_rehashed);
     test_lsh(label_lsh);
-    DBSCAN::cmp_result(label_origin, label_lsh);
+    //DBSCAN::cmp_result(label_origin, label_lsh);
 
     //DBSCAN::cmp_result(label_origin, label_grid);
     //DBSCAN::cmp_result(label_origin, label_reduced);

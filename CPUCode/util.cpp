@@ -77,8 +77,6 @@ void MultiIteration::set_dimension(unsigned int d){
     iter.resize(dim);
     int width = length * 2 + 1;
     counter = int( pow( float(width), float(dim)) ) - 1;
-    // for debug
-    cout<<"dim:"<<dim<<" length:"<<length<<" counter:"<<counter<<endl;
 }
 
 void MultiIteration::set_max(const std::vector<int>& max){

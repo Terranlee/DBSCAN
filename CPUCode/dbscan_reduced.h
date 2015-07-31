@@ -13,7 +13,7 @@ namespace clustering{
         virtual void fit();
         virtual void test();
 
-    private:
+    protected:
         /*****************************************************************************************/
         // Variables and functions for reduced precision implementation
         // The number of points in each cell is fixed, making the length of iteration to be fixed

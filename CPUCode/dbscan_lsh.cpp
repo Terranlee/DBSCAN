@@ -6,9 +6,9 @@
 #include "dbscan_lsh.h"
 
 namespace clustering{
-    DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Grid(eps, min_elems){}
+    DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
     DBSCAN_LSH::~DBSCAN_LSH(){}
-
+    
     void DBSCAN_LSH::hash_set_dimensions(){
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
@@ -43,7 +43,7 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps * 0.8;
+        m_new_cell_width = eps * 0.6;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){
@@ -109,7 +109,7 @@ namespace clustering{
                     merge_map.insert(std::make_pair(key, intvec));
                 }
                 else{
-                    for(unsigned int j=0; j<got->second.size(); j++){
+                    for(unsigned j=0; j<got->second.size(); j++){
                         int id1 = got->second[j];
                         float dist = 0.0;
                         for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -124,20 +124,10 @@ namespace clustering{
                         }
                     }
                     got->second.push_back(i);
-                    /*
-                    else{
-                        got->second = i;
-                    }
-                    */
-                    /*
-                    int belong_id = m_point_to_uf[got->second];
-                    int center_id = m_point_to_uf[i];
-                    uf.make_union(belong_id, center_id);
-                    */
                 }
             }
             int diff = begin - uf.get_count();
-            cout<<"merge : "<<diff<<" clusters"<<endl;
+            //cout<<"merge : "<<diff<<" clusters"<<endl;
             total_merge_counter += diff;
         }
         cout<<endl;
@@ -184,6 +174,8 @@ namespace clustering{
 
     void DBSCAN_LSH::fit(){
         prepare_labels(cl_d.size1());
+
+
 
         float begin;
         begin = get_clock();
