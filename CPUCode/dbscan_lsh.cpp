@@ -8,7 +8,7 @@
 namespace clustering{
     DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
     DBSCAN_LSH::~DBSCAN_LSH(){}
-    
+
     void DBSCAN_LSH::hash_set_dimensions(){
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
@@ -130,7 +130,6 @@ namespace clustering{
             //cout<<"merge : "<<diff<<" clusters"<<endl;
             total_merge_counter += diff;
         }
-        cout<<endl;
         return total_merge_counter;
     }
 
@@ -174,8 +173,6 @@ namespace clustering{
 
     void DBSCAN_LSH::fit(){
         prepare_labels(cl_d.size1());
-
-
 
         float begin;
         begin = get_clock();
