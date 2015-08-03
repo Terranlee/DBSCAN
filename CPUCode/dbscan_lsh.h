@@ -30,6 +30,7 @@ namespace clustering{
         typedef std::vector<DimType> NewGrid;
         typedef std::unordered_map<DimType, std::vector<int>, PairHash<int64_t> > MergeMap;
 
+        // this is the center point we use to construct grid in high dimension
         typedef std::vector<float> NewCenter;
 
         // use this matrix to determine whether a point is core point or not
@@ -71,6 +72,8 @@ namespace clustering{
         // we have m_min_val in dbscan_grid.h
         // during the rehash, we have to set another new minimum value using this vector
         std::vector<NewCenter> m_new_min_val;
+        // the merge result of one hashing method
+        std::vector<MergeMap> m_merge_map;
 
         // the width of the cell in the new space
         float m_new_cell_width;
@@ -78,13 +81,20 @@ namespace clustering{
         // use locality sensitive hashing to rehash the data, and assign them to new grids
         // this can be accelerated by dataflow engine
         void rehash_data_projection();
+
+        // construct the m_merge_map using the result of hashing
+        // merge the points in the same cell
+        void merge_cell_after_hash();
+
         // return the number of small clusters that are merged in this iteration
         // use the return value to terminate the program
-        int merge_after_projection();
-        void determine_core_after_projection(int index, const std::vector<int>& core_map);
+        int merge_small_clusters();
+        void determine_core_using_merge(int index, const std::vector<int>& core_map);
 
-        void merge_clusters_lsh();
+        // all three steps of the grid based algorithm is now done by hashing
         void determine_core_point_lsh();
+        void merge_clusters_lsh();
+        //void determine_boarder_point_lsh();
     };
 }
 

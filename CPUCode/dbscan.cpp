@@ -39,6 +39,7 @@ namespace clustering
     }
 
     void DBSCAN::cmp_result(const Labels& a, const Labels& b){
+        /*
         int cnt_right = 0;
         assert(a.size() == b.size());
 
@@ -47,6 +48,7 @@ namespace clustering
                 cnt_right++;
         float rate = (float)cnt_right / (float)a.size();
         cout<<"similarity: "<<rate<<endl;
+        */
         get_max(a);
         get_max(b);
     }

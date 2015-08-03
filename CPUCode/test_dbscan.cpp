@@ -135,7 +135,7 @@ void test_lsh(Labels& label_lsh){
 
     // high dimension data
     DBSCAN* dbs = new DBSCAN_LSH(200, 8);
-    dbs->read_cluster_data(5, 25000, "../data/dim5.txt");
+    dbs->read_cluster_data(5, 1000000, "../data/dim5.txt");
 
     cout<<"start execution of lsh based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
