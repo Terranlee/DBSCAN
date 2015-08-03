@@ -32,6 +32,9 @@ namespace clustering{
 
         typedef std::vector<float> NewCenter;
 
+        // use this matrix to determine whether a point is core point or not
+        typedef ublas::matrix<int> CoreDetermine;
+
     protected:
         /*****************************************************************************************/
         // Variables and functions for LSH DBSCAN method
@@ -49,6 +52,9 @@ namespace clustering{
 
         // the output dimension of LSH
         static constexpr unsigned int DOUT = 8;
+
+        // set the new cell width in higher dimension
+        void calculate_new_width();
 
         // two functions to generate the hash functions
         void hash_set_dimensions();
@@ -75,9 +81,10 @@ namespace clustering{
         // return the number of small clusters that are merged in this iteration
         // use the return value to terminate the program
         int merge_after_projection();
-        void calculate_new_width();
+        void determine_core_after_projection(int index, const std::vector<int>& core_map);
 
         void merge_clusters_lsh();
+        void determine_core_point_lsh();
     };
 }
 

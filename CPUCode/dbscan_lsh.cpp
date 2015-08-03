@@ -133,13 +133,110 @@ namespace clustering{
         return total_merge_counter;
     }
 
-    void DBSCAN_LSH::merge_clusters_lsh(){
+    void DBSCAN_LSH::determine_core_after_projection(int index, const std::vector<int>& core_map){
+        CoreDetermine cd = CoreDetermine(index, m_min_elems);
+        for(unsigned int i=0; i<cd.size1(); i++)
+            for(unsigned int j=0; j<cd.size2(); j++)
+                cd(i, j) = -1;
+
+        int sz1 = cl_d.size1();
+        for(unsigned int red=0; red<REDUNDANT; red++){
+            MergeMap merge_map;
+            for(unsigned int i=0; i<cl_d.size1(); i++){
+                DimType key = m_new_grid[red][i];
+                MergeMap::iterator got = merge_map.find(key);
+                if(got == merge_map.end()){
+                    std::vector<int> intvec;
+                    intvec.push_back(i);
+                    merge_map.insert(std::make_pair(key, intvec));
+                }
+                else{
+                    got->second.push_back(i);
+                }
+            }
+
+            for(int i=0; i<sz1; i++){
+                if(!m_is_core[i]){
+                    DimType key = m_new_grid[red][i];
+                    MergeMap::const_iterator got = merge_map.find(key);
+                    int sz2 = got->second.size();
+                    for(int j=0; j<sz2; j++){
+                        // do distance calculation here
+                        int which = got->second[j];
+                        if(which == i)
+                            continue;
+
+                        float dist = 0.0f;
+                        for(unsigned int k=0; k<cl_d.size2(); k++){
+                            float diff = cl_d(which, k) - cl_d(i, k);
+                            dist += diff * diff;
+                        }
+                        if(dist < m_eps_sqr){
+                            int core_index = core_map[i];
+                            unsigned int k;
+                            for(k=0; k<cd.size2(); k++){
+                                if(cd(core_index, k) == j || cd(core_index, k) == -1)
+                                    break;
+                            }
+                            if(cd(core_index, k) == -1){
+                                cd(core_index, k) = j;
+                            }
+                            else if(k == cd.size2()){
+                                m_is_core[i] = true;
+                                break;
+                            }
+                        }
+                    }
+                }// endof !m_is_core[i]
+            }// endof for(cl_d.size1())
+        }// endof REDUNDANT
+    }
+
+    void DBSCAN_LSH::determine_core_point_lsh(){
+        m_is_core.resize(cl_d.size1());
+        std::vector<int> core_map(cl_d.size1());
+        int index = 0;
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            //  here we use '>', because it should not include the central point itself
+            if(iter->second.data.size() > m_min_elems){
+                for(unsigned int i=0; i<iter->second.data.size(); i++){
+                    int which = iter->second.data.at(i);
+                    m_is_core[which] = true;
+                }
+            }
+            else{
+                for(unsigned int i=0; i<iter->second.data.size(); i++){
+                    int which = iter->second.data.at(i);
+                    core_map[which] = index++;
+                }
+            }
+        }
+
+        // start to do the hash procedure here
         m_new_min_val.resize(REDUNDANT);
         m_new_grid.resize(REDUNDANT);
         for(unsigned int i=0; i<REDUNDANT; i++){
             m_new_min_val[i].resize(DOUT);
             m_new_grid[i].resize(cl_d.size1());
         }
+        calculate_new_width();
+        hash_set_dimensions();
+
+        hash_generate();
+        rehash_data_projection();
+        determine_core_after_projection(index, core_map);
+    }
+
+    void DBSCAN_LSH::merge_clusters_lsh(){
+        // move these codes to determin_core_point_lsh
+        /*
+        m_new_min_val.resize(REDUNDANT);
+        m_new_grid.resize(REDUNDANT);
+        for(unsigned int i=0; i<REDUNDANT; i++){
+            m_new_min_val[i].resize(DOUT);
+            m_new_grid[i].resize(cl_d.size1());
+        }
+        */
         uf.init(cl_d.size1());
 
         m_point_to_uf.resize(cl_d.size1());
@@ -151,8 +248,12 @@ namespace clustering{
             }
         }
 
+        // move these codes to determine_core_point_lsh
+        /*
         calculate_new_width();
         hash_set_dimensions();
+        */
+
         // TODO:
         // currently exclude the un_core points during the merge step
         // later they should be excluded during the data preparation step
@@ -180,7 +281,7 @@ namespace clustering{
         cout<<get_clock() - begin<<endl;
 
         begin = get_clock();
-        determine_core_point_grid();
+        determine_core_point_lsh();
         cout<<get_clock() - begin<<endl;
 
         // the merge clusters step is the most time consuming
