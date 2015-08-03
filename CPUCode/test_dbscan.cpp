@@ -3,6 +3,7 @@
 #include "dbscan_reduced.h"
 #include "dbscan_rehash.h"
 #include "dbscan_lsh.h"
+#include "dbscan_kd.h"
 
 // the dfe version of DBSCAN does not support dimension > 3
 // checkout to branch main for code that are able to run on DFE
@@ -25,8 +26,8 @@ void test_original(Labels& label_origin){
     //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension data
-    DBSCAN* dbs = new DBSCAN_Matrix(200, 8);
-    dbs->read_cluster_data(5, 25000, "../data/dim5.txt");
+    DBSCAN* dbs = new DBSCAN_Matrix(200, 64);
+    dbs->read_cluster_data(5, 10000, "../data/dim5.txt");
 
     cout<<"start execution of distance matrix DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -42,6 +43,34 @@ void test_original(Labels& label_origin){
     std::copy(lbo.begin(), lbo.end(), label_origin.begin());
     cout<<endl;
     delete dbs;
+}
+
+void test_kd(Labels& label_kd){
+    //DBSCAN* dbs = new DBSCAN_KD(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+
+    //DBSCAN* dbs = new DBSCAN_KD(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    // high dimension data
+    DBSCAN* dbs = new DBSCAN_KD(75, 40);
+    dbs->read_cluster_data(5, 1000000, "../data/dim5.txt");
+
+    cout<<"start execution of distance kdtree DBSCAN"<<endl;
+    float begin = DBSCAN::get_clock();
+    dbs->fit();
+    float end = DBSCAN::get_clock();
+    cout<<"time is : "<<end - begin<<endl;
+
+    dbs->reshape_labels();
+    dbs->output_result("output_kd");
+
+    Labels lbo = dbs->get_labels();
+    label_kd.resize(lbo.size());
+    std::copy(lbo.begin(), lbo.end(), label_kd.begin());
+    cout<<endl;
+    delete dbs;
+
 }
 
 void test_grid(Labels& label_grid){
@@ -185,17 +214,19 @@ int main()
 {
     
     Labels label_origin;
+    Labels label_kd;
     //Labels label_grid;
     //Labels label_reduced;
     //Labels label_rehashed;
-    Labels label_lsh;
+    //Labels label_lsh;
 
     test_original(label_origin);
+    test_kd(label_kd);
     //test_grid(label_grid);
     //test_reduced(label_reduced);
     //test_rehashed(label_rehashed);
-    test_lsh(label_lsh);
-    DBSCAN::cmp_result(label_origin, label_lsh);
+    //test_lsh(label_lsh);
+    DBSCAN::cmp_result(label_origin, label_kd);
 
     //DBSCAN::cmp_result(label_origin, label_grid);
     //DBSCAN::cmp_result(label_origin, label_reduced);

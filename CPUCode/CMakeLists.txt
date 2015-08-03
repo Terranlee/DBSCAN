@@ -19,3 +19,4 @@ aux_source_directory(. DIR_SRCS)
 
 add_executable(test_dbscan ${DIR_SRCS})
 
+TARGET_LINK_LIBRARIES(test_dbscan kdtree)

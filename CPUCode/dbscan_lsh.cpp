@@ -43,7 +43,7 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps * 0.7;
+        m_new_cell_width = eps * 0.5;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){
@@ -90,6 +90,7 @@ namespace clustering{
 
     void DBSCAN_LSH::merge_cell_after_hash(){
         for(unsigned int red=0; red<REDUNDANT; red++){
+            m_merge_map[red].clear();
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
@@ -174,7 +175,7 @@ namespace clustering{
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
                     if(id1 == (int)i)
-                        continue;
+                        break;
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -190,7 +191,7 @@ namespace clustering{
             }
 
             int diff = begin - uf.get_count();
-            //cout<<"merge : "<<diff<<" clusters"<<endl;
+            cout<<"merge : "<<diff<<" clusters"<<endl;
             total_merge_counter += diff;
         }
         return total_merge_counter;
@@ -254,7 +255,7 @@ namespace clustering{
         // use the grid result in determine_core_points to do the first merge
         merge_small_clusters();
 
-        for(int i=0; i<50; i++){
+        for(int i=0; i<10; i++){
             cout<<"yes"<<endl;
             hash_generate();
             rehash_data_projection();
