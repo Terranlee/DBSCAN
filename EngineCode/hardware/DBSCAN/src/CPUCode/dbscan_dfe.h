@@ -16,6 +16,11 @@ namespace clustering{
 
         virtual void fit();
         virtual void test();
+	
+		// these two functions are related to the load and release of max file
+		// does not include in the dfe execution time
+		void prepare();
+		void release();
 
     private:
         /*****************************************************************************************/
@@ -52,7 +57,8 @@ namespace clustering{
         // two simulation function on cpu, trying to make the same result as the dataflow engine
         void merge_clusters_cpu();
         void merge_neighbour_cpu(int center_key, int point_id);
-    };
+	};
+
 }
 
 #endif

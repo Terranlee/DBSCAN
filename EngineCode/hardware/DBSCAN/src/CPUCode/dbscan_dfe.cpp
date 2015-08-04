@@ -50,6 +50,7 @@ namespace clustering{
         int dfe_num_cols = max_get_constant_uint64t(mf, "numCols");
         int dfe_num_points_cell = max_get_constant_uint64t(mf, "numPointsCell");
         int dfe_num_neighbour = max_get_constant_uint64t(mf, "numNeighbour");
+		/*
         if(dfe_num_cols != m_n_cols || dfe_num_points_cell != m_reduced_num || dfe_num_neighbour != 25){
             cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
             cout<<"DFE configuration failed."<<endl;
@@ -60,6 +61,7 @@ namespace clustering{
             cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
             return false;
         }
+		*/
         return true;
     }
     
@@ -304,6 +306,18 @@ namespace clustering{
         }
     }
 
+	// here are two public functions
+	// they are related to the load and release of the max file
+	void DBSCAN_DFE::prepare(){
+		bool check = prepare_max_file();
+		if(!check)
+			exit(1);
+	}
+	
+	void DBSCAN_DFE::release(){
+		release_max_file();
+	}
+
     // virtual functions derived from DBSCAN_Grid
     void DBSCAN_DFE::fit(){
         prepare_labels(cl_d.size1());
@@ -319,17 +333,9 @@ namespace clustering{
         prepare_data();
         
         // the cpu simulation of what is happening on dataflow engine
-        merge_clusters_cpu();
+        //merge_clusters_cpu();
         
-        // the following code is related to the dataflow engine
-        bool check = prepare_max_file();
-        if(!check)
-            return;
         merge_clusters_dfe();
-        release_max_file();
-        
-        // test whether cpu and dfe can get the same result
-        test_results();
         
         // dataflow engine get the relationship between cell and neighbour
         // the merge process is still done on cpu
