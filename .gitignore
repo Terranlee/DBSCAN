@@ -1,5 +1,6 @@
 EngineCode/hardware/NaiveMatrixMultiply/build/
 data/add_data
+data/main
 data/*times_*
 data/dim5*
 data/clustered*
