@@ -156,6 +156,8 @@ dbscan.o: ../src/CPUCode/dbscan.cpp
 	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
 dbscan_grid.o: ../src/CPUCode/dbscan_grid.cpp
 	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+dbscan_reduced.o: ../src/CPUCode/dbscan_reduced.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
 
 # the following files requires SLiC and Maxeler interface
 dbscan_dfe.o: ../src/CPUCode/dbscan_dfe.cpp
@@ -203,7 +205,7 @@ $(PRJ)_dfe.o: $(DFEMAXDIR)/$(PRJ).max
 
 # Modified by Terranlee
 # The following commands are the same as the simulation one
-DFE_CPU_OBJS := DFE_util.o DFE_dbscan.o DFE_dbscan_grid.o DFE_dbscan_dfe.o DFE_test_dbscan.o 
+DFE_CPU_OBJS := DFE_util.o DFE_dbscan.o DFE_dbscan_grid.o DFE_dbscan_reduced.o DFE_dbscan_dfe.o DFE_test_dbscan.o 
 
 # The following files does not requires SLiC interface
 DFE_util.o: ../src/CPUCode/util.cpp
@@ -211,6 +213,8 @@ DFE_util.o: ../src/CPUCode/util.cpp
 DFE_dbscan.o: ../src/CPUCode/dbscan.cpp
 	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
 DFE_dbscan_grid.o: ../src/CPUCode/dbscan_grid.cpp
+	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
+DFE_dbscan_reduced.o: ../src/CPUCode/dbscan_reduced.cpp
 	$(CPUCOMPILER) $(COMPILER_CFLAGS) $(OPT_FLAGS) -c $< -o $@
 
 # The following files requires SLiC interface
