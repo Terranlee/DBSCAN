@@ -91,35 +91,43 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_LSH::merge_cell_after_hash(){
+    void DBSCAN_LSH::merge_cell_after_hash(bool possible){
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
 
-                int ufID = m_point_to_uf[i];
-                int root = uf.find(ufID);
-
-                if(got == m_merge_map[red].end()){
-                    std::vector<int> intvec;
-                    intvec.push_back(i);
-                    m_merge_map[red].insert(std::make_pair(key, intvec));
-                }
-                else{
-                    // merge all the points to a bucket
-                    got->second.push_back(i);
-                    // merge only those that have a possibility to merge to a bucket
-                    /*
-                    for(unsigned int j=0; j<got->second.size(); j++){
-                        int ufID1 = m_point_to_uf[got->second[j]];
-                        int root1 = uf.find(ufID1);
-                        if(root1 != root){
-                            got->second.push_back(i);
-                            break;
+                if(possible){
+                    int ufID = m_point_to_uf[i];
+                    int root = uf.find(ufID);
+                    if(got == m_merge_map[red].end()){
+                        std::vector<int> intvec;
+                        intvec.push_back(i);
+                        m_merge_map[red].insert(std::make_pair(key, intvec));
+                    }
+                    else{
+                        // merge points into a bucket 
+                        // only when they have the possibility to merge small cells
+                        for(unsigned int j=0; j<got->second.size(); j++){
+                            int ufID1 = m_point_to_uf[got->second[j]];
+                            int root1 = uf.find(ufID1);
+                            if(root1 != root){
+                                got->second.push_back(i);
+                                break;
+                            }
                         }
                     }
-                    */
+                }
+                
+                else{
+                    if(got == m_merge_map[red].end()){
+                        std::vector<int> intvec;
+                        intvec.push_back(i);
+                        m_merge_map[red].insert(std::make_pair(key, intvec));
+                    }
+                    else
+                        got->second.push_back(i);                 
                 }
             }
         }
@@ -259,7 +267,7 @@ namespace clustering{
         // these three functions are one iteration of hash-merge procedure
         hash_generate();
         rehash_data_projection();
-        merge_cell_after_hash();
+        merge_cell_after_hash(false);
     }
 
     int DBSCAN_LSH::set_core_map(){
@@ -307,7 +315,6 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::determine_boarder_point_lsh(){
-        /*
         for(unsigned int i=0; i<m_labels.size(); i++){
             if(m_labels[i] == -1){
                 for(unsigned int red=0; red<REDUNDANT; red++){
@@ -319,7 +326,6 @@ namespace clustering{
                 }
             }
         }
-        */
     }
 
     void DBSCAN_LSH::fit(){
