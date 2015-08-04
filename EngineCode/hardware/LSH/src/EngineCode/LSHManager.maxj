@@ -52,7 +52,8 @@ public class LSHManager extends CustomManager{
 
         engine_interface.setTicks(s_kernelName, N);
         engine_interface.setStream("input_cpu", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * din);
-		
+		engine_interface.setScalar("cellWidth", CPUTypes.FLOAT);
+
 		String toCPUPrefix = "output_cpu";
 		for(int i=0; i<redundant; i++){
 			String toCPU = toCPUPrefix + Integer.toString(i);
