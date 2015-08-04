@@ -107,7 +107,9 @@ namespace clustering{
                     m_merge_map[red].insert(std::make_pair(key, intvec));
                 }
                 else{
+                    // merge all the points to a bucket
                     got->second.push_back(i);
+                    // merge only those that have a possibility to merge to a bucket
                     /*
                     for(unsigned int j=0; j<got->second.size(); j++){
                         int ufID1 = m_point_to_uf[got->second[j]];
@@ -305,12 +307,19 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::determine_boarder_point_lsh(){
+        /*
         for(unsigned int i=0; i<m_labels.size(); i++){
             if(m_labels[i] == -1){
+                for(unsigned int red=0; red<REDUNDANT; red++){
+                    DimType key = m_new_grid[red][i];
+                    MergeMap::const_iterator got = m_merge_map[red].find(key);
+                    for(unsigned int j=0; j<got->second.size(); j++){
 
+                    }
+                }
             }
         }
-        
+        */
     }
 
     void DBSCAN_LSH::fit(){
