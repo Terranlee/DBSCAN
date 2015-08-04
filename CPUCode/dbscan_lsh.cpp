@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <cmath>
+#include <limits>
 #include <fstream>
 
 #include "dbscan_lsh.h"
@@ -320,8 +321,21 @@ namespace clustering{
                 for(unsigned int red=0; red<REDUNDANT; red++){
                     DimType key = m_new_grid[red][i];
                     MergeMap::const_iterator got = m_merge_map[red].find(key);
-                    for(unsigned int j=0; j<got->second.size(); j++){
 
+                    float min_dist = std::numeric_limits<float>::max();
+                    for(unsigned int j=0; j<got->second.size(); j++){
+                        int which = got->second[j];
+                        if(!m_is_core[i])
+                            continue;
+                        float dist = 0.0f;
+                        for(unsigned int k=0; k<got->second.size(); k++){
+                            float diff = cl_d(i, k) - cl_d(which,k);
+                            dist += diff * diff;
+                        }
+                        if(dist < min_dist){
+                            min_dist = dist;
+                            m_labels[i] = m_labels[which];
+                        }
                     }
                 }
             }
