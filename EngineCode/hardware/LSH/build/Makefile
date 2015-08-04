@@ -35,4 +35,8 @@ include $(WHEREISROOT)/Makefile.Maia.hardware
 
 
 # Using common compillation targets and compiler settings
-include $(WHEREISROOT)/Makefile.common
+# Include this makefile when you are doing unity test
+include $(WHEREISROOT)/Makefile.unity.common
+
+# Include this makefile when you are doing a real DBSCAN computation on DFE
+#include $(WHEREISROOT)/Makefile.common

@@ -28,6 +28,7 @@ int64_t** output_dfe;
 void to_file();
 
 void reserve_memory(){
+	printf("reserve memory\n");
 	input = (float*) malloc( sizeof(float) * DIN * input_size);
 	center = (float**) malloc( sizeof(float*) * REDUNDANT);
 	hash = (float**) malloc( sizeof(float*) * DOUT);
@@ -36,8 +37,8 @@ void reserve_memory(){
 
 	for(int i=0; i<REDUNDANT; i++){
 		center[i] = (float*) malloc( sizeof(float) * DOUT);
-		output_cpu = (int64_t*) malloc( sizeof(int64_t) * 2 * input_size);
-		output_dfe = (int64_t*) malloc( sizeof(int64_t) * 2 * input_size);
+		output_cpu[i] = (int64_t*) malloc( sizeof(int64_t) * 2 * input_size);
+		output_dfe[i] = (int64_t*) malloc( sizeof(int64_t) * 2 * input_size);
 	}
 
 	for(int i=0; i<DOUT; i++)
@@ -45,16 +46,17 @@ void reserve_memory(){
 }
 
 void generate_data(){
+	printf("generate data\n");
 	srand(0);
 	// generate input
 	int length = input_size * DIN;
 	for(int i=0; i<length; i++)
-		input[i] = float(rand()) / float(RAND_MAX) * max_val;
-	
+		input[i] = (float)(rand()) / (float)(RAND_MAX) * max_val;
+
 	// generate hash function and formalization
 	for(int i=0; i<DOUT; i++)
 		for(int j=0; j<DIN; j++)
-			hash[i][j] = float(rand()) / float(RAND_MAX);
+			hash[i][j] = (float)(rand()) / (float)(RAND_MAX);
 	for(int i=0; i<DOUT; i++){
 		float sqr_sum = 0.0f;
 		for(int j=0; j<DIN; j++)
@@ -63,7 +65,7 @@ void generate_data(){
 		for(int j=0; j<DIN; j++)
 			hash[i][j]  /= sqrt_sum;
 	}
-	
+
 	// generate center
 	for(int red=0; red<REDUNDANT; red++){
 		int rnd = rand() % input_size;
@@ -76,14 +78,17 @@ void generate_data(){
 	}
 
 	// set output to be 0
-	int output_length = input_size * DIN;
-	for(int i=0; i<output_length; i++){
-		output_cpu[i] = 0;
-		output_dfe[i] = 0;
+	int output_length = input_size * 2;
+	for(int red=0; red<REDUNDANT; red++){
+		for(int j=0; j<output_length; j++){
+			output_cpu[red][j] = 0;
+			output_dfe[red][j] = 0;
+		}
 	}
 }
 
 void release_memory(){
+	printf("release memory\n");
 	for(int i=0; i<REDUNDANT; i++){
 		free(output_dfe[i]);
 		free(output_cpu[i]);
@@ -101,6 +106,7 @@ void release_memory(){
 }
 
 void lsh_cpu(){
+	printf("lsh cpu\n");
 	float* temp = (float*) malloc(sizeof(float) * DOUT);
 	float* mult = (float*) malloc(sizeof(float) * DOUT);
 	for(int i=0; i<input_size; i++){
@@ -114,7 +120,7 @@ void lsh_cpu(){
 		// calculate index in each dimension
 		for(int red=0; red<REDUNDANT; red++){
 			for(int j=0; j<DOUT; j++)
-				temp[j] = int((mult[j] - center[red][j]) / cell_width) + 1;
+				temp[j] = (int)((mult[j] - center[red][j]) / cell_width) + 1;
 			// make the final hash
 			int64_t first = 0;
 			int64_t second = 0;
@@ -135,16 +141,21 @@ void lsh_cpu(){
 }
 
 void lsh_dfe(){
+	printf("lsh dfe\n");
 
 }
 
 void check_output(){
-	int output_size = input_size * 2;
+	printf("check output\n");
+	int output_length = input_size * 2;
 	int counter = 0;
-	for(int i=0; i<output_length; i++)
-		if(output_cpu[i] == output_dfe[i])
-			counter++;
-	printf("%d same over %d\n", counter, output_length);
+	for(int red=0; red<REDUNDANT; red++){
+		for(int i=0; i<output_length; i++)
+			if(output_cpu[red][i] == output_dfe[red][i])
+				counter++;
+	}
+
+	printf("%d same over %d\n", counter, output_length * REDUNDANT);
 	if(counter != output_length){
 		printf("Error!!! please check files\n");
 		to_file();
@@ -152,15 +163,22 @@ void check_output(){
 }
 
 void to_file(){
-	int output_length = input_length * 2;
+	printf("to file\n");
+	int output_length = input_size * 2;
     FILE* fp1 = fopen("answer_cpu", "w");
-    for(int i=0; i<output_length; i++)
-        fprintf(fp1, "%ld\n", output_cpu[i]);
+	for(int red=0; red<REDUNDANT; red++){
+		for(int i=0; i<output_length; i++)
+			fprintf(fp1, "%lld\n", (long long int)output_cpu[red][i]);
+		fprintf(fp1, "\n");
+	}
     fclose(fp1);
 				
     FILE* fp2 = fopen("answer_dfe", "w");
-    for(int i=0; i<output_length; i++)
-        fprintf(fp2, "%ld\n", output_dfe[i]);
+	for(int red=0; red<REDUNDANT; red++){
+		for(int i=0; i<output_length; i++)
+			fprintf(fp2, "lld\n", (long long int)output_cpu[red][i]);
+		fprintf(fp2, "\n");
+	}
     fclose(fp2);
 }
 
