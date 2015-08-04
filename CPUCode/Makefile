@@ -159,6 +159,54 @@ dbscan_grid.cpp.s:
 	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_grid.cpp.s
 .PHONY : dbscan_grid.cpp.s
 
+dbscan_kd.o: dbscan_kd.cpp.o
+.PHONY : dbscan_kd.o
+
+# target to build an object file
+dbscan_kd.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_kd.cpp.o
+.PHONY : dbscan_kd.cpp.o
+
+dbscan_kd.i: dbscan_kd.cpp.i
+.PHONY : dbscan_kd.i
+
+# target to preprocess a source file
+dbscan_kd.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_kd.cpp.i
+.PHONY : dbscan_kd.cpp.i
+
+dbscan_kd.s: dbscan_kd.cpp.s
+.PHONY : dbscan_kd.s
+
+# target to generate assembly for a file
+dbscan_kd.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_kd.cpp.s
+.PHONY : dbscan_kd.cpp.s
+
+dbscan_lsh.o: dbscan_lsh.cpp.o
+.PHONY : dbscan_lsh.o
+
+# target to build an object file
+dbscan_lsh.cpp.o:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_lsh.cpp.o
+.PHONY : dbscan_lsh.cpp.o
+
+dbscan_lsh.i: dbscan_lsh.cpp.i
+.PHONY : dbscan_lsh.i
+
+# target to preprocess a source file
+dbscan_lsh.cpp.i:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_lsh.cpp.i
+.PHONY : dbscan_lsh.cpp.i
+
+dbscan_lsh.s: dbscan_lsh.cpp.s
+.PHONY : dbscan_lsh.s
+
+# target to generate assembly for a file
+dbscan_lsh.cpp.s:
+	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_lsh.cpp.s
+.PHONY : dbscan_lsh.cpp.s
+
 dbscan_matrix.o: dbscan_matrix.cpp.o
 .PHONY : dbscan_matrix.o
 
@@ -294,6 +342,12 @@ help:
 	@echo "... dbscan_grid.o"
 	@echo "... dbscan_grid.i"
 	@echo "... dbscan_grid.s"
+	@echo "... dbscan_kd.o"
+	@echo "... dbscan_kd.i"
+	@echo "... dbscan_kd.s"
+	@echo "... dbscan_lsh.o"
+	@echo "... dbscan_lsh.i"
+	@echo "... dbscan_lsh.s"
 	@echo "... dbscan_matrix.o"
 	@echo "... dbscan_matrix.i"
 	@echo "... dbscan_matrix.s"

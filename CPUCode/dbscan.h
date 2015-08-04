@@ -37,6 +37,7 @@ namespace clustering
         // functions for all DBSCAN methods
         // implemented in dbscan.cpp
         static void cmp_result(const Labels& a, const Labels & b);
+        static void get_max(const Labels& a);
         static float get_clock();
 
         // initialize, deconstruct and reset

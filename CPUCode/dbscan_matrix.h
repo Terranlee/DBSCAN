@@ -14,8 +14,11 @@ namespace clustering{
 
     private:
         /*****************************************************************************************/
-        // variables and functions for distance matrix method
-        // implemented in dbscan_matrix.cpp
+        // Variables and functions for distance matrix method
+        // Brute force algorithm, calculate a distance matrix before the real algorithm
+        // The algorithm is the original version of DBSCAN in the paper in KDD-96
+        // Use this version as a baseline
+        // Implemented in dbscan_matrix.cpp
         std::vector<uint8_t> m_visited;
 
         const DistanceMatrix calc_dist_matrix();

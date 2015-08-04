@@ -3,4 +3,4 @@ DFEModel=MAIA
 
 MPCX=true
 DEVICENUM=MAIA
-SLIC_CONF="default_engine_resource = 192.168.0.10"
+SLIC_CONF="default_engine_resource=trli^192.168.0.1"

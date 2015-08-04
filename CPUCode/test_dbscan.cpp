@@ -2,11 +2,16 @@
 #include "dbscan_grid.h"
 #include "dbscan_reduced.h"
 #include "dbscan_rehash.h"
+#include "dbscan_lsh.h"
+#include "dbscan_kd.h"
 
-// include dbscan_dfe.h only when you have the maxeler environment
+// the dfe version of DBSCAN does not support dimension > 3
+// checkout to branch main for code that are able to run on DFE
+/*
 #ifdef DESIGN_NAME
     #include "dbscan_dfe.h"
 #endif
+*/
 
 #include <algorithm>
 
@@ -17,8 +22,12 @@ void test_original(Labels& label_origin){
     //DBSCAN* dbs = new DBSCAN_Matrix(20000, 4);   // the papameter for s1.txt
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Matrix(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Matrix(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    // high dimension data
+    DBSCAN* dbs = new DBSCAN_Matrix(200, 64);
+    dbs->read_cluster_data(5, 10000, "../data/dim5.txt");
 
     cout<<"start execution of distance matrix DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -36,13 +45,44 @@ void test_original(Labels& label_origin){
     delete dbs;
 }
 
+void test_kd(Labels& label_kd){
+    //DBSCAN* dbs = new DBSCAN_KD(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+
+    //DBSCAN* dbs = new DBSCAN_KD(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    // high dimension data
+    DBSCAN* dbs = new DBSCAN_KD(75, 40);
+    dbs->read_cluster_data(5, 1000000, "../data/dim5.txt");
+
+    cout<<"start execution of distance kdtree DBSCAN"<<endl;
+    float begin = DBSCAN::get_clock();
+    dbs->fit();
+    float end = DBSCAN::get_clock();
+    cout<<"time is : "<<end - begin<<endl;
+
+    dbs->reshape_labels();
+    dbs->output_result("output_kd");
+
+    Labels lbo = dbs->get_labels();
+    label_kd.resize(lbo.size());
+    std::copy(lbo.begin(), lbo.end(), label_kd.begin());
+    cout<<endl;
+    delete dbs;
+
+}
+
 void test_grid(Labels& label_grid){
 
     //DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    DBSCAN* dbs = new DBSCAN_Grid(200, 8);
+    dbs->read_cluster_data(5, 25000, "../data/dim5.txt");
 
     cout<<"start execution of grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -60,13 +100,18 @@ void test_grid(Labels& label_grid){
     delete dbs;
 }
 
+
 void test_reduced(Labels& label_reduced){
     
     //DBSCAN* dbs = new DBSCAN_Reduced(20000, 4);   // the papameter for s1.txt
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Reduced(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Reduced(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    // high dimension data
+    DBSCAN* dbs = new DBSCAN_Reduced(200, 8);
+    dbs->read_cluster_data(5, 5000, "../data/dim5.txt");
 
     cout<<"start execution of reduced grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -84,13 +129,14 @@ void test_reduced(Labels& label_reduced){
     delete dbs;
 }
 
+/*
 void test_rehashed(Labels& label_rehashed){
 
     //DBSCAN* dbs = new DBSCAN_Rehash(20000, 4);
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Rehash(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Rehash(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     cout<<"start execution of rehash grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -106,7 +152,36 @@ void test_rehashed(Labels& label_rehashed){
     cout<<endl;
     delete dbs;
 }
+*/
 
+void test_lsh(Labels& label_lsh){
+
+    //DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+
+    //DBSCAN* dbs = new DBSCAN_LSH(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+
+    // high dimension data
+    DBSCAN* dbs = new DBSCAN_LSH(200, 8);
+    dbs->read_cluster_data(5, 1000000, "../data/dim5.txt");
+
+    cout<<"start execution of lsh based DBSCAN"<<endl;
+    float begin = DBSCAN::get_clock();
+    dbs->fit();
+    float end = DBSCAN::get_clock();
+    cout<<"time is : "<<end - begin<<endl;
+
+    dbs->reshape_labels();
+    dbs->output_result("output_lsh");
+    Labels lbr = dbs->get_labels();
+    label_lsh.resize(lbr.size());
+    std::copy(lbr.begin(), lbr.end(), label_lsh.begin());
+    cout<<endl;
+    delete dbs;
+}
+
+/*
 // test dbscan on dfe only when you have maxeler environment
 #ifdef DESIGN_NAME
     void test_dfe(Labels& label_dfe){
@@ -133,25 +208,29 @@ void test_rehashed(Labels& label_rehashed){
         delete dbs;
     }
 #endif
+*/
 
 int main()
 {
     
     Labels label_origin;
-    Labels label_grid;
+    Labels label_kd;
+    //Labels label_grid;
     //Labels label_reduced;
-    //Labels label_dfe;
-    Labels label_rehashed;
+    //Labels label_rehashed;
+    //Labels label_lsh;
 
     test_original(label_origin);
-    test_grid(label_grid);
+    test_kd(label_kd);
+    //test_grid(label_grid);
     //test_reduced(label_reduced);
-    //test_dfe(label_dfe);
-    test_rehashed(label_rehashed);
+    //test_rehashed(label_rehashed);
+    //test_lsh(label_lsh);
+    DBSCAN::cmp_result(label_origin, label_kd);
 
-    DBSCAN::cmp_result(label_origin, label_grid);
-    //DBSCAN::cmp_result(label_grid, label_dfe);
-    DBSCAN::cmp_result(label_origin, label_rehashed);
-
+    //DBSCAN::cmp_result(label_origin, label_grid);
+    //DBSCAN::cmp_result(label_origin, label_reduced);
+    //DBSCAN::cmp_result(label_origin, label_rehashed);
+    
     return 0;
 }
