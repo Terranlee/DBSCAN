@@ -1,0 +1,73 @@
+/***
+    The manager for this design just streams data from CPU to DFE and back via PCI-E.
+*/
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.CPUTypes;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.EngineInterface;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.InterfaceParam;
+import com.maxeler.maxcompiler.v2.managers.custom.CustomManager;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.KernelBlock;
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+
+public class LSHManager extends CustomManager{
+
+    private static final String s_kernelName  = "LSHKernel";
+
+    LSHManager(LSHParameters params) {
+        super(ep);
+
+        KernelBlock k =
+	    addKernel(new LSHKernel(makeKernelParameters(s_kernelName), params));
+		
+		addConstant();
+
+		// this algorithm has one input and several output
+        k.getInput("input") <== addStreamFromCPU("input_cpu");
+
+		int redundant = params.getRedundant();
+		String toCPUPrefix = "output_cpu";
+		String fromDFEPrefix = "output";
+		for(int i=0; i<redundant; i++){
+			String toCPU = toCPUPrefix + Integer.toString(i);
+			String fromDFE = fromDFEPrefix + Integer.toString(i);
+			addStreamToCPU(toCPU) <== k.getOutput(fromDFE);
+		}
+		
+		// create SLiC interface here because we need the parameters 
+		createSLiCinterface(interfaceDefault(params));
+    }
+	
+	private void addConstant(LSHParameters param){
+		addMaxFileConstant("din",		param.getDIn());
+		addMaxFileConstant("dout",		param.getDOut());
+		addMaxFileConstant("redundant",	param.getRedundant());
+	}
+
+    private static EngineInterface interfaceDefault(LSHParameters param) {
+		int din = param.getDIn();
+		int dout = param.getDOut();
+		int redundant = param.getRedundant();
+
+        EngineInterface engine_interface = new EngineInterface();
+        
+		// the parameter N is the number of input points
+        InterfaceParam N = engine_interface.addParam("N", CPUTypes.INT);
+
+        engine_interface.setTicks(s_kernelName, N);
+        engine_interface.setStream("input_cpu", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * din);
+		
+		String toCPUPrefix = "output_cpu";
+		for(int i=0; i<redundant; i++){
+			String toCPU = toCPUPrefix + Integer.toString(i);
+			// for every redundant, for every input point, we output two int64_t
+			// but in kernel, it is represented as 8 int16_t
+			engine_interface.setStream(toCPU, CPUTypes.INT64, N * CPUTypes.INT64.sizeInBytes() * 2);
+		}
+        return engine_interface;
+    }
+
+    public static void main(String[] args) {
+        LSHManager manager = new LSHManager(new LSHParameters(args));
+        manager.build();
+    }
+}
+

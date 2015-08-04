@@ -1,0 +1,106 @@
+
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEFloat;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
+import com.maxeler.maxcompiler.v2.managers.engine_interface.CPUTypes;
+
+public class LSHParameters extends EngineParameters{
+	
+	private static final String s_inputType = "inputType";
+	private static final String s_din = "dimIn";
+	private static final String s_dout = "dimOut";
+	private static final String s_redundant = "redundant";
+
+	public LSHParameters(String[] args){
+		super(args);
+	}
+
+	@Override
+	protected void declarations(){
+		declareParam(s_inputType,	DataType.DFETYPE,	Kernel.dfeFloat(8, 24));
+		declareParam(s_din,			DataType.INT,		2);
+		declareParam(s_dout,		DataType.INT,		8);
+		declareParam(s_redundant,	DataType.INT,		4);
+	}
+
+	public DFEType	getInputType()	{	return getParam(s_inputType);	}
+	public int		getDIn()		{	return getParam(s_din);			}
+	public int		getDOut()		{	return getParam(s_dout);		}
+	public int		getRedundant()	{	return getParam(s_redundant);	}
+
+	@Override
+	protected void validata(){
+		if(getDIn() <= 1){
+			throw new IllegalArgumentException("dimension of input should at least be 2");
+		}
+		if(getDOut() % 2 != 0){
+			throw new IllegalArgumentException("dimension of output should be divided by 2, make it easy to compare on CPU");
+		}
+		if(getRedundant() <= 0){
+			throw new IllegalArgumentException("number of redundant should > 0");
+		}
+		if(	!getInputType().equalsIgnoreMax(Kernel.dfeFloat(8, 24)) &&
+			!getInputType().equalsIgnoreMax(Kernel.dfeFloat(11, 53))){
+			throw new IllegalArgumentException("CPU only support float/double number as input");
+		}
+	}
+
+	public static CPUTypes getType(DFEType type){
+		CPUTypes output;
+		if (type.isInt()){
+			switch(type.getTotalBits()){
+				case 8:
+					output = CPUTypes.INT8;
+					break;
+				case 16:
+					output = CPUTypes.INT16;
+					break;
+				case 32:
+					output = CPUTypes.INT32;
+					break;
+				case 64:
+					output = CPUTypes.INT64;
+					break;
+				default:
+					throw new RuntimeException("integer length should be 8, 16, 32, 64");
+			}
+		}
+		else if(type.isUInt()){
+			switch(type.getTotalBits()){
+				case 8:
+					output = CPUTypes.UINT8;
+					break;
+				case 16:
+					output = CPUTypes.UINT16;
+					break;
+				case 32:
+					output = CPUTypes.UINT32;
+					break;
+				case 64:
+					output = CPUTypes.UINT64;
+					break;
+				default:
+					throw new RuntimeException("integer length should be 8, 16, 32, 64");
+			}
+		}
+		else if(type instanceof DFEFloat){
+			switch(type.getTotalBits()){
+				case 32:
+					output = CPUTypes.FLOAT;
+					break;
+				case 64:
+					output = CPUTypes.DOUBLE;
+					break;
+				default:
+					throw new RuntimeException("CPU only support float/double precision");
+			}
+		}
+		else{
+			throw new RuntimeException("input data not recognized");
+		}
+		return output;
+	}
+
+}
+

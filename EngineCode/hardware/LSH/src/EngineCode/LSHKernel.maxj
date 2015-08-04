@@ -1,0 +1,173 @@
+/***
+*/
+
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
+import com.maxeler.maxcompiler.v0.utils.MathUtils;
+
+import java.util.ArrayList;
+
+class LSHKernel extends Kernel {
+	
+	// input data type
+	private static DFEType m_inputType;
+
+	// output data type for one point in one dim
+	// the index range in each dimension is [-32768, 32767], should be enough for most cases
+	private static final DFEType m_outType = dfeInt(16);
+
+	// dimension of the input data
+	private static int m_din;
+
+	// dimension of the output data, the dimension of LSH function
+	// we can project the data from m_din space to m_dout space
+	private static int m_dout;
+
+	// for each LSH function, we construct m_redundent grids using different zero point
+	private static int m_redundant;
+
+    protected LSHKernel(LSHParameters parameters) {
+        super(parameters);
+		
+		m_inputType = parameters.getInputType();
+		m_din = parameters.getDIn();
+		m_dout = parameters.getDOut();
+		m_redundant = parameters.getRedundant();
+
+		DFEVectorType<DFEVar> inputType = new DFEVectorType<DFEVar>(m_inputType, m_din);
+		DFEVector<DFEVar> input = io.input("input", inputType);
+		
+		// all the hash function parameter is get through a scalarInput with a very long length
+		// split all the parameters into ArrayList
+		DFEVectorType<DFEVar> functionType = new DFEVectorType<DFEVar>(m_inputType, m_din * m_dout);
+		DFEVector<DFEVar> functions = io.scalarInput("function", functionType);
+		
+		// the first dimension means a hash function
+		// the second dimension means the parameters in a function
+		ArrayList<ArrayList<DFEVar> > hashFunction = new ArrayList<ArrayList<DFEVar>>();
+		setHashFunction(functions, hashFunction);
+	
+		// step1 : do projection
+		ArrayList<ArrayList<DFEVar> > multiply = doProjection(input, hashFunction);
+
+		// step2 : add each dimension
+		ArrayList<DFEVar> hashCoordinate = addProjection(multiply);
+		
+		// all the center points is get through a scalarInput with a very long length
+		// split all the coordinates into ArrayList
+		DFEVectorType<DFEVar> centerPointType = new DFEVectorType<DFEVar>(m_inputType, m_redundant * m_dout);
+		DFEVector<DFEVar> centerPoint = io.scalarInput("centerPoint", centerPointType);
+
+		// the first dimension means a dimension
+		// the second dimension means a new center point
+		ArrayList<ArrayList<DFEVar> > center = new ArrayList<ArrayList<DFEVar> >();
+		setCenterPoint(centerPoint, center);
+		
+		// step3 : do the minus
+		// the first dimension is m_dout dimension
+		// the second dimension is the redundant
+		ArrayList<ArrayList<DFEVar> > minus = doMinus(hashCoordinate, center);
+		
+		// the cell width is set from the scalarInput
+		DFEVar cellWidth = io.scalarInput("cellWidth", m_inputType);
+
+		// step4 : do the divide, also cast from float to int16
+		doDivideAndCast(minus, cellWidth);
+		
+		// for every input point(m_din dimensions) and every redundant, we output 2 int64_t to represent the HashCode
+		// actually it is represented in 8 int16_t for convenience in the hardware
+		// in CPU, the HashType will be defined as std::pair<int64_t, int64_t>
+		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(m_outType, m_dout);
+		
+		// step5 : set the output for every redundant grid
+		// the moveBitAndAdd function is not needed any more, because the output is already int16_t
+		String out = "output";
+		for(int i=0; i<m_redundant; i++){
+			DFEVector<DFEVar> output = outputType.newInstance(this);
+			for(int j=0; j<m_dout; j++)
+				output[j] <== minus[j][i];
+
+			String outputName = out + Integer.toString(i);
+		    io.output(outputName, output, output.getType(), XYCounter === 0);
+		}
+    }   
+	
+	private void setHashFunction(DFEVector<DFEVar> functions, ArrayList<ArrayList<DFEVar> > hashFunction){
+		for(int i=0; i<m_dout; i++){
+			ArrayList<DFEVar> oneFunc = new ArrayList<DFEVar>();
+			for(int j=0; j<m_din; j++){
+				DFEVar param = functions[i * m_din + j];
+				oneFunc.add(param);
+			}
+			hashFunction.add(oneFunc);
+		}
+	}
+	
+	private void setCenterPoint(DFEVector<DFEVar> centerPoint, ArrayList<ArrayList<DFEVar> > center){
+		for(int i=0; i<m_dout; i++){
+			ArrayList<DFEVar> oneDim = new ArrayList<DFEVar>();
+			for(int j=0; j<m_redundant; j++){
+				DFEVar param = centerPoint[i * m_redundant + j];
+				oneDim.add(param);
+			}
+			center.add(oneDim);
+		}
+	}
+
+	private ArrayList<ArrayList<DFEVar> > doProjection(DFEVector<DFEVar> input, ArrayList<ArrayList<DFEVar> > hashFunction){
+		ArrayList<ArrayList<DFEVar> > multiply = new ArrayList<ArrayList<DFEVar> >();
+		for(int i=0; i<m_dout; i++){
+			// oneDim means the multiply result of one dimension
+			ArrayList<DFEVar> oneDim = new ArrayList<DFEVar>();
+			for(int j=0; j<m_din; j++){
+				DFEVar ans = input[j] * hashFunction[i][j];
+				oneDim.add(ans);
+			}
+			multiply.add(oneDim);
+		}
+		return multiply;
+	}
+	
+	private ArrayList<DFEVar> addProjection(ArrayList<ArrayList<DFEVar> > multiply){
+		ArrayList<DFEVar> hashCoordinate = new ArrayList<DFEVar>();
+		for(int i=0; i<m_dout; i++){
+			DFEVar sum = adderTree(multiply[i]);
+			hashCoordinate.add(sum);
+		}
+		return hashCoordinate;
+	}
+	
+	private ArrayList<ArrayList<DFEVar> > doMinus(ArrayList<DFEVar> hashCoordinate, ArrayList<ArrayList<DFEVar> > center){
+		ArrayList<ArrayList<DFEVar> > minus = new ArrayList<ArrayList<DFEVar> >();
+		for(int i=0; i<m_dout; i++){
+			ArrayList<DFEVar> oneDim = new ArrayList<DFEVar>();
+			for(int j=0; j<m_redundant; j++){
+				DFEVar m = hashCoordinate[i] - center[i][j];
+				oneDim.add(m);
+			}
+			minus.add(oneDim);
+		}
+	}
+	
+	private void doDivideAndCast(ArrayList<ArrayList<DFEVar> > minus, DFEVar cellWidth){
+		for(int i=0; i<m_dout; i++){
+			for(int j=0; j<m_redundant; j++){
+				minus[i][j] = (minus[i][j] / cellWidth).cast(dfeInt(16));
+			}
+		}
+	}
+	
+	private DFEVar adderTree(ArrayList<DFEVar> cell){
+		ArrayList<DFEVar> sum = new ArrayList<DFEVar>();
+		for(int i=0; i<cell.size() / 2; i++){
+			sum.add( cell[2 * i] + cell[2 * i + 1] );
+		}
+		if(cell.size() % 2 == 1){
+			sum.add( cell[cell.size() - 1] );
+		}
+		return sum.size() == 1 ? sum[0] : adderTree(sum);
+	}
+
+}
+
