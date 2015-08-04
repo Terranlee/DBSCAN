@@ -47,7 +47,7 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps * 0.5;
+        m_new_cell_width = eps * 1.0;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){
@@ -98,13 +98,25 @@ namespace clustering{
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
+
+                int ufID = m_point_to_uf[i];
+                int root = uf.find(ufID);
+
                 if(got == m_merge_map[red].end()){
                     std::vector<int> intvec;
                     intvec.push_back(i);
                     m_merge_map[red].insert(std::make_pair(key, intvec));
                 }
-                else
-                    got->second.push_back(i);
+                else{
+                    for(unsigned int j=0; j<got->second.size(); j++){
+                        int ufID1 = m_point_to_uf[got->second[j]];
+                        int root1 = uf.find(ufID1);
+                        if(root1 != root){
+                            got->second.push_back(i);
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -179,7 +191,7 @@ namespace clustering{
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
                     if(id1 == (int)i)
-                        break;
+                        continue;
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -195,14 +207,14 @@ namespace clustering{
             }
 
             int diff = begin - uf.get_count();
-            cout<<"merge : "<<diff<<" clusters"<<endl;
+            cout<<"merge : "<<diff<<" clusters   :   "<<uf.get_count()<<endl;
             total_merge_counter += diff;
         }
         return total_merge_counter;
     }
 
     void DBSCAN_LSH::determine_core_point_lsh(){
-        m_is_core.resize(cl_d.size1());
+        m_is_core.resize(cl_d.size1(), false);
         std::vector<int> core_map(cl_d.size1());
         int index = 0;
         for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
@@ -220,7 +232,7 @@ namespace clustering{
                 }
             }
         }
-
+        cout<<"!!!!!"<<index<<endl;
         // start to do the hash procedure here
         // during each hash process, we produce REDUNDANT number of min_val, new_grid, merge_map
         // now the merge_map can share between different functions
@@ -235,6 +247,17 @@ namespace clustering{
         calculate_new_width();
         hash_set_dimensions();
 
+        // also initialize union find structure here
+        uf.init(m_hash_grid.size());
+        m_point_to_uf.resize(cl_d.size1());
+        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            int ufid = iter->second.ufID;
+            for(unsigned int i=0; i<iter->second.data.size(); i++){
+                int which = iter->second.data[i];
+                m_point_to_uf[which] = ufid;
+            }
+        }
+
         // these three functions are one iteration of hash-merge procedure
         hash_generate();
         rehash_data_projection();
@@ -245,21 +268,10 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        uf.init(cl_d.size1());
-
-        m_point_to_uf.resize(cl_d.size1());
-        for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
-            int ufid = iter->second.ufID;
-            for(unsigned int i=0; i<iter->second.data.size(); i++){
-                int which = iter->second.data[i];
-                m_point_to_uf[which] = ufid;
-            }
-        }
-
         // use the grid result in determine_core_points to do the first merge
         merge_small_clusters();
 
-        for(int i=0; i<10; i++){
+        for(int i=0; i<30; i++){
             cout<<"yes"<<endl;
             hash_generate();
             rehash_data_projection();
@@ -287,6 +299,12 @@ namespace clustering{
         begin = get_clock();
         determine_core_point_lsh();
         cout<<get_clock() - begin<<endl;
+
+        int counter = 0;
+        for(unsigned int i=0; i<m_is_core.size(); i++)
+            if(m_is_core[i])
+                counter++;
+        cout<<counter<<" core points in "<<m_is_core.size()<<endl;
 
         begin = get_clock();
         merge_clusters_lsh();

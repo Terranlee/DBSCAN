@@ -53,8 +53,8 @@ void test_kd(Labels& label_kd){
     //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension data
-    DBSCAN* dbs = new DBSCAN_KD(75, 40);
-    dbs->read_cluster_data(5, 1000000, "../data/dim5.txt");
+    DBSCAN* dbs = new DBSCAN_KD(5000.0, 100);
+    dbs->read_cluster_data(7, 500000, "../data/household.data");
 
     cout<<"start execution of distance kdtree DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -163,8 +163,8 @@ void test_lsh(Labels& label_lsh){
     //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension data
-    DBSCAN* dbs = new DBSCAN_LSH(200, 8);
-    dbs->read_cluster_data(5, 1000000, "../data/dim5.txt");
+    DBSCAN* dbs = new DBSCAN_LSH(5000, 100);
+    dbs->read_cluster_data(7, 500000, "../data/household.data");
 
     cout<<"start execution of lsh based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -214,21 +214,22 @@ int main()
 {
     
     Labels label_origin;
-    Labels label_kd;
+    //Labels label_kd;
     //Labels label_grid;
     //Labels label_reduced;
     //Labels label_rehashed;
-    //Labels label_lsh;
+    Labels label_lsh;
 
     test_original(label_origin);
-    test_kd(label_kd);
+    //test_kd(label_kd);
     //test_grid(label_grid);
     //test_reduced(label_reduced);
     //test_rehashed(label_rehashed);
-    //test_lsh(label_lsh);
-    DBSCAN::cmp_result(label_origin, label_kd);
+    test_lsh(label_lsh);
+    DBSCAN::cmp_result(label_origin, label_lsh);
 
     //DBSCAN::cmp_result(label_origin, label_grid);
+    //DBSCAN::cmp_result(label_origin, label_kd);
     //DBSCAN::cmp_result(label_origin, label_reduced);
     //DBSCAN::cmp_result(label_origin, label_rehashed);
     
