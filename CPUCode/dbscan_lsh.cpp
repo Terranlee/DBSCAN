@@ -18,7 +18,6 @@ namespace clustering{
         // the line of the matrix can be used to do projection
         m_hash = Functions(DOUT, cl_d.size2());
         srand(unsigned(time(NULL)));
-        //srand(0);
     }
 
     void DBSCAN_LSH::hash_generate(){
@@ -47,7 +46,7 @@ namespace clustering{
         // the cell_width in high dimension is also eps theoratically
         // but consider the possibility of wrong classification, we multiply it by 0.5, and do more iteration
         float eps = std::sqrt(m_eps_sqr);
-        m_new_cell_width = eps * 0.5;
+        m_new_cell_width = eps * 1.0;
     }
 
     void DBSCAN_LSH::rehash_data_projection(){
@@ -98,18 +97,33 @@ namespace clustering{
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
+
+                int ufID = m_point_to_uf[i];
+                int root = uf.find(ufID);
+
                 if(got == m_merge_map[red].end()){
                     std::vector<int> intvec;
                     intvec.push_back(i);
                     m_merge_map[red].insert(std::make_pair(key, intvec));
                 }
-                else
+                else{
                     got->second.push_back(i);
+                    /*
+                    for(unsigned int j=0; j<got->second.size(); j++){
+                        int ufID1 = m_point_to_uf[got->second[j]];
+                        int root1 = uf.find(ufID1);
+                        if(root1 != root){
+                            got->second.push_back(i);
+                            break;
+                        }
+                    }
+                    */
+                }
             }
         }
     }
 
-    void DBSCAN_LSH::determine_core_using_merge(int index, const std::vector<int>& core_map){
+    void DBSCAN_LSH::determine_core_using_merge(int index){
         CoreDetermine cd = CoreDetermine(index, m_min_elems);
         for(unsigned int i=0; i<cd.size1(); i++)
             for(unsigned int j=0; j<cd.size2(); j++)
@@ -124,7 +138,7 @@ namespace clustering{
                 if(!m_is_core[i]){
                     DimType key = m_new_grid[red][i];
                     MergeMap::const_iterator got = mapping.find(key);
-                    int core_index = core_map[i];
+                    int core_index = m_core_map[i];
                     int sz2 = got->second.size();
                     for(int j=0; j<sz2; j++){
                         // do distance calculation here
@@ -179,7 +193,7 @@ namespace clustering{
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
                     if(id1 == (int)i)
-                        break;
+                        continue;
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -195,16 +209,15 @@ namespace clustering{
             }
 
             int diff = begin - uf.get_count();
-            cout<<"merge : "<<diff<<" clusters"<<endl;
+            cout<<"merge : "<<diff<<" clusters   :   "<<uf.get_count()<<endl;
             total_merge_counter += diff;
         }
         return total_merge_counter;
     }
 
-    void DBSCAN_LSH::determine_core_point_lsh(){
-        m_is_core.resize(cl_d.size1());
-        std::vector<int> core_map(cl_d.size1());
-        int index = 0;
+    void DBSCAN_LSH::init_data_structure(){
+        m_is_core.resize(cl_d.size1(), false);
+        m_core_map.resize(cl_d.size1());
         for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             //  here we use '>', because it should not include the central point itself
             if(iter->second.data.size() > m_min_elems){
@@ -213,17 +226,9 @@ namespace clustering{
                     m_is_core[which] = true;
                 }
             }
-            else{
-                for(unsigned int i=0; i<iter->second.data.size(); i++){
-                    int which = iter->second.data.at(i);
-                    core_map[which] = index++;
-                }
-            }
         }
-
-        // start to do the hash procedure here
-        // during each hash process, we produce REDUNDANT number of min_val, new_grid, merge_map
-        // now the merge_map can share between different functions
+        
+        // initialize the redundant grid and merge
         m_new_min_val.resize(REDUNDANT);
         m_new_grid.resize(REDUNDANT);
         m_merge_map.resize(REDUNDANT);
@@ -235,18 +240,8 @@ namespace clustering{
         calculate_new_width();
         hash_set_dimensions();
 
-        // these three functions are one iteration of hash-merge procedure
-        hash_generate();
-        rehash_data_projection();
-        merge_cell_after_hash();
-
-        // determine core points using the result of merge
-        determine_core_using_merge(index, core_map);
-    }
-
-    void DBSCAN_LSH::merge_clusters_lsh(){
-        uf.init(cl_d.size1());
-
+        // also initialize union find structure here
+        uf.init(m_hash_grid.size());
         m_point_to_uf.resize(cl_d.size1());
         for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
             int ufid = iter->second.ufID;
@@ -256,23 +251,66 @@ namespace clustering{
             }
         }
 
+    }
+
+    void DBSCAN_LSH::main_iteration(){
+        // these three functions are one iteration of hash-merge procedure
+        hash_generate();
+        rehash_data_projection();
+        merge_cell_after_hash();
+    }
+
+    int DBSCAN_LSH::set_core_map(){
+        int index = 0;
+        for(unsigned int i=0; i<m_is_core.size(); i++)
+            if(!m_is_core[i])
+                m_core_map[i] = index++;
+        return index;
+    }
+
+    void DBSCAN_LSH::determine_core_point_lsh(){
+        main_iteration();
+        
+        // determine core points using the result of merge
+        int index = set_core_map();
+        cout<<"!!!!!!!"<<index<<endl;
+        determine_core_using_merge(index);
+    }
+
+    void DBSCAN_LSH::merge_clusters_lsh(){
         // use the grid result in determine_core_points to do the first merge
         merge_small_clusters();
 
         for(int i=0; i<10; i++){
-            cout<<"yes"<<endl;
-            hash_generate();
-            rehash_data_projection();
-            merge_cell_after_hash();
-            cout<<"yes"<<endl;
+            determine_core_point_lsh();
+            merge_small_clusters();
+        }
+
+        for(int i=0; i<10; i++){
+            main_iteration();
             int merge_counter = merge_small_clusters();
-            cout<<"yes"<<endl;
             if(merge_counter < int(3 * REDUNDANT)){
                 cout<<"after "<<i<<" iterations, algorithm stop"<<endl;
                 break;
             }
         }
         cell_label_to_point_label();
+        /*
+        int counter = 0;
+        for(unsigned int i=0; i<m_labels.size(); i++)
+            if(m_labels[i] == -1)
+                counter++;
+        cout<<"!!!!!"<<counter<<"noise"<<endl;
+        */
+    }
+
+    void DBSCAN_LSH::determine_boarder_point_lsh(){
+        for(unsigned int i=0; i<m_labels.size(); i++){
+            if(m_labels[i] == -1){
+
+            }
+        }
+        
     }
 
     void DBSCAN_LSH::fit(){
@@ -283,18 +321,25 @@ namespace clustering{
         begin = get_clock();
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
-        
+    
+        init_data_structure();
+
         begin = get_clock();
         determine_core_point_lsh();
         cout<<get_clock() - begin<<endl;
+
+        int counter = 0;
+        for(unsigned int i=0; i<m_is_core.size(); i++)
+            if(m_is_core[i])
+                counter++;
+        cout<<counter<<" core points in "<<m_is_core.size()<<endl;
 
         begin = get_clock();
         merge_clusters_lsh();
         cout<<get_clock() - begin<<endl;
 
         begin = get_clock();
-        determine_boarder_point();
-        //determine_boarder_point_lsh();
+        determine_boarder_point_lsh();
         cout<<get_clock() - begin<<endl;
     }
 
