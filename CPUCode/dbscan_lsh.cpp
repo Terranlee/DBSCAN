@@ -6,6 +6,10 @@
 #include "dbscan_lsh.h"
 
 namespace clustering{
+	// const values in this class
+	const unsigned int DBSCAN_LSH::REDUNDANT = 4;
+	const unsigned int DBSCAN_LSH::DOUT = 8;
+
     DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
     DBSCAN_LSH::~DBSCAN_LSH(){}
 

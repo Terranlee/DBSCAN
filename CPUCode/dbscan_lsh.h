@@ -52,7 +52,7 @@ namespace clustering{
         Functions m_hash;
 
         // the output dimension of LSH
-        static constexpr unsigned int DOUT = 8;
+        static const unsigned int DOUT;
 
         // set the new cell width in higher dimension
         void calculate_new_width();
@@ -67,7 +67,7 @@ namespace clustering{
         // after each locality sensitive hashing
         // we construct REDUNDANT numbers of new grids using different center point
         // and use these new grids to merge the small clusters
-        static constexpr unsigned int REDUNDANT = 4;
+        static const unsigned int REDUNDANT;
         std::vector<NewGrid> m_new_grid;
         // we have m_min_val in dbscan_grid.h
         // during the rehash, we have to set another new minimum value using this vector
@@ -96,6 +96,7 @@ namespace clustering{
         void merge_clusters_lsh();
         //void determine_boarder_point_lsh();
     };
+
 }
 
 #endif

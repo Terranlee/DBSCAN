@@ -1,7 +1,7 @@
 #ifndef __DBSCAN_KD_H__
 #define __DBSCAN_KD_H__
 
-#include <kdtree.h>
+#include "kdtree.h"
 #include <iostream>
 #include <queue>
 
