@@ -1,0 +1,9 @@
+*.o
+LSH_dfe
+LSH_sim
+*.class
+LSH_MAIA_DFE_SIM/
+LSH_MAIA_DFE/
+answer*
+output*
+
