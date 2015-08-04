@@ -43,7 +43,7 @@ void test_original(Labels& label_origin){
 void test_grid(Labels& label_grid){
 
     DBSCAN_Grid dbs(20000, 4);   // the papameter for s1.txt
-    dbs.read_cluster_data(2, 5000, "../data/s1.txt");
+    dbs.read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     //DBSCAN_Grid dbs(10000, 4);
     //dbs.read_cluster_data(2, 25000, "../data/5times_s1.txt");
@@ -119,16 +119,20 @@ void test_rehashed(Labels& label_rehashed){
     void test_dfe(Labels& label_dfe){
 
         DBSCAN_DFE dbs(20000, 4);   // the papameter for s1.txt
-        dbs.read_cluster_data(2, 5000, "../data/s1.txt");
+        dbs.read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
         //DBSCAN_DFE dbs(10000, 4);
         //dbs.read_cluster_data(2, 25000, "../data/5times_s1.txt");
-    
+		
+		dbs.prepare();
+
         cout<<"start execution of dfe DBSCAN"<<endl;
         float begin = DBSCAN::get_clock();
         dbs.fit();
         float end = DBSCAN::get_clock();
         cout<<"time is : "<<end - begin<<endl;
+	
+		dbs.release();
 
         dbs.reshape_labels();
         dbs.output_result("output_dfe");
