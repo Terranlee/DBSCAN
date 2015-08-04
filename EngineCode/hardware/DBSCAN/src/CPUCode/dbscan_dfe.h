@@ -5,7 +5,7 @@
 
 // for Maxeler Dataflow Engine
 // unable to compile without the special compiler
-#include "Maxfiles.h"
+#include "DBSCAN.h"
 #include "MaxSLiCInterface.h"
 
 namespace clustering{

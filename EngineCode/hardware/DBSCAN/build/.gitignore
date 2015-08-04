@@ -1,4 +1,5 @@
 DBSCAN_sim
+DBSCAN_dfe
 *.o
 *.class
 answer*
