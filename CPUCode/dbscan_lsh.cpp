@@ -292,15 +292,15 @@ namespace clustering{
         // use the grid result in determine_core_points to do the first merge
         merge_small_clusters();
 
-        for(int i=0; i<10; i++){
+        for(int i=0; i<40; i++){
             determine_core_point_lsh();
             merge_small_clusters();
         }
 
-        for(int i=0; i<10; i++){
+        for(int i=0; i<1; i++){
             main_iteration();
             int merge_counter = merge_small_clusters();
-            if(merge_counter < int(3 * REDUNDANT)){
+            if(merge_counter < int(1 * REDUNDANT)){
                 cout<<"after "<<i<<" iterations, algorithm stop"<<endl;
                 break;
             }
@@ -318,17 +318,18 @@ namespace clustering{
     void DBSCAN_LSH::determine_boarder_point_lsh(){
         for(unsigned int i=0; i<m_labels.size(); i++){
             if(m_labels[i] == -1){
+                float min_dist = m_eps_sqr;
                 for(unsigned int red=0; red<REDUNDANT; red++){
                     DimType key = m_new_grid[red][i];
                     MergeMap::const_iterator got = m_merge_map[red].find(key);
 
-                    float min_dist = std::numeric_limits<float>::max();
                     for(unsigned int j=0; j<got->second.size(); j++){
                         int which = got->second[j];
-                        if(!m_is_core[i])
+                        if(!m_is_core[which])
                             continue;
                         float dist = 0.0f;
-                        for(unsigned int k=0; k<got->second.size(); k++){
+
+                        for(unsigned int k=0; k<cl_d.size2(); k++){
                             float diff = cl_d(i, k) - cl_d(which,k);
                             dist += diff * diff;
                         }
@@ -367,9 +368,23 @@ namespace clustering{
         merge_clusters_lsh();
         cout<<get_clock() - begin<<endl;
 
-        begin = get_clock();
+        counter = 0;
+        for(unsigned int i=0; i<m_labels.size(); i++){
+            if(m_labels[i] == -1)
+                counter++;
+        }
+        cout<<"now, "<<counter<<" noise points"<<endl;
+
         determine_boarder_point_lsh();
+
+        /*
+        begin = get_clock();
+        for(int i=0; i<10; i++){
+            main_iteration();
+            determine_boarder_point_lsh();
+        }
         cout<<get_clock() - begin<<endl;
+        */
     }
 
     void DBSCAN_LSH::test(){
