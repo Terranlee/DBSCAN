@@ -3,7 +3,7 @@ import com.maxeler.maxcompiler.v2.build.EngineParameters;
 import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEFloat;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
-import com.maxeler.maxcompiler.v2.managers.engine_interface.CPUTypes;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.CPUTypes;
 
 public class LSHParameters extends EngineParameters{
 	
@@ -30,7 +30,7 @@ public class LSHParameters extends EngineParameters{
 	public int		getRedundant()	{	return getParam(s_redundant);	}
 
 	@Override
-	protected void validata(){
+	protected void validate(){
 		if(getDIn() <= 1){
 			throw new IllegalArgumentException("dimension of input should at least be 2");
 		}

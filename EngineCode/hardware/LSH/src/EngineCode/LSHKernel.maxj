@@ -5,6 +5,8 @@ import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
 import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
 import com.maxeler.maxcompiler.v0.utils.MathUtils;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
 
 import java.util.ArrayList;
 
@@ -27,8 +29,8 @@ class LSHKernel extends Kernel {
 	// for each LSH function, we construct m_redundent grids using different zero point
 	private static int m_redundant;
 
-    protected LSHKernel(LSHParameters parameters) {
-        super(parameters);
+    protected LSHKernel(KernelParameters kp, LSHParameters parameters) {
+        super(kp);
 		
 		m_inputType = parameters.getInputType();
 		m_din = parameters.getDIn();
@@ -89,7 +91,7 @@ class LSHKernel extends Kernel {
 				output[j] <== minus[j][i];
 
 			String outputName = out + Integer.toString(i);
-		    io.output(outputName, output, output.getType(), XYCounter === 0);
+		    io.output(outputName, output, output.getType());
 		}
     }   
 	
@@ -148,12 +150,13 @@ class LSHKernel extends Kernel {
 			}
 			minus.add(oneDim);
 		}
+		return minus;
 	}
 	
 	private void doDivideAndCast(ArrayList<ArrayList<DFEVar> > minus, DFEVar cellWidth){
 		for(int i=0; i<m_dout; i++){
 			for(int j=0; j<m_redundant; j++){
-				minus[i][j] = (minus[i][j] / cellWidth).cast(dfeInt(16));
+				minus.get(i).set(j, (minus[i][j] / cellWidth).cast(dfeInt(16)) );
 			}
 		}
 	}
