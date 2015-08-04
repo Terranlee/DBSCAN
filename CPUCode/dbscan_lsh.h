@@ -83,7 +83,8 @@ namespace clustering{
         // init the data structures needed for this hash and merge
         void init_data_structure();
         int set_core_map();
-
+        void main_iteration();
+        
         // we do the following two functions again and again, and use the merged results to determine core points, or merge small clusters
 
         // use locality sensitive hashing to rehash the data, and assign them to new grids
@@ -101,7 +102,7 @@ namespace clustering{
         // all three steps of the grid based algorithm is now done by hashing
         void determine_core_point_lsh();
         void merge_clusters_lsh();
-        //void determine_boarder_point_lsh();
+        void determine_boarder_point_lsh();
     };
 
 }
