@@ -1,71 +1,145 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "Maxfiles.h"
 #include "MaxSLiCInterface.h"
 
-uint32_t** x;
-uint32_t** y;
-int size = 100;
+const float max_val = 1000000.0f;
+const float cell_width = 1000.0f;
 
-uint32_t* input_data;
-uint32_t* output_cpu;
-uint32_t* output_dfe;
+const unsigned int DIN = 2;
+const unsigned int DOUT = 8;
+const unsigned int REDUNDANT = 4;
 
-int input_length = size * size * 2;
+// number of points
+const int input_size = 10000;
+
+float* input;
+
+// center is the minimal value that is set as the zero point in DOUT space
+float** center;
+float** hash;
+// for every input point, we output 2 uint64_t
+int64_t** output_cpu;
+int64_t** output_dfe;
 
 void to_file();
 
-void prepare_data(){
-	x = (uint32_t**)malloc(sizeof(uint32_t*) * size);
-	for(int i=0; i<size; i++)
-		x[i] = (uint32_t*)malloc(sizeof(uint32_t) * size);
-	for(int i=0; i<size; i++)
-		for(int j=0; j<size; j++)
-			x[i][j] = i + j;
-	
-	y = (uint32_t**)malloc(sizeof(uint32_t*) * size);
-	for(int i=0; i<size; i++)
-		y[i] = (uint32_t*)malloc(sizeof(uint32_t) * size);
-	for(int i=0; i<size; i++)
-		for(int j=0; j<size; j++)
-			y[i][j] = 3 * i - 5 * j;
+void reserve_memory(){
+	input = (float*) malloc( sizeof(float) * DIN * input_size);
+	center = (float**) malloc( sizeof(float*) * REDUNDANT);
+	hash = (float**) malloc( sizeof(float*) * DOUT);
+	output_cpu = (int64_t**) malloc( sizeof(int64_t*) * REDUNDANT);
+	output_dfe = (int64_t**) malloc( sizeof(int64_t*) * REDUNDANT);
 
-	input_data = (uint32_t*)malloc(sizeof(uint32_t) * input_length);
-	for(int i=0; i<size; i++)
-		for(int j=0; j<size; j++){
-			input_data[i * size + j] = x[i][j];
-			input_data[i * size + j + 1] = y[i][j];
-		}
+	for(int i=0; i<REDUNDANT; i++){
+		center[i] = (float*) malloc( sizeof(float) * DOUT);
+		output_cpu = (int64_t*) malloc( sizeof(int64_t) * 2 * input_size);
+		output_dfe = (int64_t*) malloc( sizeof(int64_t) * 2 * input_size);
+	}
 
-	int output_length = input_length / 2;
-	output_cpu = (uint32_t*)malloc(sizeof(uint32_t) * output_length);
-	output_dfe = (uint32_t*)malloc(sizeof(uint32_t) * output_length);
-	for(int i=0; i<output_length; i++)
-		output_cpu[i] = output_dfe[i] = 0;
+	for(int i=0; i<DOUT; i++)
+		hash[i] = (float*) malloc( sizeof(float) * DIN);
 }
 
-void test_cpu(){
-	for(int i=0; i<input_length; i++){
-		if(input_data[i] == invalid)
-			output_cpu[i] = 1234;
-		else{
-			uint32_t var = input_data[i] * input_data[i] * input_data[i];
-			var = var - 3 * input_data[i];
-			output_cpu[i] = var;
+void generate_data(){
+	srand(0);
+	// generate input
+	int length = input_size * DIN;
+	for(int i=0; i<length; i++)
+		input[i] = float(rand()) / float(RAND_MAX) * max_val;
+	
+	// generate hash function and formalization
+	for(int i=0; i<DOUT; i++)
+		for(int j=0; j<DIN; j++)
+			hash[i][j] = float(rand()) / float(RAND_MAX);
+	for(int i=0; i<DOUT; i++){
+		float sqr_sum = 0.0f;
+		for(int j=0; j<DIN; j++)
+			sqr_sum += hash[i][j] * hash[i][j];
+		float sqrt_sum = sqrt(sqr_sum);
+		for(int j=0; j<DIN; j++)
+			hash[i][j]  /= sqrt_sum;
+	}
+	
+	// generate center
+	for(int red=0; red<REDUNDANT; red++){
+		int rnd = rand() % input_size;
+		for(int i=0; i<DOUT; i++){
+			float mini = 0.0f;
+			for(int j=0; j<DIN; j++)
+				mini += input[rnd * DIN + j] * hash[i][j];
+			center[red][i] = mini;
 		}
+	}
+
+	// set output to be 0
+	int output_length = input_size * DIN;
+	for(int i=0; i<output_length; i++){
+		output_cpu[i] = 0;
+		output_dfe[i] = 0;
 	}
 }
 
-void test_dfe(){
-	printf("running DFE\n");
-	MatrixMultiply(input_length, invalid, input_data, output_dfe);
-	printf("running DFE end\n");
+void release_memory(){
+	for(int i=0; i<REDUNDANT; i++){
+		free(output_dfe[i]);
+		free(output_cpu[i]);
+		free(center[i]);
+	}
+	for(int i=0; i<DOUT; i++)
+		free(hash[i]);
+
+	free(hash);
+	free(output_dfe);
+	free(output_cpu);
+	free(center);
+	
+	free(input);
+}
+
+void lsh_cpu(){
+	float* temp = (float*) malloc(sizeof(float) * DOUT);
+	float* mult = (float*) malloc(sizeof(float) * DOUT);
+	for(int i=0; i<input_size; i++){
+		// maek projection
+		for(int j=0; j<DOUT; j++){
+			float data = 0.0f;
+			for(int k=0; k<DIN; k++)
+				data += input[i * DIN + k] * hash[j][k];
+			mult[j] = data;
+		}
+		// calculate index in each dimension
+		for(int red=0; red<REDUNDANT; red++){
+			for(int j=0; j<DOUT; j++)
+				temp[j] = int((mult[j] - center[red][j]) / cell_width) + 1;
+			// make the final hash
+			int64_t first = 0;
+			int64_t second = 0;
+			for(int j=0; j<DOUT/2; j++){
+				first += temp[j];
+				first = first << 16;
+			}
+			for(int j=DOUT/2; j<DOUT; j++){
+				second += temp[j];
+				second = second << 16;
+			}
+			output_cpu[red][2 * i] = first;
+			output_cpu[red][2 * i + 1] = second;
+		}
+	}
+	free(temp);
+	free(mult);
+}
+
+void lsh_dfe(){
+
 }
 
 void check_output(){
-	int output_length = input_length;
+	int output_size = input_size * 2;
 	int counter = 0;
 	for(int i=0; i<output_length; i++)
 		if(output_cpu[i] == output_dfe[i])
@@ -78,26 +152,16 @@ void check_output(){
 }
 
 void to_file(){
-	int output_length = input_length;
+	int output_length = input_length * 2;
     FILE* fp1 = fopen("answer_cpu", "w");
     for(int i=0; i<output_length; i++)
-        fprintf(fp1, "%d\n", output_cpu[i]);
+        fprintf(fp1, "%ld\n", output_cpu[i]);
     fclose(fp1);
 				
     FILE* fp2 = fopen("answer_dfe", "w");
     for(int i=0; i<output_length; i++)
-        fprintf(fp2, "%d\n", output_dfe[i]);
+        fprintf(fp2, "%ld\n", output_dfe[i]);
     fclose(fp2);
-}
-
-void release(){
-	for(int i=0; i<size; i++)
-		free(matrix[i]);
-	free(matrix);
-
-	free(input_data);
-	free(output_cpu);
-	free(output_dfe);
 }
 
 int main(void)
@@ -105,12 +169,15 @@ int main(void)
     printf("#########################################################################################\n");
     printf("Programming start\n");
     
-	prepare_data();
-	test_cpu();
-	test_dfe();
+	reserve_memory();
+	generate_data();
+
+	lsh_cpu();
+	lsh_dfe();
+
 	check_output();
-	release();
-	
+	release_memory();
+
 	printf("#########################################################################################\n");
     return 0;
 }
