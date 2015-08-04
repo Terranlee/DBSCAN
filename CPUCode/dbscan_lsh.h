@@ -63,6 +63,8 @@ namespace clustering{
 
         // a map between the index of point to the index of its cell in union find structure
         std::vector<int> m_point_to_uf;
+        // a map between the index of non-core point and a integer
+        std::vector<int> m_core_map;
 
         // after each locality sensitive hashing
         // we construct REDUNDANT numbers of new grids using different center point
@@ -78,18 +80,23 @@ namespace clustering{
         // the width of the cell in the new space
         float m_new_cell_width;
 
+        // init the data structures needed for this hash and merge
+        void init_data_structure();
+        int set_core_map();
+
+        // we do the following two functions again and again, and use the merged results to determine core points, or merge small clusters
+
         // use locality sensitive hashing to rehash the data, and assign them to new grids
         // this can be accelerated by dataflow engine
         void rehash_data_projection();
-
         // construct the m_merge_map using the result of hashing
         // merge the points in the same cell
         void merge_cell_after_hash();
 
         // return the number of small clusters that are merged in this iteration
         // use the return value to terminate the program
+        void determine_core_using_merge(int index);
         int merge_small_clusters();
-        void determine_core_using_merge(int index, const std::vector<int>& core_map);
 
         // all three steps of the grid based algorithm is now done by hashing
         void determine_core_point_lsh();
