@@ -14,6 +14,40 @@ namespace clustering{
     DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
     DBSCAN_LSH::~DBSCAN_LSH(){}
 
+    void DBSCAN_LSH::reduced_precision_lsh(unsigned int max_num_point){
+        // reduced precision, just like in dbscan_reduced.cpp
+        // but save the total number of points to m_total_num
+        // this is needed during init_data_structure()
+        int total_num = 0;
+        m_max_num_point = max_num_point;
+        m_origin_to_reduced.resize(cl_d.size1(), false);
+
+        for(std::unordered_map<HashType, Cell>::iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            if(iter->second.data.size() <= max_num_point){
+                for(unsigned int i=0; i<iter->second.data.size(); i++){
+                    int which = iter->second.data[i];
+                    m_origin_to_reduced[which] = true;
+                }
+                total_num += iter->second.data.size();
+            }
+            else{
+                process_vector(iter->second.data);
+                for(unsigned int i=0; i<max_num_point; i++){
+                    int which = iter->second.data[i];
+                    m_origin_to_reduced[which] = true;
+                }
+                total_num += max_num_point;
+            }
+        }
+        m_total_num = total_num;
+
+        int index = 0;
+        m_reduced_to_origin.resize(m_total_num);
+        for(unsigned int i=0; i<cl_d.size1(); i++)
+            if(m_origin_to_reduced[i])
+                m_reduced_to_origin[index++] = i;
+    }
+
     void DBSCAN_LSH::hash_set_dimensions(){
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
@@ -246,7 +280,7 @@ namespace clustering{
 
         for(unsigned int i=0; i<REDUNDANT; i++){
             m_new_min_val[i].resize(DOUT);
-            m_new_grid[i].resize(cl_d.size1());
+            m_new_grid[i].resize(cl_d.size1(m_total_num));
         }
         calculate_new_width();
         hash_set_dimensions();
@@ -261,7 +295,6 @@ namespace clustering{
                 m_point_to_uf[which] = ufid;
             }
         }
-
     }
 
     void DBSCAN_LSH::main_iteration(){
@@ -353,7 +386,9 @@ namespace clustering{
         begin = get_clock();
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
-    
+        
+        reduced_precision_lsh(3 * m_min_elems);
+
         init_data_structure();
 
         begin = get_clock();

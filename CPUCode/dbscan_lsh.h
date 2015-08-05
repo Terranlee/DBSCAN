@@ -61,11 +61,29 @@ namespace clustering{
         void hash_set_dimensions();
         void hash_generate();
 
+        /************************************************************************/
+        // DATA STRUCTURE TO SUPPORT THIS HASH ALGORITHM
         // a map between the index of point to the index of its cell in union find structure
+        // use this together with union find data structure
         std::vector<int> m_point_to_uf;
         // a map between the index of non-core point and a integer
+        // add this because the determine_core_point() will now repeat many times
         std::vector<int> m_core_map;
 
+        // the width of the cell in the new space
+        float m_new_cell_width;
+
+        // data structure to support reduced precision method in locality sensitive hashing
+        // limit the number of points in each cell
+        // and this is the number of points that is involved in calculation
+        int m_total_num;
+        std::vector<int> m_reduced_to_origin;
+        std::vector<bool> m_origin_to_reduced;  // the size is 
+
+
+
+        /************************************************************************/
+        // THE MOST IMPORTANT DATA STRUCTURE
         // after each locality sensitive hashing
         // we construct REDUNDANT numbers of new grids using different center point
         // and use these new grids to merge the small clusters
@@ -77,8 +95,8 @@ namespace clustering{
         // the merge result of one hashing method
         std::vector<MergeMap> m_merge_map;
 
-        // the width of the cell in the new space
-        float m_new_cell_width;
+
+
 
         // init the data structures needed for this hash and merge
         void init_data_structure();
@@ -98,6 +116,9 @@ namespace clustering{
         // use the return value to terminate the program
         void determine_core_using_merge(int index);
         int merge_small_clusters();
+
+        // reduced precision method in locality sensitive hashing
+        void reduced_precision_lsh(unsigned int max_num_point);
 
         // all three steps of the grid based algorithm is now done by hashing
         void determine_core_point_lsh();
