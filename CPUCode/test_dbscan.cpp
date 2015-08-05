@@ -1,7 +1,6 @@
 #include "dbscan_matrix.h"
 #include "dbscan_grid.h"
 #include "dbscan_reduced.h"
-#include "dbscan_rehash.h"
 #include "dbscan_lsh.h"
 #include "dbscan_kd.h"
 
@@ -130,31 +129,6 @@ void test_reduced(Labels& label_reduced){
     delete dbs;
 }
 
-/*
-void test_rehashed(Labels& label_rehashed){
-
-    //DBSCAN* dbs = new DBSCAN_Rehash(20000, 4);
-    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
-
-    //DBSCAN* dbs = new DBSCAN_Rehash(10000, 4);
-    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
-
-    cout<<"start execution of rehash grid based DBSCAN"<<endl;
-    float begin = DBSCAN::get_clock();
-    dbs->fit();
-    float end = DBSCAN::get_clock();
-    cout<<"time is : "<<end - begin<<endl;
-
-    dbs->reshape_labels();
-    dbs->output_result("output_rehash");
-    Labels lbr = dbs->get_labels();
-    label_rehashed.resize(lbr.size());
-    std::copy(lbr.begin(), lbr.end(), label_rehashed.begin());
-    cout<<endl;
-    delete dbs;
-}
-*/
-
 void test_lsh(Labels& label_lsh){
 
     //DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
@@ -218,14 +192,12 @@ int main()
     Labels label_kd;
     //Labels label_grid;
     //Labels label_reduced;
-    //Labels label_rehashed;
     Labels label_lsh;
 
     //test_original(label_origin);
     test_kd(label_kd);
     //test_grid(label_grid);
     //test_reduced(label_reduced);
-    //test_rehashed(label_rehashed);
     test_lsh(label_lsh);
     //DBSCAN::cmp_result(label_origin, label_lsh);
 
@@ -233,7 +205,6 @@ int main()
     //DBSCAN::cmp_result(label_origin, label_grid);
     //DBSCAN::cmp_result(label_origin, label_kd);
     //DBSCAN::cmp_result(label_origin, label_reduced);
-    //DBSCAN::cmp_result(label_origin, label_rehashed);
     
     return 0;
 }

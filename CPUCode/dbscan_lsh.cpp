@@ -99,7 +99,11 @@ namespace clustering{
 
         std::vector<int> temp(DOUT);
         std::vector<float> mult(DOUT);
+        int index = 0;
         for(unsigned int i=0; i<cl_d.size1(); i++){
+            if(!m_origin_to_reduced[i])
+                continue;
+
             // make projection
             for(unsigned int j=0; j<DOUT; j++){
                 float data = 0.0f;
@@ -121,8 +125,9 @@ namespace clustering{
                     ans.second += temp[j];
                     ans.second = ans.second << 16;
                 }
-                m_new_grid[red][i] = ans;
+                m_new_grid[red][index] = ans;
             }
+            index++;
         }
     }
 
@@ -132,23 +137,26 @@ namespace clustering{
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
+                int point = m_reduced_to_origin[i];
 
+                // two strategy during merge, haven't decide which one is better
                 if(possible){
-                    int ufID = m_point_to_uf[i];
-                    int root = uf.find(ufID);
+                    // hash points to the same bucket only when they have the possibility to merge
                     if(got == m_merge_map[red].end()){
                         std::vector<int> intvec;
-                        intvec.push_back(i);
+                        intvec.push_back(point);
                         m_merge_map[red].insert(std::make_pair(key, intvec));
                     }
                     else{
+                        int ufID = m_point_to_uf[point];
+                        int root = uf.find(ufID);
                         // merge points into a bucket 
                         // only when they have the possibility to merge small cells
                         for(unsigned int j=0; j<got->second.size(); j++){
                             int ufID1 = m_point_to_uf[got->second[j]];
                             int root1 = uf.find(ufID1);
                             if(root1 != root){
-                                got->second.push_back(i);
+                                got->second.push_back(point);
                                 break;
                             }
                         }
@@ -156,13 +164,14 @@ namespace clustering{
                 }
                 
                 else{
+                    // hash points to the same bucket by the hash value
                     if(got == m_merge_map[red].end()){
                         std::vector<int> intvec;
-                        intvec.push_back(i);
+                        intvec.push_back(point);
                         m_merge_map[red].insert(std::make_pair(key, intvec));
                     }
                     else
-                        got->second.push_back(i);                 
+                        got->second.push_back(point);
                 }
             }
         }
@@ -174,26 +183,27 @@ namespace clustering{
             for(unsigned int j=0; j<cd.size2(); j++)
                 cd(i, j) = -1;
 
-        int sz1 = cl_d.size1();
         for(unsigned int red=0; red<REDUNDANT; red++){
             const MergeMap& mapping = m_merge_map.at(red);
             // iterate through all the points
             // find neighbours in the hash bucket if this is not a core point
-            for(int i=0; i<sz1; i++){
-                if(!m_is_core[i]){
+            for(unsigned int i=0; i<m_total_num; i++){
+                // point is the original id, i is the reduced id
+                int point = m_reduced_to_origin[i];
+                if(!m_is_core[point]){
                     DimType key = m_new_grid[red][i];
                     MergeMap::const_iterator got = mapping.find(key);
-                    int core_index = m_core_map[i];
+                    int core_index = m_core_map[point];
                     int sz2 = got->second.size();
                     for(int j=0; j<sz2; j++){
                         // do distance calculation here
                         int which = got->second[j];
-                        if(which == i)
+                        if(which == point)
                             continue;
 
                         float dist = 0.0f;
                         for(unsigned int k=0; k<cl_d.size2(); k++){
-                            float diff = cl_d(which, k) - cl_d(i, k);
+                            float diff = cl_d(which, k) - cl_d(point, k);
                             dist += diff * diff;
                         }
                         if(dist < m_eps_sqr){
@@ -207,7 +217,7 @@ namespace clustering{
                                 cd(core_index, k) = which;
                             }
                             else if(k == cd.size2()){
-                                m_is_core[i] = true;
+                                m_is_core[point] = true;
                                 break;
                             }
                         }
@@ -228,21 +238,23 @@ namespace clustering{
             const MergeMap& mapping = m_merge_map.at(red);
             const NewGrid& grid = m_new_grid.at(red);
 
-            for(unsigned int i=0; i<cl_d.size1(); i++){
-                if(!m_is_core[i])
+            for(unsigned int i=0; i<m_total_num; i++){
+                // point is the original id, i is the reduced id
+                int point = m_reduced_to_origin[i];
+                if(!m_is_core[point])
                     continue;
 
                 DimType key = grid[i];
                 MergeMap::const_iterator got = mapping.find(key);
-                int center_id = m_point_to_uf[i];
+                int center_id = m_point_to_uf[point];
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
-                    if(id1 == (int)i)
+                    if(id1 == point)
                         continue;
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        float diff = cl_d(id1, k) - cl_d(i, k);
+                        float diff = cl_d(id1, k) - cl_d(point, k);
                         dist += diff * diff;
                     }
                     if(dist < m_eps_sqr){
@@ -351,8 +363,10 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::determine_boarder_point_lsh(){
-        for(unsigned int i=0; i<m_labels.size(); i++){
-            if(m_labels[i] == -1){
+        for(unsigned int i=0; i<m_total_num; i++){
+            // point is the original id, i is the reduced precision id
+            int point = m_reduced_to_origin[i];
+            if(m_labels[point] == -1){
                 float min_dist = m_eps_sqr;
                 for(unsigned int red=0; red<REDUNDANT; red++){
                     DimType key = m_new_grid[red][i];
@@ -365,12 +379,12 @@ namespace clustering{
                         float dist = 0.0f;
 
                         for(unsigned int k=0; k<cl_d.size2(); k++){
-                            float diff = cl_d(i, k) - cl_d(which,k);
+                            float diff = cl_d(point, k) - cl_d(which,k);
                             dist += diff * diff;
                         }
                         if(dist < min_dist){
                             min_dist = dist;
-                            m_labels[i] = m_labels[which];
+                            m_labels[point] = m_labels[which];
                         }
                     }
                 }
