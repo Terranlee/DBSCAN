@@ -398,7 +398,7 @@ namespace clustering{
         cout<<get_clock() - begin<<endl;
         
         begin = get_clock();
-        reduced_precision_lsh(3 * m_min_elems);
+        reduced_precision_lsh(m_min_elems);
         init_data_structure();
         cout<<get_clock() - begin<<endl;
 
