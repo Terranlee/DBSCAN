@@ -292,11 +292,12 @@ namespace clustering{
         // use the grid result in determine_core_points to do the first merge
         merge_small_clusters();
 
-        for(int i=0; i<40; i++){
+        for(int i=0; i<50; i++){
             determine_core_point_lsh();
             merge_small_clusters();
         }
 
+        /*
         for(int i=0; i<1; i++){
             main_iteration();
             int merge_counter = merge_small_clusters();
@@ -305,6 +306,7 @@ namespace clustering{
                 break;
             }
         }
+        */
         cell_label_to_point_label();
         /*
         int counter = 0;
@@ -375,16 +377,14 @@ namespace clustering{
         }
         cout<<"now, "<<counter<<" noise points"<<endl;
 
-        determine_boarder_point_lsh();
-
-        /*
         begin = get_clock();
-        for(int i=0; i<10; i++){
+        determine_boarder_point_lsh();
+        for(int i=0; i<2; i++){
             main_iteration();
             determine_boarder_point_lsh();
         }
         cout<<get_clock() - begin<<endl;
-        */
+        
     }
 
     void DBSCAN_LSH::test(){
