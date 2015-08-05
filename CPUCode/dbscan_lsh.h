@@ -76,7 +76,7 @@ namespace clustering{
         // data structure to support reduced precision method in locality sensitive hashing
         // limit the number of points in each cell
         // and this is the number of points that is involved in calculation
-        int m_total_num;
+        unsigned int m_total_num;
         std::vector<int> m_reduced_to_origin;
         std::vector<bool> m_origin_to_reduced;  // the size is 
 

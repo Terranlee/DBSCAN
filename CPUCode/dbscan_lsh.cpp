@@ -18,7 +18,7 @@ namespace clustering{
         // reduced precision, just like in dbscan_reduced.cpp
         // but save the total number of points to m_total_num
         // this is needed during init_data_structure()
-        int total_num = 0;
+        unsigned int total_num = 0;
         m_max_num_point = max_num_point;
         m_origin_to_reduced.resize(cl_d.size1(), false);
 
@@ -56,7 +56,6 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::hash_generate(){
-        // may be changed to srand((unsigned) time(NULL))
         for(unsigned int i=0; i<m_hash.size1(); i++)
             for(unsigned int j=0; j<m_hash.size2(); j++)
                 m_hash(i, j) = float(rand()) / float(RAND_MAX);
@@ -292,7 +291,7 @@ namespace clustering{
 
         for(unsigned int i=0; i<REDUNDANT; i++){
             m_new_min_val[i].resize(DOUT);
-            m_new_grid[i].resize(cl_d.size1(m_total_num));
+            m_new_grid[i].resize(m_total_num);
         }
         calculate_new_width();
         hash_set_dimensions();
@@ -334,9 +333,6 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        // use the grid result in determine_core_points to do the first merge
-        merge_small_clusters();
-
         for(int i=0; i<50; i++){
             determine_core_point_lsh();
             merge_small_clusters();
@@ -401,25 +397,16 @@ namespace clustering{
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
         
-        reduced_precision_lsh(3 * m_min_elems);
-
-        init_data_structure();
-
         begin = get_clock();
-        determine_core_point_lsh();
+        reduced_precision_lsh(3 * m_min_elems);
+        init_data_structure();
         cout<<get_clock() - begin<<endl;
-
-        int counter = 0;
-        for(unsigned int i=0; i<m_is_core.size(); i++)
-            if(m_is_core[i])
-                counter++;
-        cout<<counter<<" core points in "<<m_is_core.size()<<endl;
 
         begin = get_clock();
         merge_clusters_lsh();
         cout<<get_clock() - begin<<endl;
 
-        counter = 0;
+        int counter = 0;
         for(unsigned int i=0; i<m_labels.size(); i++){
             if(m_labels[i] == -1)
                 counter++;

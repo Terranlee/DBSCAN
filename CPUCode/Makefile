@@ -255,30 +255,6 @@ dbscan_reduced.cpp.s:
 	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_reduced.cpp.s
 .PHONY : dbscan_reduced.cpp.s
 
-dbscan_rehash.o: dbscan_rehash.cpp.o
-.PHONY : dbscan_rehash.o
-
-# target to build an object file
-dbscan_rehash.cpp.o:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_rehash.cpp.o
-.PHONY : dbscan_rehash.cpp.o
-
-dbscan_rehash.i: dbscan_rehash.cpp.i
-.PHONY : dbscan_rehash.i
-
-# target to preprocess a source file
-dbscan_rehash.cpp.i:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_rehash.cpp.i
-.PHONY : dbscan_rehash.cpp.i
-
-dbscan_rehash.s: dbscan_rehash.cpp.s
-.PHONY : dbscan_rehash.s
-
-# target to generate assembly for a file
-dbscan_rehash.cpp.s:
-	$(MAKE) -f CMakeFiles/test_dbscan.dir/build.make CMakeFiles/test_dbscan.dir/dbscan_rehash.cpp.s
-.PHONY : dbscan_rehash.cpp.s
-
 test_dbscan.o: test_dbscan.cpp.o
 .PHONY : test_dbscan.o
 
@@ -354,9 +330,6 @@ help:
 	@echo "... dbscan_reduced.o"
 	@echo "... dbscan_reduced.i"
 	@echo "... dbscan_reduced.s"
-	@echo "... dbscan_rehash.o"
-	@echo "... dbscan_rehash.i"
-	@echo "... dbscan_rehash.s"
 	@echo "... test_dbscan.o"
 	@echo "... test_dbscan.i"
 	@echo "... test_dbscan.s"
