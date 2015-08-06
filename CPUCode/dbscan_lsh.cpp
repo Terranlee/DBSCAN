@@ -3,6 +3,7 @@
 #include <cmath>
 #include <limits>
 #include <fstream>
+#include <memory.h>
 
 #include "dbscan_lsh.h"
 
@@ -105,7 +106,7 @@ namespace clustering{
             }
         }
 
-        std::vector<int> temp(DOUT);
+        int16_t temp[DOUT];
         std::vector<float> mult(DOUT);
         int index = 0;
         for(unsigned int i=0; i<cl_d.size1(); i++){
@@ -122,8 +123,9 @@ namespace clustering{
             // calculate index in each dimension
             for(unsigned int red = 0; red < REDUNDANT; red++){
                 for(unsigned int j=0; j<DOUT; j++)
-                    temp[j] = int((mult[j] - m_new_min_val[red][j]) / m_new_cell_width) + 1;
+                    temp[j] = (int16_t)((mult[j] - m_new_min_val[red][j]) / m_new_cell_width);
                 // make final hash
+                /*
                 DimType ans(0,0);
                 for(unsigned int j=0; j<DOUT/2; j++){
                     ans.first += temp[j];
@@ -134,6 +136,8 @@ namespace clustering{
                     ans.second = ans.second << 16;
                 }
                 m_new_grid[red][index] = ans;
+                */
+                memcpy(&m_new_grid[red][index], temp, sizeof(int64_t) * 2);
             }
             index++;
         }
