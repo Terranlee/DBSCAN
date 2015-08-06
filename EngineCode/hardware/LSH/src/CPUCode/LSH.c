@@ -25,8 +25,8 @@ float** hash;
 int64_t** output_cpu;
 int64_t** output_dfe;
 
-float** middle_result_dfe;
-float** middle_result_cpu;
+int16_t** middle_result_dfe;
+int16_t** middle_result_cpu;
 
 void to_file();
 
@@ -47,11 +47,11 @@ void reserve_memory(){
 	for(int i=0; i<DOUT; i++)
 		hash[i] = (float*) malloc( sizeof(float) * DIN);
 
-	middle_result_dfe = (float**) malloc( sizeof(float*) * REDUNDANT);
-	middle_result_cpu = (float**) malloc( sizeof(float*) * REDUNDANT);
+	middle_result_dfe = (int16_t**) malloc( sizeof(int16_t*) * REDUNDANT);
+	middle_result_cpu = (int16_t**) malloc( sizeof(int16_t*) * REDUNDANT);
 	for(int i=0; i<REDUNDANT; i++){
-		middle_result_dfe[i] = (float*) malloc(sizeof(float) * input_size * 8);
-		middle_result_cpu[i] = (float*) malloc(sizeof(float) * input_size * 8);
+		middle_result_dfe[i] = (int16_t*) malloc(sizeof(int16_t) * input_size * 8);
+		middle_result_cpu[i] = (int16_t*) malloc(sizeof(int16_t) * input_size * 8);
 	}
 }
 
@@ -138,7 +138,6 @@ void lsh_cpu(){
 		for(int red=0; red<REDUNDANT; red++){
 			for(int j=0; j<DOUT; j++){
 				temp[j] = (int)(( mult[j] - center[red][j]) / cell_width);
-				middle_result_cpu[i * 8 + j] = temp[j];
 			}
 			// make the final hash
 			int64_t first = 0;
@@ -160,6 +159,9 @@ void lsh_cpu(){
 			second += temp[DOUT-1];
 			output_cpu[red][2 * i] = first;
 			output_cpu[red][2 * i + 1] = second;
+
+			for(int j=0; j<8; j++)
+				middle_result_cpu[red][i * 8 + j] = temp[j];
 		}
 	}
 	free(temp);
@@ -239,13 +241,13 @@ void check_output(){
 
 void to_file(){
 	printf("to file\n");
-	int output_length = input_size * 2;
+	int output_length = input_size * 8;
 	//int output_length = input_size * DOUT;
     FILE* fp1 = fopen("answer_cpu", "w");
 	
 	for(int red=0; red<REDUNDANT; red++){
 		for(int i=0; i<output_length; i++)
-			fprintf(fp1, "%lld\n", (long long int)output_cpu[red][i]);
+			fprintf(fp1, "%d\n", middle_result_cpu[red][i]);
 		fprintf(fp1, "\n");
 	}
 	
@@ -258,7 +260,7 @@ void to_file(){
     FILE* fp2 = fopen("answer_dfe", "w");
 	for(int red=0; red<REDUNDANT; red++){
 		for(int i=0; i<output_length; i++)
-			fprintf(fp2, "%lld\n", (long long int)output_dfe[red][i]);
+			fprintf(fp2, "%d\n", middle_result_dfe[red][i]);
 		fprintf(fp2, "\n");
 	}
 	

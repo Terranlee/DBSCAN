@@ -60,7 +60,7 @@ public class LSHManager extends CustomManager{
 			String toCPU = toCPUPrefix + Integer.toString(i);
 			// for every redundant, for every input point, we output two int64_t
 			// but in kernel, it is represented as 8 int16_t
-			engine_interface.setStream(toCPU, CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * 8);
+			engine_interface.setStream(toCPU, CPUTypes.INT16, N * CPUTypes.INT16.sizeInBytes() * 8);
 		}
 		
         return engine_interface;

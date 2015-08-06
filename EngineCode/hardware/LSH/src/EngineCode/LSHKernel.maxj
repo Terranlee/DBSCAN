@@ -8,6 +8,7 @@ import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
 import com.maxeler.maxcompiler.v0.utils.MathUtils;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
+import com.maxeler.maxcompiler.v2.kernelcompiler.RoundingMode;
 
 import java.util.ArrayList;
 
@@ -85,20 +86,21 @@ class LSHKernel extends Kernel {
 		// for every input point(m_din dimensions) and every redundant, we output 2 int64_t to represent the HashCode
 		// actually it is represented in 8 int16_t for convenience in the hardware
 		// in CPU, the HashType will be defined as std::pair<int64_t, int64_t>
-		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(m_inputType, m_dout);
+		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(m_outType, m_dout);
 
 		// step5 : set the output for every redundant grid
 		// the moveBitAndAdd function is not needed any more, because the output is already int16_t
+		optimization.pushRoundingMode(RoundingMode.TRUNCATE);
 		String out = "output";
 		for(int i=0; i<m_redundant; i++){
 			DFEVector<DFEVar> output = outputType.newInstance(this);
 			for(int j=0; j<m_dout; j++)
-				output[j] <== result[j][i];
+				output[j] <== result[j][i].cast(m_outType);
 
 			String outputName = out + Integer.toString(i);
 		    io.output(outputName, output, output.getType());
 		}
-		
+		optimization.popRoundingMode();
     }   
 	
 	private void setHashFunction(ArrayList<ArrayList<DFEVar> > hashFunction){
