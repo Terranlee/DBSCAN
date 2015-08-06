@@ -9,6 +9,17 @@ namespace clustering{
         delete[] pos;
     }
 
+    void DBSCAN_KD::permute(std::vector<int>& intvec){
+        srand(unsigned(time(NULL)));
+        unsigned int sz = intvec.size();
+        for(unsigned int i=0; i<sz; i++){
+            int index = rand() % (sz - i) + i;
+            int temp = intvec[i];
+            intvec[i] = intvec[index];
+            intvec[index] = temp;
+        }
+    }
+
     void DBSCAN_KD::build_tree(){
         int features = cl_d.size2();
         root = kd_create(features);
@@ -18,10 +29,16 @@ namespace clustering{
         for(unsigned int i=0; i<data.size(); i++)
             data[i] = i;
 
+        std::vector<int> which(cl_d.size1());
+        for(unsigned int i=0; i<which.size(); i++)
+            which[i] = i;
+        permute(which);
+
         for(unsigned int i=0; i<cl_d.size1(); i++){
+            int id = which[i];
             for(unsigned int j=0; j<cl_d.size2(); j++)
-                pos[j] = cl_d(i, j);
-            kd_insertf(root, pos, &data[i]);
+                pos[j] = cl_d(id, j);
+            kd_insertf(root, pos, &data[id]);
         }
     }
 

@@ -15,7 +15,6 @@ namespace clustering{
     DBSCAN_LSH::~DBSCAN_LSH(){}
 
     void DBSCAN_LSH::permute(std::vector<int>& intvec){
-        srand(unsigned(time(NULL)));
         unsigned int sz = intvec.size();
         for(unsigned int i=0; i<sz; i++){
             int index = rand() % (sz - i) + i;
@@ -63,7 +62,6 @@ namespace clustering{
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
         m_hash = Functions(DOUT, cl_d.size2());
-        srand(unsigned(time(NULL)));
     }
 
     void DBSCAN_LSH::hash_generate(){
@@ -403,6 +401,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::fit(){
+        srand(unsigned(time(NULL)));
         prepare_labels(cl_d.size1());
 
         // the construct grid method is the same as the original grid one

@@ -32,6 +32,7 @@ namespace clustering{
         kdtree* root;
         float* pos;
 
+        void permute(std::vector<int>& intvec);
         void build_tree();
 
         kdres* find_neighbors_kdtree(uint32_t pid);
