@@ -4,6 +4,7 @@
 #include "kdtree.h"
 #include <iostream>
 #include <queue>
+#include <unordered_set>
 
 #include "dbscan.h"
 
@@ -24,11 +25,14 @@ namespace clustering{
         // Implemented in dbscan_kd.cpp
         std::vector<uint8_t> m_visited;
         std::vector<int> data;
+        std::unordered_set<uint32_t> m_deduplicate;
+
         float m_eps;
 
         kdtree* root;
         float* pos;
 
+        void permute(std::vector<int>& intvec);
         void build_tree();
 
         kdres* find_neighbors_kdtree(uint32_t pid);

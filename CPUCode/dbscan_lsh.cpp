@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <cmath>
+#include <limits>
 #include <fstream>
 
 #include "dbscan_lsh.h"
@@ -13,15 +14,57 @@ namespace clustering{
     DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
     DBSCAN_LSH::~DBSCAN_LSH(){}
 
+    void DBSCAN_LSH::permute(std::vector<int>& intvec){
+        unsigned int sz = intvec.size();
+        for(unsigned int i=0; i<sz; i++){
+            int index = rand() % (sz - i) + i;
+            int temp = intvec[i];
+            intvec[i] = intvec[index];
+            intvec[index] = temp;
+        }
+    }
+
+    void DBSCAN_LSH::reduced_precision_lsh(unsigned int max_num_point){
+        // reduced precision, just like in dbscan_reduced.cpp
+        // but save the total number of points to m_total_num
+        // this is needed during init_data_structure()
+        unsigned int total_num = 0;
+        m_max_num_point = max_num_point;
+        m_origin_to_reduced.resize(cl_d.size1(), false);
+
+        for(std::unordered_map<HashType, Cell>::iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+            if(iter->second.data.size() <= max_num_point){
+                for(unsigned int i=0; i<iter->second.data.size(); i++){
+                    int which = iter->second.data[i];
+                    m_origin_to_reduced[which] = true;
+                }
+                total_num += iter->second.data.size();
+            }
+            else{
+                process_vector(iter->second.data);
+                for(unsigned int i=0; i<max_num_point; i++){
+                    int which = iter->second.data[i];
+                    m_origin_to_reduced[which] = true;
+                }
+                total_num += max_num_point;
+            }
+        }
+        m_total_num = total_num;
+
+        int index = 0;
+        m_reduced_to_origin.resize(m_total_num);
+        for(unsigned int i=0; i<cl_d.size1(); i++)
+            if(m_origin_to_reduced[i])
+                m_reduced_to_origin[index++] = i;
+    }
+
     void DBSCAN_LSH::hash_set_dimensions(){
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
         m_hash = Functions(DOUT, cl_d.size2());
-        srand(unsigned(time(NULL)));
     }
 
     void DBSCAN_LSH::hash_generate(){
-        // may be changed to srand((unsigned) time(NULL))
         for(unsigned int i=0; i<m_hash.size1(); i++)
             for(unsigned int j=0; j<m_hash.size2(); j++)
                 m_hash(i, j) = float(rand()) / float(RAND_MAX);
@@ -64,7 +107,11 @@ namespace clustering{
 
         std::vector<int> temp(DOUT);
         std::vector<float> mult(DOUT);
+        int index = 0;
         for(unsigned int i=0; i<cl_d.size1(); i++){
+            if(!m_origin_to_reduced[i])
+                continue;
+
             // make projection
             for(unsigned int j=0; j<DOUT; j++){
                 float data = 0.0f;
@@ -86,39 +133,57 @@ namespace clustering{
                     ans.second += temp[j];
                     ans.second = ans.second << 16;
                 }
-                m_new_grid[red][i] = ans;
+                m_new_grid[red][index] = ans;
             }
+            index++;
         }
     }
 
-    void DBSCAN_LSH::merge_cell_after_hash(){
+    void DBSCAN_LSH::merge_cell_after_hash(bool possible){
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
+                int point = m_reduced_to_origin[i];
 
-                int ufID = m_point_to_uf[i];
-                int root = uf.find(ufID);
-
-                if(got == m_merge_map[red].end()){
-                    std::vector<int> intvec;
-                    intvec.push_back(i);
-                    m_merge_map[red].insert(std::make_pair(key, intvec));
-                }
-                else{
-                    got->second.push_back(i);
-                    /*
-                    for(unsigned int j=0; j<got->second.size(); j++){
-                        int ufID1 = m_point_to_uf[got->second[j]];
-                        int root1 = uf.find(ufID1);
-                        if(root1 != root){
-                            got->second.push_back(i);
-                            break;
+                // two strategy during merge, haven't decide which one is better
+                if(possible){
+                    // hash points to the same bucket only when they have the possibility to merge
+                    if(got == m_merge_map[red].end()){
+                        std::vector<int> intvec;
+                        intvec.push_back(point);
+                        m_merge_map[red].insert(std::make_pair(key, intvec));
+                    }
+                    else{
+                        int ufID = m_point_to_uf[point];
+                        int root = uf.find(ufID);
+                        // merge points into a bucket 
+                        // only when they have the possibility to merge small cells
+                        for(unsigned int j=0; j<got->second.size(); j++){
+                            int ufID1 = m_point_to_uf[got->second[j]];
+                            int root1 = uf.find(ufID1);
+                            if(root1 != root){
+                                got->second.push_back(point);
+                                break;
+                            }
                         }
                     }
-                    */
                 }
+                
+                else{
+                    // hash points to the same bucket by the hash value
+                    if(got == m_merge_map[red].end()){
+                        std::vector<int> intvec;
+                        intvec.push_back(point);
+                        m_merge_map[red].insert(std::make_pair(key, intvec));
+                    }
+                    else
+                        got->second.push_back(point);
+                }
+            }
+            for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); iter++){
+                permute(iter->second);
             }
         }
     }
@@ -129,26 +194,27 @@ namespace clustering{
             for(unsigned int j=0; j<cd.size2(); j++)
                 cd(i, j) = -1;
 
-        int sz1 = cl_d.size1();
         for(unsigned int red=0; red<REDUNDANT; red++){
             const MergeMap& mapping = m_merge_map.at(red);
             // iterate through all the points
             // find neighbours in the hash bucket if this is not a core point
-            for(int i=0; i<sz1; i++){
-                if(!m_is_core[i]){
+            for(unsigned int i=0; i<m_total_num; i++){
+                // point is the original id, i is the reduced id
+                int point = m_reduced_to_origin[i];
+                if(!m_is_core[point]){
                     DimType key = m_new_grid[red][i];
                     MergeMap::const_iterator got = mapping.find(key);
-                    int core_index = m_core_map[i];
+                    int core_index = m_core_map[point];
                     int sz2 = got->second.size();
                     for(int j=0; j<sz2; j++){
                         // do distance calculation here
                         int which = got->second[j];
-                        if(which == i)
+                        if(which == point)
                             continue;
 
                         float dist = 0.0f;
                         for(unsigned int k=0; k<cl_d.size2(); k++){
-                            float diff = cl_d(which, k) - cl_d(i, k);
+                            float diff = cl_d(which, k) - cl_d(point, k);
                             dist += diff * diff;
                         }
                         if(dist < m_eps_sqr){
@@ -162,7 +228,7 @@ namespace clustering{
                                 cd(core_index, k) = which;
                             }
                             else if(k == cd.size2()){
-                                m_is_core[i] = true;
+                                m_is_core[point] = true;
                                 break;
                             }
                         }
@@ -183,21 +249,23 @@ namespace clustering{
             const MergeMap& mapping = m_merge_map.at(red);
             const NewGrid& grid = m_new_grid.at(red);
 
-            for(unsigned int i=0; i<cl_d.size1(); i++){
-                if(!m_is_core[i])
+            for(unsigned int i=0; i<m_total_num; i++){
+                // point is the original id, i is the reduced id
+                int point = m_reduced_to_origin[i];
+                if(!m_is_core[point])
                     continue;
 
                 DimType key = grid[i];
                 MergeMap::const_iterator got = mapping.find(key);
-                int center_id = m_point_to_uf[i];
+                int center_id = m_point_to_uf[point];
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
-                    if(id1 == (int)i)
+                    if(id1 == point)
                         continue;
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
-                        float diff = cl_d(id1, k) - cl_d(i, k);
+                        float diff = cl_d(id1, k) - cl_d(point, k);
                         dist += diff * diff;
                     }
                     if(dist < m_eps_sqr){
@@ -235,7 +303,7 @@ namespace clustering{
 
         for(unsigned int i=0; i<REDUNDANT; i++){
             m_new_min_val[i].resize(DOUT);
-            m_new_grid[i].resize(cl_d.size1());
+            m_new_grid[i].resize(m_total_num);
         }
         calculate_new_width();
         hash_set_dimensions();
@@ -250,14 +318,13 @@ namespace clustering{
                 m_point_to_uf[which] = ufid;
             }
         }
-
     }
 
     void DBSCAN_LSH::main_iteration(){
         // these three functions are one iteration of hash-merge procedure
         hash_generate();
         rehash_data_projection();
-        merge_cell_after_hash();
+        merge_cell_after_hash(false);
     }
 
     int DBSCAN_LSH::set_core_map(){
@@ -278,22 +345,21 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        // use the grid result in determine_core_points to do the first merge
-        merge_small_clusters();
-
-        for(int i=0; i<10; i++){
+        for(int i=0; i<20; i++){
             determine_core_point_lsh();
             merge_small_clusters();
         }
 
-        for(int i=0; i<10; i++){
+        /*
+        for(int i=0; i<1; i++){
             main_iteration();
             int merge_counter = merge_small_clusters();
-            if(merge_counter < int(3 * REDUNDANT)){
+            if(merge_counter < int(1 * REDUNDANT)){
                 cout<<"after "<<i<<" iterations, algorithm stop"<<endl;
                 break;
             }
         }
+        */
         cell_label_to_point_label();
         /*
         int counter = 0;
@@ -305,15 +371,37 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::determine_boarder_point_lsh(){
-        for(unsigned int i=0; i<m_labels.size(); i++){
-            if(m_labels[i] == -1){
+        for(unsigned int i=0; i<m_total_num; i++){
+            // point is the original id, i is the reduced precision id
+            int point = m_reduced_to_origin[i];
+            if(m_labels[point] == -1){
+                float min_dist = m_eps_sqr;
+                for(unsigned int red=0; red<REDUNDANT; red++){
+                    DimType key = m_new_grid[red][i];
+                    MergeMap::const_iterator got = m_merge_map[red].find(key);
 
+                    for(unsigned int j=0; j<got->second.size(); j++){
+                        int which = got->second[j];
+                        if(!m_is_core[which])
+                            continue;
+                        float dist = 0.0f;
+
+                        for(unsigned int k=0; k<cl_d.size2(); k++){
+                            float diff = cl_d(point, k) - cl_d(which,k);
+                            dist += diff * diff;
+                        }
+                        if(dist < min_dist){
+                            min_dist = dist;
+                            m_labels[point] = m_labels[which];
+                        }
+                    }
+                }
             }
         }
-        
     }
 
     void DBSCAN_LSH::fit(){
+        srand(unsigned(time(NULL)));
         prepare_labels(cl_d.size1());
 
         // the construct grid method is the same as the original grid one
@@ -321,26 +409,31 @@ namespace clustering{
         begin = get_clock();
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
-    
-        init_data_structure();
-
+        
         begin = get_clock();
-        determine_core_point_lsh();
+        reduced_precision_lsh(m_min_elems);
+        init_data_structure();
         cout<<get_clock() - begin<<endl;
-
-        int counter = 0;
-        for(unsigned int i=0; i<m_is_core.size(); i++)
-            if(m_is_core[i])
-                counter++;
-        cout<<counter<<" core points in "<<m_is_core.size()<<endl;
 
         begin = get_clock();
         merge_clusters_lsh();
         cout<<get_clock() - begin<<endl;
 
+        int counter = 0;
+        for(unsigned int i=0; i<m_labels.size(); i++){
+            if(m_labels[i] == -1)
+                counter++;
+        }
+        cout<<"now, "<<counter<<" noise points"<<endl;
+
         begin = get_clock();
         determine_boarder_point_lsh();
+        for(int i=0; i<2; i++){
+            main_iteration();
+            determine_boarder_point_lsh();
+        }
         cout<<get_clock() - begin<<endl;
+        
     }
 
     void DBSCAN_LSH::test(){

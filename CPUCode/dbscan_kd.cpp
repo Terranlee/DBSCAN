@@ -1,6 +1,5 @@
 #include "dbscan_kd.h"
 
-
 namespace clustering{
     DBSCAN_KD::DBSCAN_KD(float eps, size_t min_elems) : DBSCAN(eps, min_elems){
         m_eps = eps;
@@ -8,6 +7,17 @@ namespace clustering{
     DBSCAN_KD::~DBSCAN_KD(){
         kd_free(root);
         delete[] pos;
+    }
+
+    void DBSCAN_KD::permute(std::vector<int>& intvec){
+        srand(unsigned(time(NULL)));
+        unsigned int sz = intvec.size();
+        for(unsigned int i=0; i<sz; i++){
+            int index = rand() % (sz - i) + i;
+            int temp = intvec[i];
+            intvec[i] = intvec[index];
+            intvec[index] = temp;
+        }
     }
 
     void DBSCAN_KD::build_tree(){
@@ -19,10 +29,16 @@ namespace clustering{
         for(unsigned int i=0; i<data.size(); i++)
             data[i] = i;
 
+        std::vector<int> which(cl_d.size1());
+        for(unsigned int i=0; i<which.size(); i++)
+            which[i] = i;
+        permute(which);
+
         for(unsigned int i=0; i<cl_d.size1(); i++){
+            int id = which[i];
             for(unsigned int j=0; j<cl_d.size2(); j++)
-                pos[j] = cl_d(i, j);
-            kd_insertf(root, pos, &data[i]);
+                pos[j] = cl_d(id, j);
+            kd_insertf(root, pos, &data[id]);
         }
     }
 
@@ -31,6 +47,7 @@ namespace clustering{
         while(iteration.size() != 0){
             uint32_t nPid = iteration.front();
             iteration.pop();
+            m_deduplicate.erase(nPid);
             if ( !m_visited[nPid] ){
                 m_visited[nPid] = 1;
                 kdres* ret = find_neighbors_kdtree(nPid);
@@ -39,7 +56,10 @@ namespace clustering{
                 if ( kd_res_size(ret) > (int)m_min_elems){
                     while( !kd_res_end( ret ) ){
                         uint32_t id = *(uint32_t*)kd_res_itemf( ret, pos );
-                        iteration.push(id);
+                        if(m_deduplicate.find(id) == m_deduplicate.end()){
+                            iteration.push(id);
+                            m_deduplicate.insert(id);
+                        }
                         kd_res_next( ret );
                     }
                 }
@@ -68,9 +88,11 @@ namespace clustering{
                 kdres* ret = find_neighbors_kdtree(pid);
 
                 std::queue<uint32_t> iteration;
+                m_deduplicate.clear();
                 while( !kd_res_end( ret ) ){
                     uint32_t id = *(uint32_t*)kd_res_itemf( ret, pos );
                     iteration.push(id);
+                    m_deduplicate.insert(id);
                     kd_res_next( ret );
                 }
                 kd_res_free(ret);
