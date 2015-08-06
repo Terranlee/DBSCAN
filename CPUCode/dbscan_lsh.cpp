@@ -14,6 +14,17 @@ namespace clustering{
     DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
     DBSCAN_LSH::~DBSCAN_LSH(){}
 
+    void DBSCAN_LSH::permute(std::vector<int>& intvec){
+        srand(unsigned(time(NULL)));
+        unsigned int sz = intvec.size();
+        for(unsigned int i=0; i<sz; i++){
+            int index = rand() % (sz - i) + i;
+            int temp = intvec[i];
+            intvec[i] = intvec[index];
+            intvec[index] = temp;
+        }
+    }
+
     void DBSCAN_LSH::reduced_precision_lsh(unsigned int max_num_point){
         // reduced precision, just like in dbscan_reduced.cpp
         // but save the total number of points to m_total_num
@@ -172,6 +183,9 @@ namespace clustering{
                     else
                         got->second.push_back(point);
                 }
+            }
+            for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); iter++){
+                permute(iter->second);
             }
         }
     }
@@ -333,7 +347,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        for(int i=0; i<50; i++){
+        for(int i=0; i<20; i++){
             determine_core_point_lsh();
             merge_small_clusters();
         }

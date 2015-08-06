@@ -61,6 +61,7 @@ namespace clustering{
         void hash_set_dimensions();
         void hash_generate();
 
+        void permute(std::vector<int>& intvec);
         /************************************************************************/
         // DATA STRUCTURE TO SUPPORT THIS HASH ALGORITHM
         // a map between the index of point to the index of its cell in union find structure
