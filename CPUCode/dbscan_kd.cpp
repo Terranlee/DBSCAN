@@ -1,6 +1,5 @@
 #include "dbscan_kd.h"
 
-
 namespace clustering{
     DBSCAN_KD::DBSCAN_KD(float eps, size_t min_elems) : DBSCAN(eps, min_elems){
         m_eps = eps;
@@ -31,6 +30,7 @@ namespace clustering{
         while(iteration.size() != 0){
             uint32_t nPid = iteration.front();
             iteration.pop();
+            m_deduplicate.erase(nPid);
             if ( !m_visited[nPid] ){
                 m_visited[nPid] = 1;
                 kdres* ret = find_neighbors_kdtree(nPid);
@@ -39,7 +39,10 @@ namespace clustering{
                 if ( kd_res_size(ret) > (int)m_min_elems){
                     while( !kd_res_end( ret ) ){
                         uint32_t id = *(uint32_t*)kd_res_itemf( ret, pos );
-                        iteration.push(id);
+                        if(m_deduplicate.find(id) == m_deduplicate.end()){
+                            iteration.push(id);
+                            m_deduplicate.insert(id);
+                        }
                         kd_res_next( ret );
                     }
                 }
@@ -68,9 +71,11 @@ namespace clustering{
                 kdres* ret = find_neighbors_kdtree(pid);
 
                 std::queue<uint32_t> iteration;
+                m_deduplicate.clear();
                 while( !kd_res_end( ret ) ){
                     uint32_t id = *(uint32_t*)kd_res_itemf( ret, pos );
                     iteration.push(id);
+                    m_deduplicate.insert(id);
                     kd_res_next( ret );
                 }
                 kd_res_free(ret);
