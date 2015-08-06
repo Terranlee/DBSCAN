@@ -124,7 +124,7 @@ void release_memory(){
 
 void lsh_cpu(){
 	printf("lsh cpu\n");
-	int* temp = (int*) malloc(sizeof(int) * DOUT);
+	int16_t* temp = (int16_t*) malloc(sizeof(int16_t) * DOUT);
 	float* mult = (float*) malloc(sizeof(float) * DOUT);
 	for(int i=0; i<input_size; i++){
 		// make projection
@@ -137,9 +137,10 @@ void lsh_cpu(){
 		// calculate index in each dimension
 		for(int red=0; red<REDUNDANT; red++){
 			for(int j=0; j<DOUT; j++){
-				temp[j] = (int)(( mult[j] - center[red][j]) / cell_width);
+				temp[j] = (int16_t)(( mult[j] - center[red][j]) / cell_width);
 			}
 			// make the final hash
+			/*
 			int64_t first = 0;
 			int64_t second = 0;
 			for(int j=0; j<DOUT/2-1; j++){
@@ -157,11 +158,14 @@ void lsh_cpu(){
 			}
 			temp[DOUT-1] = temp[DOUT-1] & 0x0000ffff;
 			second += temp[DOUT-1];
+			*/
+			memcpy(&output_cpu[red][2*i], temp, sizeof(int64_t) * 2);
+			/*
 			output_cpu[red][2 * i] = first;
 			output_cpu[red][2 * i + 1] = second;
-
+			*/
 			for(int j=0; j<8; j++)
-				middle_result_cpu[red][i * 8 + j] = temp[j];
+				middle_result_cpu[red][8*i+j] = temp[j];
 		}
 	}
 	free(temp);
@@ -194,10 +198,10 @@ void lsh_dfe(){
 	actions.param_cellWidth = cell_width;
 	actions.instream_input_cpu = input;
 
-	actions.outstream_output_cpu0 = middle_result_dfe[0];
-	actions.outstream_output_cpu1 = middle_result_dfe[1];
-	actions.outstream_output_cpu2 = middle_result_dfe[2];
-	actions.outstream_output_cpu3 = middle_result_dfe[3];
+	actions.outstream_output_cpu0 = output_dfe[0];
+	actions.outstream_output_cpu1 = output_dfe[1];
+	actions.outstream_output_cpu2 = output_dfe[2];
+	actions.outstream_output_cpu3 = output_dfe[3];
 	
 	set_mapped_rom(&actions);
 
@@ -208,7 +212,7 @@ void lsh_dfe(){
 
 void check_output(){
 	printf("check output\n");
-	
+	/*
 	int output_length = input_size * 8;
 	int counter = 0;
 	for(int red=0; red<4; red++)
@@ -216,13 +220,9 @@ void check_output(){
 			if(middle_result_cpu[red][i] == middle_result_dfe[red][i])
 				counter++;
 	printf("%d same over %d\n", counter, output_length);
-	if(counter != output_length){
-		printf("Error, check files\n");
-		to_file();
-	}
+	to_file();
+	*/
 	
-
-	/*
 	int output_length = input_size * 2;
 	int counter = 0;
 	for(int red=0; red<REDUNDANT; red++){
@@ -232,11 +232,8 @@ void check_output(){
 	}
 
 	printf("%d same over %d\n", counter, output_length * REDUNDANT);
-	if(counter != output_length){
-		printf("Error!!! please check files\n");
-		to_file();
-	}
-	*/
+	to_file();
+	
 }
 
 void to_file(){
@@ -244,30 +241,37 @@ void to_file(){
 	int output_length = input_size * 8;
 	//int output_length = input_size * DOUT;
     FILE* fp1 = fopen("answer_cpu", "w");
-	
+	/*	
 	for(int red=0; red<REDUNDANT; red++){
 		for(int i=0; i<output_length; i++)
 			fprintf(fp1, "%d\n", middle_result_cpu[red][i]);
 		fprintf(fp1, "\n");
 	}
-	
-	/*
-	for(int i=0; i<output_length; i++)
-		fprintf(fp1, "%f\n", middle_result_cpu[i]);
 	*/
+	
+	for(int red=0; red<REDUNDANT; red++){
+		for(int i=0; i<output_length; i++)
+			fprintf(fp1, "%lld\n", (long long int)output_cpu[red][i]);
+		fprintf(fp1, "\n");
+	}
+	
     fclose(fp1);
 				
     FILE* fp2 = fopen("answer_dfe", "w");
+	/*
 	for(int red=0; red<REDUNDANT; red++){
 		for(int i=0; i<output_length; i++)
 			fprintf(fp2, "%d\n", middle_result_dfe[red][i]);
 		fprintf(fp2, "\n");
 	}
-	
-	/*
-	for(int i=0; i<output_length; i++)
-		fprintf(fp2, "%f\n", middle_result_dfe[i]);
 	*/
+	
+	for(int red=0; red<REDUNDANT; red++){
+		for(int i=0; i<output_length; i++)
+			fprintf(fp2, "%lld\n", (long long int)output_dfe[red][i]);
+		fprintf(fp2, "\n");
+	}
+	
     fclose(fp2);
 }
 
