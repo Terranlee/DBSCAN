@@ -123,7 +123,7 @@ namespace clustering{
             // calculate index in each dimension
             for(unsigned int red = 0; red < REDUNDANT; red++){
                 for(unsigned int j=0; j<DOUT; j++)
-                    temp[j] = (int16_t)((mult[j] - m_new_min_val[red][j]) / m_new_cell_width);
+                    temp[j] = (int16_t)((mult[j] - m_new_min_val[red][j]) / m_new_cell_width) + 1;
                 // make final hash
                 /*
                 DimType ans(0,0);
@@ -242,7 +242,7 @@ namespace clustering{
         }// endof REDUNDANT
     }
 
-    int DBSCAN_LSH::merge_small_clusters(){
+    int DBSCAN_LSH::merge_small_clusters(bool possible){
         // if the points are in the same cell in the new grid in DOUT space
         // their clusters should be merged together in the original space
 
@@ -262,16 +262,18 @@ namespace clustering{
                 DimType key = grid[i];
                 MergeMap::const_iterator got = mapping.find(key);
                 int center_id = m_point_to_uf[point];
-                //int center_root = uf.find(center_id);
+                int center_root = uf.find(center_id);
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
                     if(id1 == point || (!m_is_core[id1]))
                         continue;
 
-                    //int belong_id = m_point_to_uf[id1];
-                    //int belong_root = uf.find(belong_id);
-                    //if(belong_root == center_root)
-                    //    continue;
+                    if(possible){
+                        int belong_id = m_point_to_uf[id1];
+                        int belong_root = uf.find(belong_id);
+                        if(belong_root == center_root)
+                            continue;
+                    }
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -355,13 +357,17 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        int num_iter = 50;
+        int num_iter = 10;
 
         for(int i=0; i<num_iter; i++){
             determine_core_point_lsh();
-            merge_small_clusters();
+            merge_small_clusters(false);
         }
 
+        for(int i=0; i<3; i++){
+            main_iteration();
+            merge_small_clusters(true);
+        }
         /*
         for(int i=0; i<1; i++){
             main_iteration();
@@ -447,7 +453,7 @@ namespace clustering{
                 m_boarder_dist.insert(std::make_pair(i, m_eps_sqr));
 
         determine_boarder_point_lsh();
-        for(int i=0; i<5; i++){
+        for(int i=0; i<3; i++){
             main_iteration();
             determine_boarder_point_lsh();
         }

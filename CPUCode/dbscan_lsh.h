@@ -116,7 +116,7 @@ namespace clustering{
         // return the number of small clusters that are merged in this iteration
         // use the return value to terminate the program
         void determine_core_using_merge(int index);
-        int merge_small_clusters();
+        int merge_small_clusters(bool possible);
 
         // reduced precision method in locality sensitive hashing
         void reduced_precision_lsh(unsigned int max_num_point);
