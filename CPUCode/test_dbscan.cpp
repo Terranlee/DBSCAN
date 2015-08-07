@@ -134,12 +134,12 @@ void test_lsh(Labels& label_lsh){
     //DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_LSH(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_LSH(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension data
-    //DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);
-    //dbs->read_cluster_data(7, 1000000, "../data/household.data");
+    DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);
+    dbs->read_cluster_data(7, 2049280, "../data/household.data");
 
     cout<<"start execution of lsh based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
