@@ -139,26 +139,6 @@ void lsh_cpu(){
 			for(int j=0; j<DOUT; j++){
 				temp[j] = (int16_t)(( mult[j] - center[red][j]) / cell_width);
 			}
-			// make the final hash
-			/*
-			int64_t first = 0;
-			int64_t second = 0;
-			for(int j=0; j<DOUT/2-1; j++){
-				temp[j] = temp[j] & 0x0000ffff;
-				first += temp[j];
-				first = first << 16;
-			}
-			temp[DOUT/2-1] = temp[DOUT/2-1] & 0x0000ffff;
-			first += temp[DOUT/2-1];
-
-			for(int j=DOUT/2; j<DOUT-1; j++){
-				temp[j] = temp[j] & 0x0000ffff;
-				second += temp[j];
-				second = second << 16;
-			}
-			temp[DOUT-1] = temp[DOUT-1] & 0x0000ffff;
-			second += temp[DOUT-1];
-			*/
 			memcpy(&output_cpu[red][2*i], temp, sizeof(int64_t) * 2);
 			/*
 			output_cpu[red][2 * i] = first;
@@ -173,17 +153,16 @@ void lsh_cpu(){
 }
 
 void set_mapped_rom(LSH_actions_t* actions){
-	double** hashFunction = (double**) &(actions->inmem_LSHKernel_hashFunction0000);
+	float* hashFunction = (float*)&(actions->param_hashFunction0000);
 	for(int i=0; i<DOUT; i++){
-		hashFunction[i] = (double*)malloc(sizeof(double) * DIN);
 		for(int j=0; j<DIN; j++)
-			hashFunction[i][j] = hash[i][j];
+			hashFunction[i*DIN+j] = hash[i][j];
 	}
-	double** centerPoint = (double**) &(actions->inmem_LSHKernel_centerPoint0000);
-	for(int i=0; i<DOUT; i++){
-		centerPoint[i] = (double*)malloc(sizeof(double) * REDUNDANT);
-		for(int j=0; j<REDUNDANT; j++)
-			centerPoint[i][j] = center[j][i];
+
+	float* centerPoint = (float*)&(actions->param_centerPoint0000);
+	for(int i=0; i<REDUNDANT; i++){
+		for(int j=0; j<DOUT; j++)
+			centerPoint[i*DOUT+j] = center[i][j];
 	}
 }
 
@@ -204,6 +183,22 @@ void lsh_dfe(){
 	actions.outstream_output_cpu3 = output_dfe[3];
 	
 	set_mapped_rom(&actions);
+	
+	for(int i=0; i<REDUNDANT; i++){
+		for(int j=0; j<DOUT; j++)
+			printf("%f ", center[i][j]);
+		printf("\n");
+	}
+
+	printf("\n");
+
+	float* centerP = (float*)&(actions.param_centerPoint0000);
+	for(int i=0; i<REDUNDANT; i++){
+		for(int j=0; j<DOUT; j++)
+			printf("%f ", centerP[i*DOUT+j]);
+		printf("\n");
+	}
+	printf("\n");
 
 	LSH_run(me, &actions);
 

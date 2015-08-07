@@ -3,9 +3,7 @@
 
 import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
 import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
-import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.memory.Memory;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
-import com.maxeler.maxcompiler.v0.utils.MathUtils;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
 
@@ -62,20 +60,6 @@ class LSHKernel extends Kernel {
 		// the second dimension is the redundant
 		ArrayList<ArrayList<DFEVar> > minus = doMinus(hashCoordinate, center);
 		
-		/*
-		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(m_inputType, m_dout);
-		String out = "output";
-		for(int i=0; i<m_redundant; i++){
-			DFEVector<DFEVar> output = outputType.newInstance(this);
-			for(int j=0; j<m_dout; j++)
-				output[j] <== minus[j][i];
-
-			String outputName = out + Integer.toString(i);
-			io.output(outputName, output, output.getType());
-		}
-		*/
-
-		
 		// the cell width is set from the scalarInput
 		DFEVar cellWidth = io.scalarInput("cellWidth", m_inputType);
 
@@ -95,7 +79,6 @@ class LSHKernel extends Kernel {
 			for(int j=0; j<m_dout; j++){
 				// must use TRUNCATE method to assign points to the correct cell
 				// still have problem when the number is XXXX.0
-				DFEVar five = constant.var(m_inputType, 0.5);
 				DFEVar upzero = result[j][i] >= constant.var(m_inputType, 0.0);
 				DFEVar offset = upzero ? (result[j][i] - constant.var(m_inputType, 0.5)) : (result[j][i] + constant.var(m_inputType, 0.5));
 				output[j] <== offset.cast(m_outType);
@@ -104,8 +87,35 @@ class LSHKernel extends Kernel {
 			String outputName = out + Integer.toString(i);
 		    io.output(outputName, output, output.getType());
 		}
-    }   
+    } 
 	
+	private void setHashFunction(ArrayList<ArrayList<DFEVar> > hashFunction){
+		for(int i=0; i<m_dout; i++){
+			ArrayList<DFEVar> oneFunc = new ArrayList<DFEVar>();
+			// use scalar input to get all the parameters
+			for(int j=0; j<m_din; j++){
+				String name = String.format("hashFunction%04d", i*m_din+j);
+				DFEVar temp = io.scalarInput(name, m_inputType);
+				oneFunc.add(temp);
+			}
+			hashFunction.add(oneFunc);
+		}
+	}
+
+	private void setCenterPoint(ArrayList<ArrayList<DFEVar> > center){
+		for(int i=0; i<m_dout; i++){
+			ArrayList<DFEVar> oneDim = new ArrayList<DFEVar>();
+			// use scalar input to get all the parameters
+			for(int j=0; j<m_redundant; j++){
+				String name = String.format("centerPoint%04d", j*m_dout+i);
+				DFEVar temp = io.scalarInput(name, m_inputType);
+				oneDim.add(temp);
+			}
+			center.add(oneDim);
+		}
+	}
+
+	/*	
 	private void setHashFunction(ArrayList<ArrayList<DFEVar> > hashFunction){
 		int numBits = MathUtils.bitsToAddress(m_din);
 		for(int i=0; i<m_dout; i++){
@@ -133,6 +143,7 @@ class LSHKernel extends Kernel {
 			center.add(oneDim);
 		}
 	}
+	*/
 
 	private ArrayList<ArrayList<DFEVar> > doProjection(DFEVector<DFEVar> input, ArrayList<ArrayList<DFEVar> > hashFunction){
 		ArrayList<ArrayList<DFEVar> > multiply = new ArrayList<ArrayList<DFEVar> >();
