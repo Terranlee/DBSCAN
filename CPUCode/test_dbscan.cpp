@@ -53,7 +53,7 @@ void test_kd(Labels& label_kd){
 
     // high dimension data
     DBSCAN* dbs = new DBSCAN_KD(5000.0, 100);
-    dbs->read_cluster_data(7, 50000, "../data/household.data");
+    dbs->read_cluster_data(7, 5000, "../data/household.data");
 
     cout<<"start execution of distance kdtree DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();

@@ -264,7 +264,7 @@ namespace clustering{
                 int center_id = m_point_to_uf[point];
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
-                    if(id1 == point)
+                    if(id1 == point || (!m_is_core[id1]))
                         continue;
 
                     float dist = 0.0;
@@ -349,7 +349,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        for(int i=0; i<50; i++){
+        for(int i=0; i<30; i++){
             determine_core_point_lsh();
             merge_small_clusters();
         }
