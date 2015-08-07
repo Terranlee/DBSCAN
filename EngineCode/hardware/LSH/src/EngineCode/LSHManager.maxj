@@ -43,7 +43,6 @@ public class LSHManager extends CustomManager{
 
     private static EngineInterface interfaceDefault(LSHParameters param) {
 		int din = param.getDIn();
-		int dout = param.getDOut();
 		int redundant = param.getRedundant();
 
         EngineInterface engine_interface = new EngineInterface();
@@ -51,27 +50,10 @@ public class LSHManager extends CustomManager{
 		// the parameter N is the number of input points
         InterfaceParam N = engine_interface.addParam("N", CPUTypes.INT);
 		InterfaceParam cellWidth = engine_interface.addParam("cellWidth", CPUTypes.FLOAT);
+
         engine_interface.setTicks(s_kernelName, N);
         engine_interface.setStream("input_cpu", CPUTypes.FLOAT, N * CPUTypes.FLOAT.sizeInBytes() * din);
 		engine_interface.setScalar(s_kernelName, "cellWidth", cellWidth);
-	
-		// set scalar input for all the hash function parameters
-		for(int i=0; i<dout; i++){
-			for(int j=0; j<din; j++){
-				String name = String.format("hashFunction%04d", i*din+j);
-				InterfaceParam hash = engine_interface.addParam(name, CPUTypes.FLOAT);
-				engine_interface.setScalar(s_kernelName, name, hash);
-			}
-		}
-		
-		// set scalar input for all the center points parameters
-		for(int i=0; i<dout; i++){
-			for(int j=0; j<redundant; j++){
-				String name = String.format("centerPoint%04d", i*redundant+j);
-				InterfaceParam point = engine_interface.addParam(name, CPUTypes.FLOAT);
-				engine_interface.setScalar(s_kernelName, name, point);
-			}
-		}
 
 		String toCPUPrefix = "output_cpu";
 		for(int i=0; i<redundant; i++){
