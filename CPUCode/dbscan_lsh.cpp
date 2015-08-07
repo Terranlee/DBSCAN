@@ -349,7 +349,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        for(int i=0; i<20; i++){
+        for(int i=0; i<50; i++){
             determine_core_point_lsh();
             merge_small_clusters();
         }
@@ -379,7 +379,9 @@ namespace clustering{
             // point is the original id, i is the reduced precision id
             int point = m_reduced_to_origin[i];
             if(m_labels[point] == -1){
-                float min_dist = m_eps_sqr;
+                std::unordered_map<int, float>::iterator d = m_boarder_dist.find(point);
+                float min_dist = d->second;
+
                 for(unsigned int red=0; red<REDUNDANT; red++){
                     DimType key = m_new_grid[red][i];
                     MergeMap::const_iterator got = m_merge_map[red].find(key);
@@ -397,6 +399,7 @@ namespace clustering{
                         if(dist < min_dist){
                             min_dist = dist;
                             m_labels[point] = m_labels[which];
+                            d->second = dist;
                         }
                     }
                 }
@@ -431,8 +434,12 @@ namespace clustering{
         cout<<"now, "<<counter<<" noise points"<<endl;
 
         begin = get_clock();
+        for(unsigned int i=0; i<m_labels.size(); i++)
+            if(m_labels[i] == -1)
+                m_boarder_dist.insert(std::make_pair(i, m_eps_sqr));
+
         determine_boarder_point_lsh();
-        for(int i=0; i<2; i++){
+        for(int i=0; i<3; i++){
             main_iteration();
             determine_boarder_point_lsh();
         }

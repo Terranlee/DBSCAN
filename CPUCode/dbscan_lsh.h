@@ -81,6 +81,7 @@ namespace clustering{
         std::vector<int> m_reduced_to_origin;
         std::vector<bool> m_origin_to_reduced;  // the size is 
 
+        std::unordered_map<int, float> m_boarder_dist;
 
 
         /************************************************************************/
@@ -95,7 +96,6 @@ namespace clustering{
         std::vector<NewCenter> m_new_min_val;
         // the merge result of one hashing method
         std::vector<MergeMap> m_merge_map;
-
 
 
 
