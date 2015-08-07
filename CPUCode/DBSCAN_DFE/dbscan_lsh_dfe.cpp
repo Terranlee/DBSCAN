@@ -13,7 +13,72 @@ namespace clustering{
     const unsigned int DBSCAN_LSH_DFE::DOUT = 8;
 
     DBSCAN_LSH_DFE::DBSCAN_LSH_DFE(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
-    DBSCAN_LSH_DFE::~DBSCAN_LSH_DFE(){}
+    DBSCAN_LSH_DFE::~DBSCAN_LSH_DFE(){
+        delete[] input_dfe;
+        for(unsigned int i=0; i<REDUNDANT; i++)
+            delete[] m_new_grid[i];
+    }
+
+    // here are two public functions 
+    // they are related to the load and release of the max file
+    void DBSCAN_LSH_DFE::prepare(){
+        bool check = prepare_max_file();
+        if(!check)
+            exit(1);
+    }
+
+    void DBSCAN_LSH_DFE::release(){
+        release_max_file();
+    }
+
+    void DBSCAN_LSH_DFE::release_max_file(){
+        max_unload(me);
+    }
+
+    void DBSCAN_LSH_DFE::prepare_max_file(){
+        cout<<"----------loading DFE---------"<<endl;
+        mf = LSH_init();
+        bool check = check_parameters();
+        if(!check)
+            return false;
+        me = max_load(mf, "*");
+        cout<<"----------loading DFE finished----------"<<endl;
+        return true;
+    }
+
+    void DBSCAN_LSH_DFE::set_mapped_rom(LSH_actions_t* actions){
+        float* hashFunction = (float*)&(actions->param_hashFunction0000);
+        for(int i=0; i<DOUT; i++){
+            for(int j=0; j<DIN; j++)
+                hashFunction[i*DIN+j] = m_hash(i, j);
+        }
+
+        float* centerPoint = (float*)&(actions->param_centerPoint0000);
+        for(int i=0; i<REDUNDANT; i++){
+            for(int j=0; j<DOUT; j++)
+                centerPoint[i*DOUT+j] = m_new_min_val[i][j];
+        }
+    }
+
+    // check the parameters from CPU and DFE are the same
+    // otherwise it will not get correct result
+    void DBSCAN_LSH_DFE::check_parameters(){
+        int dfe_dout = max_get_constant_uint64t(mf, "dout");
+        int dfe_din = max_get_constant_uint64t(mf, "din");
+        int dfe_redundant = max_get_constant_uint64t(mf, "redundant");
+
+        if(dfe_dout != DOUT || dfe_din != (int)cl_d.size2() || dfe_redundant != REDUNDANT){
+            cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+            cout<<"DFE configuration failed."<<endl;
+            cout<<"Parameters are as followed:"<<endl;
+            cout<<"dfe_dout : "<<dfe_dout<<",   dout : "<<DOUT<<endl;
+            cout<<"dfe_din : "<<dfe_din<<",   din : "<<cl_d.size2()<<endl;
+            cout<<"dfe_redundant : "<<dfe_redundant<<",   redundant : "<<REDUNDANT<<endl;
+            cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+            return false;
+        }
+        return true;
+    }
 
     void DBSCAN_LSH_DFE::permute(std::vector<int>& intvec){
         unsigned int sz = intvec.size();
@@ -313,7 +378,7 @@ namespace clustering{
 
         for(unsigned int i=0; i<REDUNDANT; i++){
             m_new_min_val[i].resize(DOUT);
-            m_new_grid[i].resize(m_total_num);
+            m_new_grid[i] = new int64_t[m_total_num];
         }
         calculate_new_width();
         hash_set_dimensions();
@@ -326,6 +391,14 @@ namespace clustering{
             for(unsigned int i=0; i<iter->second.data.size(); i++){
                 int which = iter->second.data[i];
                 m_point_to_uf[which] = ufid;
+            }
+        }
+        input_dfe = new float[m_total_num * cl_d.size2()];
+        int index = 0;
+        for(int i=0; i<cl_d.size1(); i++){
+            if(m_origin_to_reduced[i]){
+                for(int j=0; j<cl_d.size2(); j++)
+                    input_dfe[index++] = cl_d(i, j);
             }
         }
     }
