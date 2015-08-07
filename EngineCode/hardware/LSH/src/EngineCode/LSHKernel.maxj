@@ -3,9 +3,7 @@
 
 import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
 import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
-import com.maxeler.maxcompiler.v2.kernelcompiler.stdlib.memory.Memory;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.*;
-import com.maxeler.maxcompiler.v0.utils.MathUtils;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVector;
 import com.maxeler.maxcompiler.v2.kernelcompiler.types.composite.DFEVectorType;
 
@@ -13,12 +11,12 @@ import java.util.ArrayList;
 
 class LSHKernel extends Kernel {
 	
-	// input data type
-	private static DFEType m_inputType;
-
 	// output data type for one point in one dim
 	// the index range in each dimension is [-32768, 32767], should be enough for most cases
 	private static final DFEType m_outType = dfeInt(16);
+	
+	// the input data type
+	private static DFEType m_inputType;
 
 	// dimension of the input data
 	private static int m_din;
@@ -62,20 +60,6 @@ class LSHKernel extends Kernel {
 		// the second dimension is the redundant
 		ArrayList<ArrayList<DFEVar> > minus = doMinus(hashCoordinate, center);
 		
-		/*
-		DFEVectorType<DFEVar> outputType = new DFEVectorType<DFEVar>(m_inputType, m_dout);
-		String out = "output";
-		for(int i=0; i<m_redundant; i++){
-			DFEVector<DFEVar> output = outputType.newInstance(this);
-			for(int j=0; j<m_dout; j++)
-				output[j] <== minus[j][i];
-
-			String outputName = out + Integer.toString(i);
-			io.output(outputName, output, output.getType());
-		}
-		*/
-
-		
 		// the cell width is set from the scalarInput
 		DFEVar cellWidth = io.scalarInput("cellWidth", m_inputType);
 
@@ -90,13 +74,15 @@ class LSHKernel extends Kernel {
 		// step5 : set the output for every redundant grid
 		// the moveBitAndAdd function is not needed any more, because the output is already int16_t
 		String out = "output";
+		DFEVar truncate = constant.var(dfeFloat(8, 24), 0.5);
+		DFEVar zero = constant.var(dfeFloat(8, 24), 0.0);
 		for(int i=0; i<m_redundant; i++){
 			DFEVector<DFEVar> output = outputType.newInstance(this);
 			for(int j=0; j<m_dout; j++){
 				// must use TRUNCATE method to assign points to the correct cell
 				// still have problem when the number is XXXX.0
-				DFEVar upzero = result[j][i] >= constant.var(dfeFloat(8, 24), 0.0);
-				DFEVar offset = upzero ? result[j][i] - constant.var(dfeFloat(8, 24), 0.5) : result[j][i] + constant.var(dfeFloat(8, 24), 0.5);
+				DFEVar upzero = result[j][i] >= zero;
+				DFEVar offset = upzero ? result[j][i] - truncate : result[j][i] + truncate;
 				output[j] <== offset.cast(m_outType);
 			}
 
@@ -106,28 +92,26 @@ class LSHKernel extends Kernel {
     }   
 	
 	private void setHashFunction(ArrayList<ArrayList<DFEVar> > hashFunction){
-		int numBits = MathUtils.bitsToAddress(m_din);
 		for(int i=0; i<m_dout; i++){
 			ArrayList<DFEVar> oneFunc = new ArrayList<DFEVar>();
-			Memory<DFEVar> mappedRom = mem.alloc(m_inputType, m_din);
-			mappedRom.mapToCPU(String.format("hashFunction%04d", i));
-			// map this memory to CPU
+			// use scalar input to get all the parameters
 			for(int j=0; j<m_din; j++){
-				oneFunc.add(mappedRom.read(constant.var(dfeUInt(numBits), j)));
+				String name = String.format("hashFunction%04d", i*m_din+j);
+				DFEVar temp = io.scalarInput(name, m_inputType);
+				oneFunc.add(temp);
 			}
 			hashFunction.add(oneFunc);
 		}
 	}
 	
 	private void setCenterPoint(ArrayList<ArrayList<DFEVar> > center){
-		int numBits = MathUtils.bitsToAddress(m_redundant);
 		for(int i=0; i<m_dout; i++){
 			ArrayList<DFEVar> oneDim = new ArrayList<DFEVar>();
-			Memory<DFEVar> mappedRom = mem.alloc(m_inputType, m_redundant);
-			mappedRom.mapToCPU(String.format("centerPoint%04d", i));
-			// map this memory to CPU
+			// use scalar input to get all the parameters
 			for(int j=0; j<m_redundant; j++){
-				oneDim.add(mappedRom.read(constant.var(dfeUInt(numBits), j)));
+				String name = String.format("centerPoint%04d", i*m_redundant+j);
+				DFEVar temp = io.scalarInput(name, m_inputType);
+				oneDim.add(temp);
 			}
 			center.add(oneDim);
 		}
