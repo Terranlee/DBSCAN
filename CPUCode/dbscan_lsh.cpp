@@ -262,10 +262,16 @@ namespace clustering{
                 DimType key = grid[i];
                 MergeMap::const_iterator got = mapping.find(key);
                 int center_id = m_point_to_uf[point];
+                //int center_root = uf.find(center_id);
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
                     if(id1 == point || (!m_is_core[id1]))
                         continue;
+
+                    //int belong_id = m_point_to_uf[id1];
+                    //int belong_root = uf.find(belong_id);
+                    //if(belong_root == center_root)
+                    //    continue;
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -349,7 +355,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        for(int i=0; i<30; i++){
+        for(int i=0; i<50; i++){
             determine_core_point_lsh();
             merge_small_clusters();
         }
