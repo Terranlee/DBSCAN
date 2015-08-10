@@ -5,7 +5,7 @@
 #include <fstream>
 #include <memory.h>
 
-#include "dbscan_lsh_dfe.h"
+#include "dbscan_dfe.h"
 
 namespace clustering{
     // const values in this class
@@ -35,7 +35,7 @@ namespace clustering{
         max_unload(me);
     }
 
-    void DBSCAN_LSH_DFE::prepare_max_file(){
+    bool DBSCAN_LSH_DFE::prepare_max_file(){
         cout<<"----------loading DFE---------"<<endl;
         mf = LSH_init();
         bool check = check_parameters();
@@ -63,33 +63,37 @@ namespace clustering{
 
     // check the parameters from CPU and DFE are the same
     // otherwise it will not get correct result
-    void DBSCAN_LSH_DFE::check_parameters(){
+    bool DBSCAN_LSH_DFE::check_parameters(){
         int dfe_dout = max_get_constant_uint64t(mf, "dout");
         int dfe_din = max_get_constant_uint64t(mf, "din");
         int dfe_redundant = max_get_constant_uint64t(mf, "redundant");
 
-        if(dfe_dout != DOUT || dfe_din != (int)cl_d.size2() || dfe_redundant != REDUNDANT){
+        if(dfe_dout != DOUT || dfe_redundant != REDUNDANT){
             cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
             cout<<"DFE configuration failed."<<endl;
             cout<<"Parameters are as followed:"<<endl;
             cout<<"dfe_dout : "<<dfe_dout<<",   dout : "<<DOUT<<endl;
-            cout<<"dfe_din : "<<dfe_din<<",   din : "<<cl_d.size2()<<endl;
             cout<<"dfe_redundant : "<<dfe_redundant<<",   redundant : "<<REDUNDANT<<endl;
             cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
             return false;
         }
+
+		if(dfe_din != (int)cl_d.size2()){
+			cout<<"dfe_din : "<<dfe_din<<",   din : "<<cl_d.size2()<<endl;
+			cout<<"This may cause error"<<endl;
+		}
         return true;
     }
 
     void DBSCAN_LSH_DFE::rehash_data_projection_dfe(){
         LSH_actions_t actions;
         
-        actinos.param_N = m_total_num;
+        actions.param_N = m_total_num;
         actions.param_cellWidth = m_new_cell_width;
         actions.instream_input_cpu = input_dfe;
 
-        actions.outstream_output_cpu0 = m_new_grid[0];
-        actions.outstream_output_cpu1 = m_new_grid[1];
+        actions.outstream_output_cpu0 = (int64_t*)m_new_grid[0];
+        actions.outstream_output_cpu1 = (int64_t*)m_new_grid[1];
 
         set_mapped_rom(&actions);
 
@@ -173,49 +177,17 @@ namespace clustering{
         float eps = std::sqrt(m_eps_sqr);
         m_new_cell_width = eps * 1.0;
     }
-
+	
+	/*
     void DBSCAN_LSH_DFE::rehash_data_projection(){
-        // use locality sensitive hashing to reassign the data to another grid
-        // select a random data as the 
-        for(unsigned int red = 0; red < REDUNDANT; red++){
-            int rnd = rand() % cl_d.size1();
-            for(unsigned int i=0; i<DOUT; i++){
-                float mini = 0.0f;
-                for(unsigned int j=0; j<cl_d.size2(); j++)
-                    mini += cl_d(rnd, j) * m_hash(i, j);
-                m_new_min_val[red][i] = mini;
-            }
-        }
-
-        int16_t temp[DOUT];
-        std::vector<float> mult(DOUT);
-        int index = 0;
-        for(unsigned int i=0; i<cl_d.size1(); i++){
-            if(!m_origin_to_reduced[i])
-                continue;
-
-            // make projection
-            for(unsigned int j=0; j<DOUT; j++){
-                float data = 0.0f;
-                for(unsigned int k=0; k<cl_d.size2(); k++)
-                    data += cl_d(i, k) * m_hash(j, k);
-                mult[j] = data;
-            }
-            // calculate index in each dimension
-            for(unsigned int red = 0; red < REDUNDANT; red++){
-                for(unsigned int j=0; j<DOUT; j++)
-                    temp[j] = (int16_t)((mult[j] - m_new_min_val[red][j]) / m_new_cell_width);
-                // make final hash
-                memcpy(&m_new_grid[red][index], temp, sizeof(int64_t) * 2);
-            }
-            index++;
-        }
+		// see DBSCAN_LSH for more details
     }
+*/
 
     void DBSCAN_LSH_DFE::merge_cell_after_hash(){
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
-            for(unsigned int i=0; i<m_new_grid[red].size(); i++){
+            for(unsigned int i=0; i<m_total_num; i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
                 int point = m_reduced_to_origin[i];
@@ -365,12 +337,18 @@ namespace clustering{
                 m_point_to_uf[which] = ufid;
             }
         }
-        input_dfe = new float[m_total_num * cl_d.size2()];
+		// the input length of the dfe must be the size of 16byte
+		int length = cl_d.size2();
+		if(length % 2 != 0)
+			length = length + 1;
+        input_dfe = new float[m_total_num * length];
         int index = 0;
         for(int i=0; i<cl_d.size1(); i++){
             if(m_origin_to_reduced[i]){
                 for(int j=0; j<cl_d.size2(); j++)
                     input_dfe[index++] = cl_d(i, j);
+				if(length != cl_d.size2())
+					input_dfe[index++] = 0.0f;
             }
         }
     }
@@ -378,7 +356,7 @@ namespace clustering{
     void DBSCAN_LSH_DFE::main_iteration(){
         // these three functions are one iteration of hash-merge procedure
         hash_generate();
-        rehash_data_projection();
+        rehash_data_projection_dfe();
         merge_cell_after_hash();
     }
 
