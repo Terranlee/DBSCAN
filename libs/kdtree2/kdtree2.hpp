@@ -14,7 +14,7 @@
 // in k-dimensional Euclidean space.
 //
 // 
-
+#include <iostream>
 #include <vector>
 #include <algorithm>
 

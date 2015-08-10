@@ -23,10 +23,7 @@ FLAGS=-O3 -ffast-math ${FLAGSMACHINE} -fomit-frame-pointer -fPIC
 
 MY_DIR=`basename ${PWD}`
 
-all:	kdtree2_test libkdtree2.so
-
-kdtree2_test:	kdtree2_test.o kdtree2.o
-	${CPP} ${FLAGS} -o kdtree2_test kdtree2_test.o kdtree2.o 
+all: libkdtree2.so
 
 libkdtree2.so: kdtree2.o
 	${CPP} ${FLAGS} -shared -fPIC $< -o $@
