@@ -19,7 +19,7 @@ public class LSHParameters extends EngineParameters{
 	@Override
 	protected void declarations(){
 		declareParam(s_inputType,	DataType.DFETYPE,	Kernel.dfeFloat(8, 24));
-		declareParam(s_din,			DataType.INT,		2);
+		declareParam(s_din,			DataType.INT,		8);
 		declareParam(s_dout,		DataType.INT,		8);
 		declareParam(s_redundant,	DataType.INT,		2);
 	}

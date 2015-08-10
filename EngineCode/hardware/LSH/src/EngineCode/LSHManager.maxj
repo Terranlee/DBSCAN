@@ -42,7 +42,7 @@ public class LSHManager extends CustomManager{
 	}
 
     private static EngineInterface interfaceDefault(LSHParameters param) {
-		int din = param.getDIn();
+		int din = param.getDIn() - 1;
 		int dout = param.getDOut();
 		int redundant = param.getRedundant();
 
