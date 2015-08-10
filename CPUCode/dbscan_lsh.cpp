@@ -143,14 +143,14 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_LSH::merge_cell_after_hash(bool possible){
+    void DBSCAN_LSH::merge_cell_after_hash(){
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
                 int point = m_reduced_to_origin[i];
-
+                /*
                 // two strategy during merge, haven't decide which one is better
                 if(possible){
                     // hash points to the same bucket only when they have the possibility to merge
@@ -176,6 +176,7 @@ namespace clustering{
                 }
                 
                 else{
+                */
                     // hash points to the same bucket by the hash value
                     if(got == m_merge_map[red].end()){
                         std::vector<int> intvec;
@@ -184,7 +185,9 @@ namespace clustering{
                     }
                     else
                         got->second.push_back(point);
+                /*
                 }
+                */
             }
             for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); iter++){
                 permute(iter->second);
@@ -242,7 +245,7 @@ namespace clustering{
         }// endof REDUNDANT
     }
 
-    int DBSCAN_LSH::merge_small_clusters(bool possible){
+    int DBSCAN_LSH::merge_small_clusters(){
         // if the points are in the same cell in the new grid in DOUT space
         // their clusters should be merged together in the original space
 
@@ -262,18 +265,19 @@ namespace clustering{
                 DimType key = grid[i];
                 MergeMap::const_iterator got = mapping.find(key);
                 int center_id = m_point_to_uf[point];
-                int center_root = uf.find(center_id);
+                //int center_root = uf.find(center_id);
                 for(unsigned int j=0; j<got->second.size(); j++){
                     int id1 = got->second[j];
                     if(id1 == point || (!m_is_core[id1]))
                         continue;
-
+                    /*
                     if(possible){
                         int belong_id = m_point_to_uf[id1];
                         int belong_root = uf.find(belong_id);
                         if(belong_root == center_root)
                             continue;
                     }
+                    */
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -336,7 +340,7 @@ namespace clustering{
         // these three functions are one iteration of hash-merge procedure
         hash_generate();
         rehash_data_projection();
-        merge_cell_after_hash(false);
+        merge_cell_after_hash();
     }
 
     int DBSCAN_LSH::set_core_map(){
@@ -357,17 +361,13 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        int num_iter = 10;
+        int num_iter = 100;
 
         for(int i=0; i<num_iter; i++){
             determine_core_point_lsh();
-            merge_small_clusters(false);
+            merge_small_clusters();
         }
 
-        for(int i=0; i<3; i++){
-            main_iteration();
-            merge_small_clusters(true);
-        }
         /*
         for(int i=0; i<1; i++){
             main_iteration();

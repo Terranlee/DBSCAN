@@ -298,13 +298,17 @@ namespace clustering{
         prepare_labels(cl_d.size1());
 
         float begin, end;
+        begin = get_clock();
         hash_construct_grid();
+        cout<<get_clock() - begin<<endl;
+
+        begin = get_clock();
         determine_core_point_grid();        
+        cout<<get_clock() - begin<<endl;
 
         begin = get_clock();
         merge_clusters();
-        end = get_clock();
-        cout<<end - begin<<endl;
+        cout<<get_clock() - begin<<endl;
         
         determine_boarder_point();
     }

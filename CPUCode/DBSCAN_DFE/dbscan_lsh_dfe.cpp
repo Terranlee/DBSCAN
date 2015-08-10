@@ -47,6 +47,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH_DFE::set_mapped_rom(LSH_actions_t* actions){
+        int DIN = cl_d.size2();
         float* hashFunction = (float*)&(actions->param_hashFunction0000);
         for(int i=0; i<DOUT; i++){
             for(int j=0; j<DIN; j++)
@@ -78,6 +79,21 @@ namespace clustering{
             return false;
         }
         return true;
+    }
+
+    void DBSCAN_LSH_DFE::rehash_data_projection_dfe(){
+        LSH_actions_t actions;
+        
+        actinos.param_N = m_total_num;
+        actions.param_cellWidth = m_new_cell_width;
+        actions.instream_input_cpu = input_dfe;
+
+        actions.outstream_output_cpu0 = m_new_grid[0];
+        actions.outstream_output_cpu1 = m_new_grid[1];
+
+        set_mapped_rom(&actions);
+
+        LSH_run(me, &actions);
     }
 
     void DBSCAN_LSH_DFE::permute(std::vector<int>& intvec){
@@ -190,66 +206,27 @@ namespace clustering{
                 for(unsigned int j=0; j<DOUT; j++)
                     temp[j] = (int16_t)((mult[j] - m_new_min_val[red][j]) / m_new_cell_width);
                 // make final hash
-                /*
-                DimType ans(0,0);
-                for(unsigned int j=0; j<DOUT/2; j++){
-                    ans.first += temp[j];
-                    ans.first = ans.first << 16;
-                }
-                for(unsigned int j=DOUT/2; j<DOUT; j++){
-                    ans.second += temp[j];
-                    ans.second = ans.second << 16;
-                }
-                m_new_grid[red][index] = ans;
-                */
                 memcpy(&m_new_grid[red][index], temp, sizeof(int64_t) * 2);
             }
             index++;
         }
     }
 
-    void DBSCAN_LSH_DFE::merge_cell_after_hash(bool possible){
+    void DBSCAN_LSH_DFE::merge_cell_after_hash(){
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
                 int point = m_reduced_to_origin[i];
-
-                // two strategy during merge, haven't decide which one is better
-                if(possible){
-                    // hash points to the same bucket only when they have the possibility to merge
-                    if(got == m_merge_map[red].end()){
-                        std::vector<int> intvec;
-                        intvec.push_back(point);
-                        m_merge_map[red].insert(std::make_pair(key, intvec));
-                    }
-                    else{
-                        int ufID = m_point_to_uf[point];
-                        int root = uf.find(ufID);
-                        // merge points into a bucket 
-                        // only when they have the possibility to merge small cells
-                        for(unsigned int j=0; j<got->second.size(); j++){
-                            int ufID1 = m_point_to_uf[got->second[j]];
-                            int root1 = uf.find(ufID1);
-                            if(root1 != root){
-                                got->second.push_back(point);
-                                break;
-                            }
-                        }
-                    }
-                }
                 
-                else{
-                    // hash points to the same bucket by the hash value
-                    if(got == m_merge_map[red].end()){
-                        std::vector<int> intvec;
-                        intvec.push_back(point);
-                        m_merge_map[red].insert(std::make_pair(key, intvec));
-                    }
-                    else
-                        got->second.push_back(point);
+                if(got == m_merge_map[red].end()){
+                    std::vector<int> intvec;
+                    intvec.push_back(point);
+                    m_merge_map[red].insert(std::make_pair(key, intvec));
                 }
+                else
+                    got->second.push_back(point);
             }
             for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); iter++){
                 permute(iter->second);
@@ -333,11 +310,6 @@ namespace clustering{
                     if(id1 == point || (!m_is_core[id1]))
                         continue;
 
-                    //int belong_id = m_point_to_uf[id1];
-                    //int belong_root = uf.find(belong_id);
-                    //if(belong_root == center_root)
-                    //    continue;
-
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
                         float diff = cl_d(id1, k) - cl_d(point, k);
@@ -378,7 +350,7 @@ namespace clustering{
 
         for(unsigned int i=0; i<REDUNDANT; i++){
             m_new_min_val[i].resize(DOUT);
-            m_new_grid[i] = new int64_t[m_total_num];
+            m_new_grid[i] = new DimType[m_total_num];
         }
         calculate_new_width();
         hash_set_dimensions();
@@ -407,7 +379,7 @@ namespace clustering{
         // these three functions are one iteration of hash-merge procedure
         hash_generate();
         rehash_data_projection();
-        merge_cell_after_hash(false);
+        merge_cell_after_hash();
     }
 
     int DBSCAN_LSH_DFE::set_core_map(){

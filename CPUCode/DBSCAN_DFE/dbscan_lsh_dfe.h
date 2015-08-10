@@ -3,6 +3,9 @@
 
 #include "dbscan_reduced.h"
 
+#include "LSH.h"
+#include "MaxSLiCInterface.h"
+
 namespace clustering{
     class DBSCAN_LSH_DFE : public DBSCAN_Reduced{
     public:
@@ -59,6 +62,7 @@ namespace clustering{
         bool prepare_max_file();
         void release_max_file();
         void set_mapped_rom();
+        void rehash_data_projection_dfe();
 
         // hash functions used by the LSH
         // din : the dimension of input data
@@ -126,7 +130,7 @@ namespace clustering{
         void rehash_data_projection();
         // construct the m_merge_map using the result of hashing
         // merge the points in the same cell
-        void merge_cell_after_hash(bool possible);
+        void merge_cell_after_hash();
 
         // return the number of small clusters that are merged in this iteration
         // use the return value to terminate the program

@@ -111,12 +111,12 @@ namespace clustering{
         void rehash_data_projection();
         // construct the m_merge_map using the result of hashing
         // merge the points in the same cell
-        void merge_cell_after_hash(bool possible);
+        void merge_cell_after_hash();
 
         // return the number of small clusters that are merged in this iteration
         // use the return value to terminate the program
         void determine_core_using_merge(int index);
-        int merge_small_clusters(bool possible);
+        int merge_small_clusters();
 
         // reduced precision method in locality sensitive hashing
         void reduced_precision_lsh(unsigned int max_num_point);
