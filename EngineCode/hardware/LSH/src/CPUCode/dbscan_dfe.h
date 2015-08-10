@@ -1,5 +1,5 @@
-#ifndef __DBSCAN_LSH_DFE_H__
-#define __DBSCAN_LSH_DFE_H__
+#ifndef __DBSCAN_DFE_H__
+#define __DBSCAN_DFE_H__
 
 #include "dbscan_reduced.h"
 
