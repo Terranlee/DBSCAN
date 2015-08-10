@@ -35,4 +35,4 @@ include $(WHEREISROOT)/Makefile.Maia.hardware
 
 
 # Using common compillation targets and compiler settings
-include $(WHEREISROOT)/Makefile.common
+include $(WHEREISROOT)/Makefile.grid.common
