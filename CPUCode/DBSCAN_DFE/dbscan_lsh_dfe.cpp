@@ -5,17 +5,98 @@
 #include <fstream>
 #include <memory.h>
 
-#include "dbscan_lsh.h"
+#include "dbscan_lsh_dfe.h"
 
 namespace clustering{
-	// const values in this class
-	const unsigned int DBSCAN_LSH::REDUNDANT = 2;
-	const unsigned int DBSCAN_LSH::DOUT = 8;
+    // const values in this class
+    const unsigned int DBSCAN_LSH_DFE::REDUNDANT = 2;
+    const unsigned int DBSCAN_LSH_DFE::DOUT = 8;
 
-    DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
-    DBSCAN_LSH::~DBSCAN_LSH(){}
+    DBSCAN_LSH_DFE::DBSCAN_LSH_DFE(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
+    DBSCAN_LSH_DFE::~DBSCAN_LSH_DFE(){
+        delete[] input_dfe;
+        for(unsigned int i=0; i<REDUNDANT; i++)
+            delete[] m_new_grid[i];
+    }
 
-    void DBSCAN_LSH::permute(std::vector<int>& intvec){
+    // here are two public functions 
+    // they are related to the load and release of the max file
+    void DBSCAN_LSH_DFE::prepare(){
+        bool check = prepare_max_file();
+        if(!check)
+            exit(1);
+    }
+
+    void DBSCAN_LSH_DFE::release(){
+        release_max_file();
+    }
+
+    void DBSCAN_LSH_DFE::release_max_file(){
+        max_unload(me);
+    }
+
+    void DBSCAN_LSH_DFE::prepare_max_file(){
+        cout<<"----------loading DFE---------"<<endl;
+        mf = LSH_init();
+        bool check = check_parameters();
+        if(!check)
+            return false;
+        me = max_load(mf, "*");
+        cout<<"----------loading DFE finished----------"<<endl;
+        return true;
+    }
+
+    void DBSCAN_LSH_DFE::set_mapped_rom(LSH_actions_t* actions){
+        int DIN = cl_d.size2();
+        float* hashFunction = (float*)&(actions->param_hashFunction0000);
+        for(int i=0; i<DOUT; i++){
+            for(int j=0; j<DIN; j++)
+                hashFunction[i*DIN+j] = m_hash(i, j);
+        }
+
+        float* centerPoint = (float*)&(actions->param_centerPoint0000);
+        for(int i=0; i<REDUNDANT; i++){
+            for(int j=0; j<DOUT; j++)
+                centerPoint[i*DOUT+j] = m_new_min_val[i][j];
+        }
+    }
+
+    // check the parameters from CPU and DFE are the same
+    // otherwise it will not get correct result
+    void DBSCAN_LSH_DFE::check_parameters(){
+        int dfe_dout = max_get_constant_uint64t(mf, "dout");
+        int dfe_din = max_get_constant_uint64t(mf, "din");
+        int dfe_redundant = max_get_constant_uint64t(mf, "redundant");
+
+        if(dfe_dout != DOUT || dfe_din != (int)cl_d.size2() || dfe_redundant != REDUNDANT){
+            cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+            cout<<"DFE configuration failed."<<endl;
+            cout<<"Parameters are as followed:"<<endl;
+            cout<<"dfe_dout : "<<dfe_dout<<",   dout : "<<DOUT<<endl;
+            cout<<"dfe_din : "<<dfe_din<<",   din : "<<cl_d.size2()<<endl;
+            cout<<"dfe_redundant : "<<dfe_redundant<<",   redundant : "<<REDUNDANT<<endl;
+            cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
+            return false;
+        }
+        return true;
+    }
+
+    void DBSCAN_LSH_DFE::rehash_data_projection_dfe(){
+        LSH_actions_t actions;
+        
+        actinos.param_N = m_total_num;
+        actions.param_cellWidth = m_new_cell_width;
+        actions.instream_input_cpu = input_dfe;
+
+        actions.outstream_output_cpu0 = m_new_grid[0];
+        actions.outstream_output_cpu1 = m_new_grid[1];
+
+        set_mapped_rom(&actions);
+
+        LSH_run(me, &actions);
+    }
+
+    void DBSCAN_LSH_DFE::permute(std::vector<int>& intvec){
         unsigned int sz = intvec.size();
         for(unsigned int i=0; i<sz; i++){
             int index = rand() % (sz - i) + i;
@@ -25,7 +106,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_LSH::reduced_precision_lsh(unsigned int max_num_point){
+    void DBSCAN_LSH_DFE::reduced_precision_lsh(unsigned int max_num_point){
         // reduced precision, just like in dbscan_reduced.cpp
         // but save the total number of points to m_total_num
         // this is needed during init_data_structure()
@@ -59,13 +140,13 @@ namespace clustering{
                 m_reduced_to_origin[index++] = i;
     }
 
-    void DBSCAN_LSH::hash_set_dimensions(){
+    void DBSCAN_LSH_DFE::hash_set_dimensions(){
         // the function matrix has dout lines, and din rows
         // the line of the matrix can be used to do projection
         m_hash = Functions(DOUT, cl_d.size2());
     }
 
-    void DBSCAN_LSH::hash_generate(){
+    void DBSCAN_LSH_DFE::hash_generate(){
         for(unsigned int i=0; i<m_hash.size1(); i++)
             for(unsigned int j=0; j<m_hash.size2(); j++)
                 m_hash(i, j) = float(rand()) / float(RAND_MAX);
@@ -82,7 +163,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_LSH::calculate_new_width(){
+    void DBSCAN_LSH_DFE::calculate_new_width(){
         // what is the cell width in the projection space?
         // we must make sure that not all clusters are merged in the projection space
 
@@ -93,7 +174,7 @@ namespace clustering{
         m_new_cell_width = eps * 1.0;
     }
 
-    void DBSCAN_LSH::rehash_data_projection(){
+    void DBSCAN_LSH_DFE::rehash_data_projection(){
         // use locality sensitive hashing to reassign the data to another grid
         // select a random data as the 
         for(unsigned int red = 0; red < REDUNDANT; red++){
@@ -123,71 +204,29 @@ namespace clustering{
             // calculate index in each dimension
             for(unsigned int red = 0; red < REDUNDANT; red++){
                 for(unsigned int j=0; j<DOUT; j++)
-                    temp[j] = (int16_t)((mult[j] - m_new_min_val[red][j]) / m_new_cell_width) + 1;
+                    temp[j] = (int16_t)((mult[j] - m_new_min_val[red][j]) / m_new_cell_width);
                 // make final hash
-                /*
-                DimType ans(0,0);
-                for(unsigned int j=0; j<DOUT/2; j++){
-                    ans.first += temp[j];
-                    ans.first = ans.first << 16;
-                }
-                for(unsigned int j=DOUT/2; j<DOUT; j++){
-                    ans.second += temp[j];
-                    ans.second = ans.second << 16;
-                }
-                m_new_grid[red][index] = ans;
-                */
                 memcpy(&m_new_grid[red][index], temp, sizeof(int64_t) * 2);
             }
             index++;
         }
     }
 
-    void DBSCAN_LSH::merge_cell_after_hash(){
+    void DBSCAN_LSH_DFE::merge_cell_after_hash(){
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
                 int point = m_reduced_to_origin[i];
-                /*
-                // two strategy during merge, haven't decide which one is better
-                if(possible){
-                    // hash points to the same bucket only when they have the possibility to merge
-                    if(got == m_merge_map[red].end()){
-                        std::vector<int> intvec;
-                        intvec.push_back(point);
-                        m_merge_map[red].insert(std::make_pair(key, intvec));
-                    }
-                    else{
-                        int ufID = m_point_to_uf[point];
-                        int root = uf.find(ufID);
-                        // merge points into a bucket 
-                        // only when they have the possibility to merge small cells
-                        for(unsigned int j=0; j<got->second.size(); j++){
-                            int ufID1 = m_point_to_uf[got->second[j]];
-                            int root1 = uf.find(ufID1);
-                            if(root1 != root){
-                                got->second.push_back(point);
-                                break;
-                            }
-                        }
-                    }
-                }
                 
-                else{
-                */
-                    // hash points to the same bucket by the hash value
-                    if(got == m_merge_map[red].end()){
-                        std::vector<int> intvec;
-                        intvec.push_back(point);
-                        m_merge_map[red].insert(std::make_pair(key, intvec));
-                    }
-                    else
-                        got->second.push_back(point);
-                /*
+                if(got == m_merge_map[red].end()){
+                    std::vector<int> intvec;
+                    intvec.push_back(point);
+                    m_merge_map[red].insert(std::make_pair(key, intvec));
                 }
-                */
+                else
+                    got->second.push_back(point);
             }
             for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); iter++){
                 permute(iter->second);
@@ -195,7 +234,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_LSH::determine_core_using_merge(int index){
+    void DBSCAN_LSH_DFE::determine_core_using_merge(int index){
         CoreDetermine cd = CoreDetermine(index, m_min_elems);
         for(unsigned int i=0; i<cd.size1(); i++)
             for(unsigned int j=0; j<cd.size2(); j++)
@@ -245,7 +284,7 @@ namespace clustering{
         }// endof REDUNDANT
     }
 
-    int DBSCAN_LSH::merge_small_clusters(){
+    int DBSCAN_LSH_DFE::merge_small_clusters(){
         // if the points are in the same cell in the new grid in DOUT space
         // their clusters should be merged together in the original space
 
@@ -270,14 +309,6 @@ namespace clustering{
                     int id1 = got->second[j];
                     if(id1 == point || (!m_is_core[id1]))
                         continue;
-                    /*
-                    if(possible){
-                        int belong_id = m_point_to_uf[id1];
-                        int belong_root = uf.find(belong_id);
-                        if(belong_root == center_root)
-                            continue;
-                    }
-                    */
 
                     float dist = 0.0;
                     for(unsigned int k=0; k<cl_d.size2(); k++){
@@ -299,7 +330,7 @@ namespace clustering{
         return total_merge_counter;
     }
 
-    void DBSCAN_LSH::init_data_structure(){
+    void DBSCAN_LSH_DFE::init_data_structure(){
         m_is_core.resize(cl_d.size1(), false);
         m_core_map.resize(cl_d.size1());
         for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
@@ -319,7 +350,7 @@ namespace clustering{
 
         for(unsigned int i=0; i<REDUNDANT; i++){
             m_new_min_val[i].resize(DOUT);
-            m_new_grid[i].resize(m_total_num);
+            m_new_grid[i] = new DimType[m_total_num];
         }
         calculate_new_width();
         hash_set_dimensions();
@@ -334,16 +365,24 @@ namespace clustering{
                 m_point_to_uf[which] = ufid;
             }
         }
+        input_dfe = new float[m_total_num * cl_d.size2()];
+        int index = 0;
+        for(int i=0; i<cl_d.size1(); i++){
+            if(m_origin_to_reduced[i]){
+                for(int j=0; j<cl_d.size2(); j++)
+                    input_dfe[index++] = cl_d(i, j);
+            }
+        }
     }
 
-    void DBSCAN_LSH::main_iteration(){
+    void DBSCAN_LSH_DFE::main_iteration(){
         // these three functions are one iteration of hash-merge procedure
         hash_generate();
         rehash_data_projection();
         merge_cell_after_hash();
     }
 
-    int DBSCAN_LSH::set_core_map(){
+    int DBSCAN_LSH_DFE::set_core_map(){
         int index = 0;
         for(unsigned int i=0; i<m_is_core.size(); i++)
             if(!m_is_core[i])
@@ -351,7 +390,7 @@ namespace clustering{
         return index;
     }
 
-    void DBSCAN_LSH::determine_core_point_lsh(){
+    void DBSCAN_LSH_DFE::determine_core_point_lsh(){
         main_iteration();
         
         // determine core points using the result of merge
@@ -360,8 +399,8 @@ namespace clustering{
         determine_core_using_merge(index);
     }
 
-    void DBSCAN_LSH::merge_clusters_lsh(){
-        int num_iter = 100;
+    void DBSCAN_LSH_DFE::merge_clusters_lsh(){
+        int num_iter = 50;
 
         for(int i=0; i<num_iter; i++){
             determine_core_point_lsh();
@@ -388,7 +427,7 @@ namespace clustering{
         */
     }
 
-    void DBSCAN_LSH::determine_boarder_point_lsh(){
+    void DBSCAN_LSH_DFE::determine_boarder_point_lsh(){
         for(unsigned int i=0; i<m_total_num; i++){
             // point is the original id, i is the reduced precision id
             int point = m_reduced_to_origin[i];
@@ -421,7 +460,7 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_LSH::fit(){
+    void DBSCAN_LSH_DFE::fit(){
         srand(unsigned(time(NULL)));
         prepare_labels(cl_d.size1());
 
@@ -453,7 +492,7 @@ namespace clustering{
                 m_boarder_dist.insert(std::make_pair(i, m_eps_sqr));
 
         determine_boarder_point_lsh();
-        for(int i=0; i<3; i++){
+        for(int i=0; i<5; i++){
             main_iteration();
             determine_boarder_point_lsh();
         }
@@ -461,7 +500,7 @@ namespace clustering{
         
     }
 
-    void DBSCAN_LSH::test(){
+    void DBSCAN_LSH_DFE::test(){
         // currently do nothing
         return;
     }

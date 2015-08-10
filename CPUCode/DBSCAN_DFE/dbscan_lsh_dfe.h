@@ -1,19 +1,27 @@
-#ifndef __DBSCAN_LSH_H__
-#define __DBSCAN_LSH_H__
+#ifndef __DBSCAN_LSH_DFE_H__
+#define __DBSCAN_LSH_DFE_H__
 
 #include "dbscan_reduced.h"
 
+#include "LSH.h"
+#include "MaxSLiCInterface.h"
+
 namespace clustering{
-    class DBSCAN_LSH : public DBSCAN_Reduced{
+    class DBSCAN_LSH_DFE : public DBSCAN_Reduced{
     public:
         typedef ublas::matrix<float> Functions;
 
-        DBSCAN_LSH(float eps, size_t min_elems);
-        virtual ~DBSCAN_LSH();
+        DBSCAN_LSH_DFE(float eps, size_t min_elems);
+        virtual ~DBSCAN_LSH_DFE();
 
         virtual void fit();
         virtual void test();
-        
+
+        // these two functions are related to the load and release of max file
+        // does not include in the DFE execution time
+        void prepare();
+        void release();
+
         template<typename T>
         class PairHash{
         public:
@@ -45,6 +53,17 @@ namespace clustering{
         // This is a approximate method, precision controlled by LSH dimension and the number of merge iteration
         // Implemented in dbscan_lsh.cpp
         
+        // the handle for max file/ max engine, and its related functions
+        max_file_t* mf;
+        max_engine_t* me;
+        float* input_dfe;
+
+        bool check_parameters();
+        bool prepare_max_file();
+        void release_max_file();
+        void set_mapped_rom();
+        void rehash_data_projection_dfe();
+
         // hash functions used by the LSH
         // din : the dimension of input data
         // dout : the dimension of output data
@@ -90,7 +109,7 @@ namespace clustering{
         // we construct REDUNDANT numbers of new grids using different center point
         // and use these new grids to merge the small clusters
         static const unsigned int REDUNDANT;
-        std::vector<NewGrid> m_new_grid;
+        std::vector<int64_t*> m_new_grid;
         // we have m_min_val in dbscan_grid.h
         // during the rehash, we have to set another new minimum value using this vector
         std::vector<NewCenter> m_new_min_val;

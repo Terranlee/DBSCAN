@@ -36,6 +36,14 @@ void formalize_generate_data(const int dim_in, const int line, const string file
         }
     }
 
+    for(int i=0; i<min_val.size(); i++)
+        cout<<min_val[i]<<" ";
+    cout<<endl;
+
+    for(int i=0; i<max_val.size(); i++)
+        cout<<max_val[i]<<" ";
+    cout<<endl;
+
     vector<float> diff(dim_in);
     for(int i=0; i<dim_in; i++)
         diff[i] = max_val[i] - min_val[i];
@@ -45,8 +53,10 @@ void formalize_generate_data(const int dim_in, const int line, const string file
     string output = filename + ".data";
     ofstream fout(output.data());
     for(int i=0; i<cl_d.size1(); i++){
-        for(int j=0; j<cl_d.size2(); j++)
-            fout<<cl_d(i, j)<<" ";
+        for(int j=0; j<cl_d.size2(); j++){
+            float num = (cl_d(i,j) - min_val[j]) * diff[j];
+            fout<<num<<" ";
+        }
         fout<<endl;
     }
     fout.close();
@@ -129,6 +139,7 @@ void formalize_household(){
 }
 
 int main(){
-    formalize_household();
+    //formalize_household();
+    formalize_generate_data(5, 2000581, "clustered_2M_5D");
     return 0;
 }

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+
 SET(CMAKE_C_COMPILER "icc")
 # use icpc & -std=c++0x on server
 # use g++ & -std=c++11  on laptop
@@ -17,9 +18,9 @@ add_definitions(-DBOOST_UBLAS_NDEBUG)
 
 aux_source_directory(. DIR_SRCS)
 
-LINK_DIRECTORIES(../libs/kdtree)
-INCLUDE_DIRECTORIES(../libs/kdtree)
+LINK_DIRECTORIES(../libs/kdtree2)
+INCLUDE_DIRECTORIES(../libs/kdtree2)
 
 add_executable(test_dbscan ${DIR_SRCS})
 
-TARGET_LINK_LIBRARIES(test_dbscan kdtree)
+TARGET_LINK_LIBRARIES(test_dbscan kdtree2)
