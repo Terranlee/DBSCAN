@@ -1,13 +1,11 @@
 #include "dbscan_kd.h"
-#include <boost/multi_array.hpp>
 
 namespace clustering{
     DBSCAN_KD::DBSCAN_KD(float eps, size_t min_elems) : DBSCAN(eps, min_elems){
         m_eps = eps;
     }
     DBSCAN_KD::~DBSCAN_KD(){
-        kd_free(root);
-        delete[] pos;
+        delete root;
     }
 
     void DBSCAN_KD::build_tree(){
@@ -20,28 +18,28 @@ namespace clustering{
             for(int j=0; j<features; j++)
                 realdata[i][j] = cl_d(i, j);
 
-        tree = new kdtree2(realdata,true);
+        root = new kdtree2(realdata,true);
         pos.resize(features);
     }
 
-    void DBSCAN_KD::expand_cluster_kdtree(std::queue<uint32_t>& iteration, const int cluster_id, const int pid){
+    void DBSCAN_KD::expand_cluster_kdtree(std::queue<int32_t>& iteration, const int cluster_id, const int pid){
         m_labels[pid] = cluster_id;
         kdtree2_result_vector result;
 
         while(iteration.size() != 0){
-            uint32_t nPid = iteration.front();
+            int32_t nPid = iteration.front();
             iteration.pop();
             m_deduplicate.erase(nPid);
             if ( !m_visited[nPid] ){
                 m_visited[nPid] = 1;
 
                 for(unsigned int i=0; i<cl_d.size2(); i++)
-                    pos[i] = cl_d(pid, i);
-                root->r_nearest(pos, m_sqr_eps, result);
+                    pos[i] = cl_d(nPid, i);
+                root->r_nearest(pos, m_eps_sqr, result);
 
-                if(result.size() > (int)m_min_elems){
+                if(result.size() > m_min_elems){
                     for(unsigned int i=0; i<result.size(); i++){
-                        int id = result[i];
+                        int id = result[i].idx;
                         if(m_deduplicate.find(id) == m_deduplicate.end()){
                             iteration.push(id);
                             m_deduplicate.insert(id);
@@ -56,7 +54,7 @@ namespace clustering{
 
     void DBSCAN_KD::dbscan_kdtree(){
         m_visited.resize(cl_d.size1(), 0);
-        uint32_t cluster_id = 0;
+        int32_t cluster_id = 0;
         for (uint32_t pid = 0; pid < cl_d.size1(); ++pid){
             if (!m_visited[pid]){
                 m_visited[pid] = 1;
@@ -65,11 +63,11 @@ namespace clustering{
                 for(unsigned int i=0; i<cl_d.size2(); i++)
                     pos[i] = cl_d(pid, i);
 
-                root->r_nearest(pos, m_sqr_eps, result);
+                root->r_nearest(pos, m_eps_sqr, result);
 
                 // use '>' here, not including the central point itself
                 if(result.size() > m_min_elems){
-                    std::queue<uint32_t> iteration;
+                    std::queue<int32_t> iteration;
                     m_deduplicate.clear();
 
                     for(unsigned int i=0; i<result.size(); i++){

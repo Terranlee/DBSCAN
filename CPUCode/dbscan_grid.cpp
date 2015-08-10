@@ -297,7 +297,7 @@ namespace clustering{
     void DBSCAN_Grid::fit(){
         prepare_labels(cl_d.size1());
 
-        float begin, end;
+        float begin;
         begin = get_clock();
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
