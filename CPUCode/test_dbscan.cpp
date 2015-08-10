@@ -45,15 +45,15 @@ void test_original(Labels& label_origin){
 }
 
 void test_kd(Labels& label_kd){
-    DBSCAN* dbs = new DBSCAN_KD(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    //DBSCAN* dbs = new DBSCAN_KD(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    //DBSCAN* dbs = new DBSCAN_KD(10000, 4);
-    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    DBSCAN* dbs = new DBSCAN_KD(10000, 4);
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
     
     // high dimension data
     //DBSCAN* dbs = new DBSCAN_KD(5000.0, 100);
-    //dbs->read_cluster_data(7, 5000, "../data/household.data");
+    //dbs->read_cluster_data(7, 1906698, "../data/deduplicate.data");
 
     cout<<"start execution of distance kdtree DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
@@ -74,11 +74,11 @@ void test_kd(Labels& label_kd){
 
 void test_grid(Labels& label_grid){
 
-    DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
-    dbs->read_cluster_data(2, 5000, "../data/s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
+    //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    //DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
-    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
+    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension
     //DBSCAN* dbs = new DBSCAN_Grid(1250.0, 50);

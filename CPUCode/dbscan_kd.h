@@ -18,7 +18,6 @@ namespace clustering{
         virtual void fit();
         virtual void test();
 
-        typedef boost::multi_array<float,2> array2dfloat;
     protected:
         /*****************************************************************************************/
         // Variables and functions for KD Tree method
@@ -33,7 +32,7 @@ namespace clustering{
 
         kdtree2* root;
         // the input data for kd tree needed to be converted to this 
-        array2dfloat realdata;
+        kdtree2_array realdata;
 
         std::vector<float> pos;
 

@@ -410,7 +410,7 @@ void kdtree2::n_nearest_brute_force(std::vector<float>& qv, int nn, kdtree2_resu
     e.idx = i;
     result.push_back(e);
   }
-  sort(result.begin(), result.end() ); 
+  std::sort(result.begin(), result.end() ); 
 
 }
 
@@ -427,7 +427,7 @@ void kdtree2::n_nearest(std::vector<float>& qv, int nn, kdtree2_result_vector& r
 
   root->search(sr); 
 
-  if (sort_results) sort(result.begin(), result.end());
+  if (sort_results) std::sort(result.begin(), result.end());
   
 }
 // search for n nearest to a given query vector 'qv'.
@@ -453,7 +453,7 @@ void kdtree2::n_nearest_around_point(int idxin, int correltime, int nn,
     root->search(sr); 
   }
 
-  if (sort_results) sort(result.begin(), result.end());
+  if (sort_results) std::sort(result.begin(), result.end());
     
 }
 
@@ -472,7 +472,7 @@ void kdtree2::r_nearest(std::vector<float>& qv, float r2, kdtree2_result_vector&
 
   root->search(sr); 
 
-  if (sort_results) sort(result.begin(), result.end());
+  if (sort_results) std::sort(result.begin(), result.end());
   
 }
 
@@ -515,7 +515,7 @@ void kdtree2::r_nearest_around_point(int idxin, int correltime, float r2,
     root->search(sr); 
   }
 
-  if (sort_results) sort(result.begin(), result.end());
+  if (sort_results) std::sort(result.begin(), result.end());
     
 }
 
@@ -705,7 +705,7 @@ void kdtree2_node::process_terminal_node(searchrecord& sr) {
     
     if (centeridx > 0) {
       // we are doing decorrelation interval
-      if (abs(indexofi-centeridx) < correltime) continue; // skip this point. 
+      if (std::abs(indexofi-centeridx) < correltime) continue; // skip this point. 
     }
 
     // here the point must be added to the list.
@@ -795,7 +795,7 @@ void kdtree2_node::process_terminal_node_fixedball(searchrecord& sr) {
     
     if (centeridx > 0) {
       // we are doing decorrelation interval
-      if (abs(indexofi-centeridx) < correltime) continue; // skip this point. 
+      if (std::abs(indexofi-centeridx) < correltime) continue; // skip this point. 
     }
 
     {
