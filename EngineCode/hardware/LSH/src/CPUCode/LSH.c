@@ -11,7 +11,7 @@ const float cell_width = 1000.0f;
 
 const unsigned int DIN = 2;
 const unsigned int DOUT = 8;
-const unsigned int REDUNDANT = 4;
+const unsigned int REDUNDANT = 2;
 
 // number of points
 const int input_size = 1000;
@@ -179,8 +179,6 @@ void lsh_dfe(){
 
 	actions.outstream_output_cpu0 = output_dfe[0];
 	actions.outstream_output_cpu1 = output_dfe[1];
-	actions.outstream_output_cpu2 = output_dfe[2];
-	actions.outstream_output_cpu3 = output_dfe[3];
 	
 	set_mapped_rom(&actions);
 	
