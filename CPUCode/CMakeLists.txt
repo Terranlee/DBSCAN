@@ -17,9 +17,9 @@ add_definitions(-DBOOST_UBLAS_NDEBUG)
 
 aux_source_directory(. DIR_SRCS)
 
-LINK_DIRECTORIES(../libs/kdtree)
-INCLUDE_DIRECTORIES(../libs/kdtree)
+LINK_DIRECTORIES(../libs/kdtree2)
+INCLUDE_DIRECTORIES(../libs/kdtree2)
 
 add_executable(test_dbscan ${DIR_SRCS})
 
-TARGET_LINK_LIBRARIES(test_dbscan kdtree)
+TARGET_LINK_LIBRARIES(test_dbscan kdtree2)

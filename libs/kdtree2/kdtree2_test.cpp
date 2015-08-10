@@ -100,13 +100,13 @@ int main() {
     query[0] = 2.5f;
     query[1] = 2.5f;
 
-    tree->r_nearest(query, 1, result);
+    tree->r_nearest(query, 1.9, result);
     
     for(int i=0; i<result.size(); i++){
       int id = result[i].idx;
       for(int j=0; j<dim; j++)
         cout<<realdata[id][j]<<",";
-      cout<<"      "<<result[id].dis;
+      cout<<"      "<<result[i].dis;
       cout<<endl;
     }
   }

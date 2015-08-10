@@ -1,7 +1,7 @@
 #ifndef __DBSCAN_KD_H__
 #define __DBSCAN_KD_H__
 
-#include "kdtree.h"
+#include "kdtree2.hpp"
 #include <iostream>
 #include <queue>
 #include <unordered_set>
@@ -17,6 +17,7 @@ namespace clustering{
         virtual void fit();
         virtual void test();
 
+        typedef multi_array<float,2> array2dfloat;
     protected:
         /*****************************************************************************************/
         // Variables and functions for KD Tree method
@@ -29,13 +30,14 @@ namespace clustering{
 
         float m_eps;
 
-        kdtree* root;
-        float* pos;
+        kdtree2* root;
+        // the input data for kd tree needed to be converted to this 
+        array2dfloat realdata;
 
-        void permute(std::vector<int>& intvec);
+        std::vector<float> pos;
+
         void build_tree();
 
-        kdres* find_neighbors_kdtree(uint32_t pid);
         void expand_cluster_kdtree(std::queue<uint32_t>& iteration, const int cluster_id, const int pid);
         void dbscan_kdtree();
 
