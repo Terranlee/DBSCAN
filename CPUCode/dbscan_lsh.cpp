@@ -144,55 +144,33 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_cell_after_hash(){
+        std::ofstream fout("answer_dfe");
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
             for(unsigned int i=0; i<m_new_grid[red].size(); i++){
                 DimType key = m_new_grid[red][i];
                 MergeMap::iterator got = m_merge_map[red].find(key);
                 int point = m_reduced_to_origin[i];
-                /*
-                // two strategy during merge, haven't decide which one is better
-                if(possible){
-                    // hash points to the same bucket only when they have the possibility to merge
-                    if(got == m_merge_map[red].end()){
-                        std::vector<int> intvec;
-                        intvec.push_back(point);
-                        m_merge_map[red].insert(std::make_pair(key, intvec));
-                    }
-                    else{
-                        int ufID = m_point_to_uf[point];
-                        int root = uf.find(ufID);
-                        // merge points into a bucket 
-                        // only when they have the possibility to merge small cells
-                        for(unsigned int j=0; j<got->second.size(); j++){
-                            int ufID1 = m_point_to_uf[got->second[j]];
-                            int root1 = uf.find(ufID1);
-                            if(root1 != root){
-                                got->second.push_back(point);
-                                break;
-                            }
-                        }
-                    }
+                // hash points to the same bucket by the hash value
+                if(got == m_merge_map[red].end()){
+                    std::vector<int> intvec;
+                    intvec.push_back(point);
+                    m_merge_map[red].insert(std::make_pair(key, intvec));
                 }
-                
-                else{
-                */
-                    // hash points to the same bucket by the hash value
-                    if(got == m_merge_map[red].end()){
-                        std::vector<int> intvec;
-                        intvec.push_back(point);
-                        m_merge_map[red].insert(std::make_pair(key, intvec));
-                    }
-                    else
-                        got->second.push_back(point);
-                /*
-                }
-                */
+                else
+                    got->second.push_back(point);
             }
             for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); iter++){
                 permute(iter->second);
             }
+            for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); ++iter){
+                for(unsigned int i=0; i<iter->second.size(); i++)
+                    fout<<iter->second[i]<<" ";
+                fout<<endl;
+            }
+            fout<<endl;
         }
+        fout.close();
     }
 
     void DBSCAN_LSH::determine_core_using_merge(int index){
@@ -361,7 +339,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        int num_iter = 100;
+        int num_iter = 10;
 
         for(int i=0; i<num_iter; i++){
             determine_core_point_lsh();
@@ -422,7 +400,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::fit(){
-        srand(unsigned(time(NULL)));
+        srand(0);
         prepare_labels(cl_d.size1());
 
         // the construct grid method is the same as the original grid one
@@ -432,7 +410,7 @@ namespace clustering{
         cout<<get_clock() - begin<<endl;
         
         begin = get_clock();
-        reduced_precision_lsh(m_min_elems * 2);
+        reduced_precision_lsh(m_min_elems * 3);
         init_data_structure();
         cout<<get_clock() - begin<<endl;
 

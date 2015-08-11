@@ -139,7 +139,8 @@ void test_lsh(Labels& label_lsh){
 
     // high dimension data
     DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);
-    dbs->read_cluster_data(7, 2049280, "../data/household.data");
+    dbs->read_cluster_data(7, 100000, "../data/household_dedup.data");
+    //dbs->read_cluster_data(7, 1906698, "../data/household_dedup.data");
 
     //DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);
     //dbs->read_cluster_data(3, 1000000, "../data/clustered_2M_3D.data");
@@ -192,19 +193,19 @@ int main()
 {
     
     //Labels label_origin;
-    Labels label_kd;
-    Labels label_grid;
+    //Labels label_kd;
+    //Labels label_grid;
     //Labels label_reduced;
-    //Labels label_lsh;
+    Labels label_lsh;
 
     //test_original(label_origin);
-    test_kd(label_kd);
-    test_grid(label_grid);
+    //test_kd(label_kd);
+    //test_grid(label_grid);
     //test_reduced(label_reduced);
-    //test_lsh(label_lsh);
-    DBSCAN::cmp_result(label_grid, label_kd);
+    test_lsh(label_lsh);
+    //DBSCAN::cmp_result(label_grid, label_kd);
 
-    //DBSCAN::get_max(label_grid);
+    DBSCAN::get_max(label_lsh);
 
     //DBSCAN::cmp_result(label_lsh, label_grid);
     //DBSCAN::cmp_result(label_origin, label_grid);
