@@ -214,7 +214,7 @@ namespace clustering{
 
 
     void DBSCAN_LSH_DFE::merge_cell_after_hash(){
-		std::ofstream fout("answer_dfe");
+		//std::ofstream fout("answer_dfe");
         for(unsigned int red=0; red<REDUNDANT; red++){
             m_merge_map[red].clear();
             for(unsigned int i=0; i<m_total_num; i++){
@@ -233,7 +233,7 @@ namespace clustering{
             for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); iter++){
                 permute(iter->second);
             }
-
+/*
 			for(MergeMap::iterator iter = m_merge_map[red].begin(); iter != m_merge_map[red].end(); ++iter){
 				for(unsigned int i=0; i<iter->second.size(); i++){
 					fout<<iter->second[i]<<" ";
@@ -241,8 +241,9 @@ namespace clustering{
 				fout<<endl;
 			}
 			fout<<endl;
+*/
         }
-		fout.close();
+		//fout.close();
     }
 
     void DBSCAN_LSH_DFE::determine_core_using_merge(int index){
@@ -269,29 +270,25 @@ namespace clustering{
                         if(which == point)
                             continue;
 						
-						//cout<<"1";
                         float dist = 0.0f;
                         for(unsigned int k=0; k<cl_d.size2(); k++){
                             float diff = cl_d(which, k) - cl_d(point, k);
                             dist += diff * diff;
                         }
-						//cout<<"2";
                         if(dist < m_eps_sqr){
                             // if distance is less than eps, then add it to the CoreDetermine matrix
                             unsigned int k;
-							//cout<<"3";
                             for(k=0; k<cd.size2(); k++){
                                 if(cd(core_index, k) == which || cd(core_index, k) == -1)
                                     break;
                             }
-                            if(k == cd.size2()){
-                                m_is_core[point] = true;
-                                break;
-                            }
+							if(k == cd.size2()){
+								m_is_core[point] = true;
+								break;
+							}
 							else if(cd(core_index, k) == -1){
 								cd(core_index, k) = which;
 							}
-							//cout<<"4";
                         }
                     }
                 }// endof !m_is_core[i]
