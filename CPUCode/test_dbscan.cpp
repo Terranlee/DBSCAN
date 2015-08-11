@@ -139,7 +139,7 @@ void test_lsh(Labels& label_lsh){
 
     // high dimension data
     DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);
-    dbs->read_cluster_data(7, 100000, "../data/household_dedup.data");
+    dbs->read_cluster_data(7, 2049280, "../data/household.data");
     //dbs->read_cluster_data(7, 1906698, "../data/household_dedup.data");
 
     //DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);
