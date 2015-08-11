@@ -47,7 +47,7 @@ ifneq ($(findstring cpp, $(CPUFILES)), )
 	## OPT_FLAGS = -march=native -O3
 
     ##ifeq ($(CXX), icpc)
-    COMPILER_CFLAGS = -openmp -Wall -std=c++0x
+    COMPILER_CFLAGS = -openmp -Wall -std=c++0x -DBOOST_UBLAS_NDEBUG
     OPT_FLAGS = -xHost -O3
     ##endif
 
