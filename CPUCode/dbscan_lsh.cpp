@@ -209,12 +209,12 @@ namespace clustering{
                                 if(cd(core_index, k) == which || cd(core_index, k) == -1)
                                     break;
                             }
-                            if(cd(core_index, k) == -1){
-                                cd(core_index, k) = which;
-                            }
-                            else if(k == cd.size2()){
+                            if(k == cd.size2()){
                                 m_is_core[point] = true;
                                 break;
+                            }
+                            else if(cd(core_index, k) == -1){
+                                cd(core_index, k) = which;
                             }
                         }
                     }
@@ -408,7 +408,8 @@ namespace clustering{
         begin = get_clock();
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
-        
+        cout<<m_hash_grid.size()<<endl;
+
         begin = get_clock();
         reduced_precision_lsh(m_min_elems * 3);
         init_data_structure();
