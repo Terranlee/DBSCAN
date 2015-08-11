@@ -15,7 +15,7 @@ void to_cuhk(const string filename, int input_size, int dimension){
         fout<<i+1;
         for(int j=0; j<dimension; j++){
             fin>>temp;
-            fout<<"\t"<<temp;
+            fout<<"\t"<<int(temp);
         }
         fout<<endl;
     }
@@ -25,6 +25,7 @@ void to_cuhk(const string filename, int input_size, int dimension){
 }
 
 int main(){
-    to_cuhk("clustered_1M_3D", 1000303, 3);
+    to_cuhk("household.data", 2049280, 7);
+    //to_cuhk("clustered_1M_3D", 1000303, 3);
     return 0;
 }
