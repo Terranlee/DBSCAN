@@ -5,3 +5,4 @@ data/*times_*
 data/dim5*
 data/clustered*
 data/*.data
+data/*.ds
