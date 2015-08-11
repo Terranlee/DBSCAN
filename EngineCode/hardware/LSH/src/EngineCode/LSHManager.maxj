@@ -42,7 +42,7 @@ public class LSHManager extends CustomManager{
 	}
 
     private static EngineInterface interfaceDefault(LSHParameters param) {
-		int din = param.getDIn() - 1;
+		int din = param.getDIn();
 		int dout = param.getDOut();
 		int redundant = param.getRedundant();
 
@@ -57,8 +57,8 @@ public class LSHManager extends CustomManager{
 		
 		// set scalar input for all hash function parameters
 		for(int i=0; i<dout; i++){
-			for(int j=0; j<din; j++){
-				String name = String.format("hashFunction%04d", i*din+j);
+			for(int j=0; j<din-1; j++){
+				String name = String.format("hashFunction%04d", i*(din-1)+j);
 				InterfaceParam hash = engine_interface.addParam(name, CPUTypes.FLOAT);
 				engine_interface.setScalar(s_kernelName, name, hash);
 			}

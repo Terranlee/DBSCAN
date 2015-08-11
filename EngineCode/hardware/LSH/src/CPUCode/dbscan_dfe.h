@@ -128,7 +128,7 @@ namespace clustering{
         // use locality sensitive hashing to rehash the data, and assign them to new grids
         // this can be accelerated by dataflow engine
 		// in DBSCAN_LSH_DFE, this function should not be used, see for DBSCAN_LSH more details
-        //void rehash_data_projection();
+        void rehash_data_projection();
         // construct the m_merge_map using the result of hashing
         // merge the points in the same cell
         void merge_cell_after_hash();

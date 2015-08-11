@@ -106,15 +106,20 @@ void test_lsh(Labels& label_lsh){
         //DBSCAN* dbs = new DBSCAN_DFE(20000, 4);   // the papameter for s1.txt
         //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-        DBSCAN_LSH_DFE dbs(10000, 4);
-        dbs.read_cluster_data(2, 25000, "../data/5times_s1.txt");
-    
+        DBSCAN_LSH_DFE dbs(5000.0, 100);
+        dbs.read_cluster_data(7, 100000, "../data/household_dedup.data");
+		
+		// the prepare time is not included in the execution time
+		dbs.prepare();
+
         cout<<"start execution of dfe DBSCAN"<<endl;
         float begin = DBSCAN::get_clock();
         dbs.fit();
         float end = DBSCAN::get_clock();
         cout<<"time is : "<<end - begin<<endl;
 
+		// the release time is not included in the execution time
+		dbs.release();
         dbs.reshape_labels();
         dbs.output_result("output_dfe");
 
