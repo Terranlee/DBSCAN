@@ -1,5 +1,5 @@
-#ifndef __DBSCAN_LSH_DFE_H__
-#define __DBSCAN_LSH_DFE_H__
+#ifndef __DBSCAN_DFE_H__
+#define __DBSCAN_DFE_H__
 
 #include "dbscan_reduced.h"
 
@@ -35,7 +35,7 @@ namespace clustering{
         // so the data range in each dimension is [-32768, 32767],
         // should be enough for most cases
         typedef std::pair<int64_t, int64_t> DimType;
-        typedef std::vector<DimType> NewGrid;
+        typedef DimType* NewGrid;
         typedef std::unordered_map<DimType, std::vector<int>, PairHash<int64_t> > MergeMap;
 
         // this is the center point we use to construct grid in high dimension
@@ -61,7 +61,7 @@ namespace clustering{
         bool check_parameters();
         bool prepare_max_file();
         void release_max_file();
-        void set_mapped_rom();
+        void set_mapped_rom(LSH_actions_t* actions);
         void rehash_data_projection_dfe();
 
         // hash functions used by the LSH
@@ -109,7 +109,7 @@ namespace clustering{
         // we construct REDUNDANT numbers of new grids using different center point
         // and use these new grids to merge the small clusters
         static const unsigned int REDUNDANT;
-        std::vector<int64_t*> m_new_grid;
+        std::vector<NewGrid> m_new_grid;
         // we have m_min_val in dbscan_grid.h
         // during the rehash, we have to set another new minimum value using this vector
         std::vector<NewCenter> m_new_min_val;
@@ -127,6 +127,7 @@ namespace clustering{
 
         // use locality sensitive hashing to rehash the data, and assign them to new grids
         // this can be accelerated by dataflow engine
+		// in DBSCAN_LSH_DFE, this function should not be used, see for DBSCAN_LSH more details
         void rehash_data_projection();
         // construct the m_merge_map using the result of hashing
         // merge the points in the same cell
