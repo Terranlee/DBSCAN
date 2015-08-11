@@ -19,9 +19,8 @@ class LSHKernel extends Kernel {
 	private static final DFEType m_outType = dfeInt(16);
 
 	// dimension of the input data
-	private static int m_din_add;
 	// maxeler can only input by even number
-	private static int m_din = 7;
+	private static int m_din;
 
 	// dimension of the output data, the dimension of LSH function
 	// we can project the data from m_din space to m_dout space
@@ -34,11 +33,11 @@ class LSHKernel extends Kernel {
         super(kp);
 		
 		m_inputType = parameters.getInputType();
-		m_din_add = parameters.getDIn();
+		m_din = parameters.getDIn();
 		m_dout = parameters.getDOut();
 		m_redundant = parameters.getRedundant();
 
-		DFEVectorType<DFEVar> inputType = new DFEVectorType<DFEVar>(m_inputType, m_din_add);
+		DFEVectorType<DFEVar> inputType = new DFEVectorType<DFEVar>(m_inputType, m_din);
 		DFEVector<DFEVar> input = io.input("input", inputType);
 		
 		// the first dimension means a hash function
