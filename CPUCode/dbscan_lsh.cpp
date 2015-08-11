@@ -157,15 +157,11 @@ namespace clustering{
         }
     }
 
-    void DBSCAN_LSH::determine_core_using_merge(int index){
-        CoreDetermine cd = CoreDetermine(index, m_min_elems);
-        const unsigned int cdsz1 = cd.size1();
+    int DBSCAN_LSH::determine_core_point_lsh_sub(CoreDetermine& cd){
         const unsigned int cdsz2 = cd.size2();
         const unsigned int cl_dsz2 = cl_d.size2();
-        for(unsigned int i=0; i<cdsz1; i++)
-            for(unsigned int j=0; j<cdsz2; j++)
-                cd(i, j) = -1;
-
+        
+        int counter = 0;    
         for(unsigned int red=0; red<REDUNDANT; red++){
             const MergeMap& mapping = m_merge_map.at(red);
             const NewGrid& gridding = m_new_grid.at(red);
@@ -200,6 +196,7 @@ namespace clustering{
                             }
                             if(k == cdsz2){
                                 m_is_core[point] = true;
+                                counter++;
                                 break;
                             }
                             else if(cd(core_index, k) == -1){
@@ -210,9 +207,10 @@ namespace clustering{
                 }// endof !m_is_core[i]
             }// endof for(cl_d.size1())
         }// endof REDUNDANT
+        return counter;
     }
 
-    int DBSCAN_LSH::merge_small_clusters(){
+    int DBSCAN_LSH::merge_clusters_lsh_sub(){
         // if the points are in the same cell in the new grid in DOUT space
         // their clusters should be merged together in the original space
 
@@ -313,17 +311,32 @@ namespace clustering{
     void DBSCAN_LSH::determine_core_point_lsh(){
         // determine core points using the result of merge
         int index = set_core_map();
-        cout<<"!!!!!!!"<<index<<endl;
-        determine_core_using_merge(index);
+        cout<<index<<" not core"<<endl;
+
+        CoreDetermine cd = CoreDetermine(index, m_min_elems);
+        for(int i=0; i<index; i++)
+            for(unsigned int j=0; j<m_min_elems; j++)
+                cd(i, j) = -1;
+
+        determine_core_point_lsh_sub(cd);
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
         int num_iter = 10;
 
+        int index = set_core_map();
+        cout<<index<<" not core"<<endl;
+        CoreDetermine cd = CoreDetermine(index, m_min_elems);
+        for(int i=0; i<index; i++)
+            for(unsigned int j=0; j<m_min_elems; j++)
+                cd(i, j) = -1;
+
         for(int i=0; i<num_iter; i++){
             main_iteration();
-            determine_core_point_lsh();
-            merge_small_clusters();
+            int minus = determine_core_point_lsh_sub(cd);
+            index -= minus;
+            cout<<index<<" not core"<<endl;
+            merge_clusters_lsh_sub();
         }
 
         cell_label_to_point_label();
@@ -356,10 +369,10 @@ namespace clustering{
                             m_labels[point] = m_labels[which];
                             d->second = dist;
                         }
-                    }
-                }
-            }
-        }
+                    }// endof for(got->second.size())
+                }// endof for(red<REDUNDANT)
+            }// endof if(m_labels[point])
+        }// endof for(m_total_num)
     }
 
     void DBSCAN_LSH::fit(){
@@ -371,11 +384,22 @@ namespace clustering{
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
 
+        // reduced precision, prepare data structures
         begin = get_clock();
         reduced_precision_lsh(m_min_elems * 3);
         init_data_structure();
         cout<<get_clock() - begin<<endl;
 
+        // do the first main iteration 
+        // and determine core points for the first time
+        // and merge clusters for the first time
+        begin = get_clock();
+        main_iteration();
+        determine_core_point_lsh();
+        merge_clusters_lsh_sub();
+        cout<<get_clock() - begin<<endl;
+
+        // iteration between determine_core_point and merge_clusters
         begin = get_clock();
         merge_clusters_lsh();
         cout<<get_clock() - begin<<endl;
