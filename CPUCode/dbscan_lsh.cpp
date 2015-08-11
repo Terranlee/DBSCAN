@@ -322,10 +322,9 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        int num_iter = 10;
+        int num_iter = 100;
 
         int index = set_core_map();
-        cout<<index<<" not core"<<endl;
         CoreDetermine cd = CoreDetermine(index, m_min_elems);
         for(int i=0; i<index; i++)
             for(unsigned int j=0; j<m_min_elems; j++)
