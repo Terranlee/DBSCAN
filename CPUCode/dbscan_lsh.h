@@ -7,7 +7,7 @@ namespace clustering{
     class DBSCAN_LSH : public DBSCAN_Reduced{
     public:
 
-        DBSCAN_LSH(float eps, size_t min_elems);
+        DBSCAN_LSH(float eps, size_t min_elems, int num_iter);
         virtual ~DBSCAN_LSH();
 
         virtual void fit();
@@ -44,6 +44,7 @@ namespace clustering{
         // we construct REDUNDANT numbers of new grids using different center point
         // and use these new grids to merge the small clusters
         static const unsigned int REDUNDANT;
+        int m_num_iter;
 
         // set the new cell width in higher dimension
         void calculate_new_width();

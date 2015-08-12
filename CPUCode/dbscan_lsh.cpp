@@ -12,7 +12,9 @@ namespace clustering{
 	const unsigned int DBSCAN_LSH::REDUNDANT = 2;
 	const unsigned int DBSCAN_LSH::DOUT = 8;
 
-    DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems) : DBSCAN_Reduced(eps, min_elems){}
+    DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems, int num_iter) : DBSCAN_Reduced(eps, min_elems){
+        m_num_iter = num_iter;
+    }
     DBSCAN_LSH::~DBSCAN_LSH(){}
 
     void DBSCAN_LSH::permute(std::vector<int>& intvec){
@@ -322,15 +324,13 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::merge_clusters_lsh(){
-        int num_iter = 100;
-
         int index = set_core_map();
         CoreDetermine cd = CoreDetermine(index, m_min_elems);
         for(int i=0; i<index; i++)
             for(unsigned int j=0; j<m_min_elems; j++)
                 cd(i, j) = -1;
 
-        for(int i=0; i<num_iter; i++){
+        for(int i=0; i<m_num_iter; i++){
             main_iteration();
             int minus = determine_core_point_lsh_sub(cd);
             index -= minus;
