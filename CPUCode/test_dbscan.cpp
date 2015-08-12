@@ -138,8 +138,9 @@ void test_lsh(Labels& label_lsh, int iter){
     //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension data
-    DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100, iter);
-    dbs->read_cluster_data(7, 2049280, "../data/household.data");
+    DBSCAN* dbs = new DBSCAN_LSH(50000.0, 100, iter);
+	dbs->read_cluster_data(7, 5000000, "/home/trli/CUHK/cuhk_5M_7D.ds.data");
+    //dbs->read_cluster_data(7, 2049280, "../data/household.data");
     //dbs->read_cluster_data(7, 1906698, "../data/household_dedup.data");
 
     //DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);

@@ -375,7 +375,7 @@ namespace clustering{
     }
 
     void DBSCAN_LSH::fit(){
-        srand(0);
+        srand(unsigned(time(NULL)));
         prepare_labels(cl_d.size1());
 
         // the construct grid method is the same as the original grid one
@@ -416,7 +416,7 @@ namespace clustering{
                 m_boarder_dist.insert(std::make_pair(i, m_eps_sqr));
 
         determine_boarder_point_lsh();
-        for(int i=0; i<5; i++){
+        for(int i=0; i<10; i++){
             main_iteration();
             determine_boarder_point_lsh();
         }
