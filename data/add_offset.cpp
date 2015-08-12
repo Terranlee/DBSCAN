@@ -1,5 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <time.h>
+#include <cstdlib>
 #include <boost/numeric/ublas/matrix.hpp>
 
 using namespace boost::numeric;
@@ -15,24 +18,26 @@ void add_offset(const string filename, int dim, int input_size, int division){
             fin>>cl_d(i, j);
     fin.close();
 
-    int which_dim = 0;
-    float basic_offset = 1200.0f;
-    int times_offset = 1;
+    srand(unsigned(time(NULL)));
+
+    int max_times = 5;
+    float basic_offset = 1600.0f;
+    vector<float> offset(dim);
 
     int part = input_size / division;
-
     for(int i=0; i<division; i++){
-        float offset = basic_offset * times_offset;
+        for(int k=0; k<dim; k++){
+            int rnd = rand() % max_times;
+            offset[k] = basic_offset * rnd;
+        }
+
         int temp = i * part;
         for(int j=0; j<part; j++){
             int which = temp + j;
-            cl_d(which, which_dim) += offset;
+            for(int k=0; k<dim; k++)
+                cl_d(which, k) += offset[k];
         }
-        which_dim++;
-        if(which_dim == dim){
-            which_dim = 0;
-            times_offset++;
-        }
+
     }
 
     string output_file = filename + ".offset";
