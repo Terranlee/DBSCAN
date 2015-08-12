@@ -12,7 +12,10 @@ namespace clustering{
 
         virtual void fit();
         virtual void test();
-        
+		
+		// use this public interface to get the same result as the CUHK program, easy for comparison
+		void output_same_result_cuhk();
+
         template<typename T>
         class PairHash{
         public:
