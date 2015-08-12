@@ -140,6 +140,7 @@ void formalize_household(){
 
 int main(){
     //formalize_household();
-    formalize_generate_data(5, 2000581, "clustered_2M_5D");
+    //formalize_generate_data(5, 2000581, "clustered_2M_5D");
+	formalize_generate_data(5, 5000367, "clustered_5M_5D.offset");
     return 0;
 }

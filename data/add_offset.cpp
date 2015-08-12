@@ -52,6 +52,6 @@ void add_offset(const string filename, int dim, int input_size, int division){
 
 int main(){
 
-    add_offset("clustered_1M_3D", 3, 1000303, 20);
+    add_offset("clustered_5M_5D", 5, 5000367, 100);
     return 0;
 }

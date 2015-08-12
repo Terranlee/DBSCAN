@@ -27,6 +27,6 @@ void from_cuhk(const string filename, int input_size, int dimension){
 }
 
 int main(){
-
+	from_cuhk("/home/trli/CUHK/cuhk_5M_7D.ds", 5000000, 7);
     return 0;
 }
