@@ -15,9 +15,9 @@ class PlotDim(object):
         x2 = list()
         # get 1 point from 10 input points
         # only plot the id1, id2 coordinates of the data
-        get = 100
+        get = 20
         id1 = 0
-        id2 = 3
+        id2 = 1
         counter = 0
 
         content = open(filename).readlines()
@@ -41,7 +41,7 @@ class PlotDim(object):
 
 def main():
     pld = PlotDim()
-    pld.show("../data/clustered_4M_5D")
+    pld.show("../data/clustered_1M_3D.offset")
 
 if __name__ == '__main__':
     main()
