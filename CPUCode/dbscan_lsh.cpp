@@ -17,52 +17,6 @@ namespace clustering{
     }
     DBSCAN_LSH::~DBSCAN_LSH(){}
 	
-	void DBSCAN_LSH::output_same_result_cuhk(){
-		// output the clustering result just like the cuhk algorithm does
-		std::unordered_map<int, std::vector<int> > final_result;
-		for(unsigned int i=0; i<m_labels.size(); i++){
-			std::unordered_map<int, std::vector<int> >::iterator got = final_result.find(m_labels[i]);
-			if(got == final_result.end()){
-				std::vector<int> intvec;
-				intvec.push_back(i);
-				final_result.insert(std::make_pair(m_labels[i], intvec));
-			}
-			else
-				got->second.push_back(i);
-		}
-
-		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = final_result.begin(); iter != final_result.end(); ++iter){
-			cout<<"size : "<<iter->second.size()<<endl;
-		}
-
-		const std::string result_root = "Clustering_Result/Cluster_";
-		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = final_result.begin(); iter != final_result.end(); ++iter){
-			int label = iter->first;
-			std::string filename = "";
-			if(label == -1)
-				filename = result_root + "noise";
-			else{
-				std::stringstream sstrm;
-				sstrm << label;
-				sstrm >> filename;
-				filename = result_root + filename;
-			}
-
-			std::ofstream fout(filename.data());
-			fout<<iter->second.size()<<endl;
-			for(unsigned int i=0; i<iter->second.size(); i++){
-				int which = iter->second[i];
-				// here we output (which + 1) because we need to compare with the cuhk data
-				fout<<(which + 1);
-				for(unsigned int j=0; j<cl_d.size2(); j++){
-					fout<<"\t"<<cl_d(which, j);
-				}
-				fout<<endl;
-			}
-			fout.close();
-		}
-	}
-
     void DBSCAN_LSH::permute(std::vector<int>& intvec){
         unsigned int sz = intvec.size();
         for(unsigned int i=0; i<sz; i++){

@@ -129,7 +129,7 @@ void test_reduced(Labels& label_reduced){
     delete dbs;
 }
 
-void test_lsh(Labels& label_lsh, int iter){
+void test_lsh(int iter){
 
     //DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
@@ -138,8 +138,8 @@ void test_lsh(Labels& label_lsh, int iter){
     //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension data
-    DBSCAN* dbs = new DBSCAN_LSH(50000.0, 100, iter);
-	dbs->read_cluster_data(7, 5000000, "/home/trli/CUHK/cuhk_5M_7D.ds.data");
+    DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100, iter);
+	dbs->read_cluster_data(5, 1000000, "/home/trli/CUHK/cuhk_1M_5D.ds.data");
     //dbs->read_cluster_data(7, 2049280, "../data/household.data");
     //dbs->read_cluster_data(7, 1906698, "../data/household_dedup.data");
 
@@ -151,12 +151,14 @@ void test_lsh(Labels& label_lsh, int iter){
     dbs->fit();
     float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
-
+	
     dbs->reshape_labels();
+	dbs->output_same_result_cuhk();
+
     //dbs->output_result("output_lsh");
-    Labels lbr = dbs->get_labels();
-    label_lsh.resize(lbr.size());
-    std::copy(lbr.begin(), lbr.end(), label_lsh.begin());
+    //Labels lbr = dbs->get_labels();
+    //label_lsh.resize(lbr.size());
+    //std::copy(lbr.begin(), lbr.end(), label_lsh.begin());
     cout<<endl;
     delete dbs;
 }
@@ -198,16 +200,16 @@ int main(int argc, char** argv)
     //Labels label_kd;
     //Labels label_grid;
     //Labels label_reduced;
-    Labels label_lsh;
+    //Labels label_lsh;
 
     //test_original(label_origin);
     //test_kd(label_kd);
     //test_grid(label_grid);
     //test_reduced(label_reduced);
-    test_lsh(label_lsh, iter);
+    test_lsh(iter);
     //DBSCAN::cmp_result(label_grid, label_kd);
 
-    DBSCAN::get_max(label_lsh);
+    //DBSCAN::get_max(label_lsh);
 
     //DBSCAN::cmp_result(label_lsh, label_grid);
     //DBSCAN::cmp_result(label_origin, label_grid);

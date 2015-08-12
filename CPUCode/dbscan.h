@@ -56,6 +56,8 @@ namespace clustering
         const Labels & get_labels() const;
         void output_result(const std::string filename) const;
         void reshape_labels();
+		// add this public output function to generate output file in the same format as CUHK program
+		void output_same_result_cuhk();
 
         /*****************************************************************************************/
         // pure virtual functions, just serve as an interface
