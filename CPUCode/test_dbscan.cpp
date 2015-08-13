@@ -139,8 +139,8 @@ void test_lsh(int iter){
 
     // high dimension data
     DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100, iter);
-	dbs->read_cluster_data(5, 1000000, "/home/trli/CUHK/cuhk_1M_5D.ds.data");
-    //dbs->read_cluster_data(7, 2049280, "../data/household.data");
+	//dbs->read_cluster_data(5, 1000000, "/home/trli/CUHK/cuhk_1M_5D.ds.data");
+    dbs->read_cluster_data(7, 2049280, "../data/household.data");
     //dbs->read_cluster_data(7, 1906698, "../data/household_dedup.data");
 
     //DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);

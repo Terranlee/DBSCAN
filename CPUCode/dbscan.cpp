@@ -97,7 +97,7 @@ namespace clustering
 			cout<<"size : "<<iter->second.size()<<endl;
 		}
 		
-		const std::string result_root = "Clustering_Result/Cluster_";
+		const std::string result_root = "Clustering_Result_household/Cluster_";
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = final_result.begin(); iter != final_result.end(); ++iter){
 			int label = iter->first;
 			std::string filename = "";
