@@ -59,7 +59,16 @@ int cmp_result(const string file1, const string file2, int dim){
     return result;
 }
 
-int main(){
+int main(int argc, char** argv){
+	string file1 = string(argv[1]);
+	string file2 = string(argv[2]);
+	string dim = string(argv[3]);
+	stringstream sstrm;
+	sstrm << dim;
+	int dimension;
+	sstrm >> dimension;
+
+	cmp_result(file1, file2, dimension);
 
     return 0;
 }
