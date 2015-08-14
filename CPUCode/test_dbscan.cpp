@@ -129,7 +129,7 @@ void test_reduced(Labels& label_reduced){
     delete dbs;
 }
 
-void test_lsh(int iter){
+void test_lsh(int iter, float eps, int minPts, int dim, int length, std::string filename){
 
     //DBSCAN* dbs = new DBSCAN_LSH(20000, 4);
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
@@ -138,10 +138,8 @@ void test_lsh(int iter){
     //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension data
-    DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100, iter);
-	//dbs->read_cluster_data(5, 1000000, "/home/trli/CUHK/cuhk_1M_5D.ds.data");
-    dbs->read_cluster_data(7, 2049280, "../data/household.data");
-    //dbs->read_cluster_data(7, 1906698, "../data/household_dedup.data");
+    DBSCAN* dbs = new DBSCAN_LSH(eps, minPts, iter);
+    dbs->read_cluster_data(dim, length, filename);
 
     //DBSCAN* dbs = new DBSCAN_LSH(5000.0, 100);
     //dbs->read_cluster_data(3, 1000000, "../data/clustered_2M_3D.data");
@@ -194,7 +192,18 @@ void test_lsh(int iter){
 
 int main(int argc, char** argv)
 {
+
+	if(argc != 7){
+		cout<<"./test_dbscan iter eps minPts dim length filename"<<endl;
+		exit(1);
+	}
+
     int iter = atoi(argv[1]);
+	float eps = atof(argv[2]);
+	int minPts = atoi(argv[3]);
+	int dim = atoi(argv[4]);
+	int length = atoi(argv[5]);
+	std::string filename = std::string(argv[6]);
 
     //Labels label_origin;
     //Labels label_kd;
@@ -206,7 +215,8 @@ int main(int argc, char** argv)
     //test_kd(label_kd);
     //test_grid(label_grid);
     //test_reduced(label_reduced);
-    test_lsh(iter);
+    test_lsh(iter, eps, minPts, dim, length, filename);
+
     //DBSCAN::cmp_result(label_grid, label_kd);
 
     //DBSCAN::get_max(label_lsh);
