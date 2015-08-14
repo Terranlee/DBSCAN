@@ -28,5 +28,6 @@ int main(){
     //to_cuhk("household.data", 2049280, 7);
     //to_cuhk("clustered_1M_3D", 1000303, 3);
 	to_cuhk("clustered_5M_5D.offset.data", 5000367, 5);
+	to_cuhk("/home/trli/download/PAMAP2_Dataset/answer.txt.data", 3850505, 4);
     return 0;
 }

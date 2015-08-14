@@ -141,6 +141,7 @@ void formalize_household(){
 int main(){
     //formalize_household();
     //formalize_generate_data(5, 2000581, "clustered_2M_5D");
-	formalize_generate_data(5, 5000367, "clustered_5M_5D.offset");
+	//formalize_generate_data(5, 5000367, "clustered_5M_5D.offset");
+	formalize_generate_data(4, 3850505, "/home/trli/download/PAMAP2_Dataset/answer.txt");
     return 0;
 }
