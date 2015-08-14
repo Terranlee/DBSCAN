@@ -67,13 +67,13 @@ class PlotReducedPrecision(object):
             for i in range(lim_num+1, length):
                 which = self.grid[key][i]
                 size[which] = 10
-                color[which] = 0.6
+                color[which] = 0.9
         plt.scatter(self.x, self.y, c=color, s=size)
         axes = plt.gca()
         axes.xaxis.set_major_locator(plt.MultipleLocator(self.cell_width))
         axes.yaxis.set_major_locator(plt.MultipleLocator(self.cell_width))
-        axes.grid(which='major', axis='x', linewidth=0.75, linestyle='-', color='0.75')
-        axes.grid(which='major', axis='y', linewidth=0.75, linestyle='-', color='0.75')
+        axes.grid(which='major', axis='x', linewidth=1.5, linestyle='-', color='0.3')
+        axes.grid(which='major', axis='y', linewidth=1.5, linestyle='-', color='0.3')
         plt.show()
 
 
@@ -81,7 +81,7 @@ def main():
     prp = PlotReducedPrecision("reduced_precision.data", 10)
     prp.construct()
     prp.reduced_precision()
-    prp.show(30)
+    prp.show(50)
 
 if __name__ == '__main__':
     main()

@@ -4,7 +4,7 @@
 
 using namespace std;
 
-float max_val = 30.0;
+float max_val = 20.0;
 
 void gen_data(const string filename, int cnt){
     ofstream fout(filename.data());
