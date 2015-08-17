@@ -18,9 +18,14 @@ namespace clustering
     void DBSCAN::read_cluster_data(size_t features_num, size_t elements_num, std::string filename){
         cl_d = ClusterData(elements_num, features_num);
         std::ifstream fin(filename.data());
-        for(size_t i=0; i<elements_num; i++)
+		std::string header;
+		getline(fin, header);
+		int point_id;
+        for(size_t i=0; i<elements_num; i++){
+			fin>>point_id;
             for(size_t j=0; j<features_num; j++)
                 fin>>cl_d(i, j);
+		}
         fin.close();
         /*
         for(size_t i=0; i<10; i++){
