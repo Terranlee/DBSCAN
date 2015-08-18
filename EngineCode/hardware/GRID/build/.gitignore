@@ -1,9 +1,0 @@
-DBSCAN_sim
-DBSCAN_dfe
-*.o
-*.class
-answer*
-output*
-DBSCAN_MAIA_DFE_SIM/
-DBSCAN_MAIA_DFE/
-

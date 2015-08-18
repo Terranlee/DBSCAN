@@ -1,6 +1,0 @@
-# ---- Available DFE hardware settings ----
-DFEModel=MAX3424A
-
-MPCX=false
-DEVICENUM=3424
-SLICCONFIG=
