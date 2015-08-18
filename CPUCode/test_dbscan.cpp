@@ -151,7 +151,9 @@ void test_lsh(int iter, float eps, int minPts, int dim, int length, std::string 
     cout<<"time is : "<<end - begin<<endl;
 	
     dbs->reshape_labels();
-	dbs->output_same_result_cuhk();
+	Labels lbr = dbs->get_labels();
+	DBSCAN::get_max(lbr);
+	//dbs->output_same_result_cuhk();
 
     //dbs->output_result("output_lsh");
     //Labels lbr = dbs->get_labels();

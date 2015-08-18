@@ -252,7 +252,7 @@ namespace clustering{
             }
 
             int diff = begin - uf.get_count();
-            cout<<"merge : "<<diff<<" clusters   :   "<<uf.get_count()<<endl;
+            //cout<<"merge : "<<diff<<" clusters   :   "<<uf.get_count()<<endl;
             total_merge_counter += diff;
         }
         return total_merge_counter;
@@ -313,7 +313,7 @@ namespace clustering{
     void DBSCAN_LSH::determine_core_point_lsh(){
         // determine core points using the result of merge
         int index = set_core_map();
-        cout<<index<<" not core"<<endl;
+        cout<<index<<"!core"<<endl;
 
         CoreDetermine cd = CoreDetermine(index, m_min_elems);
         for(int i=0; i<index; i++)
@@ -329,13 +329,25 @@ namespace clustering{
         for(int i=0; i<index; i++)
             for(unsigned int j=0; j<m_min_elems; j++)
                 cd(i, j) = -1;
-
+		
+		int break_counter = 0;
         for(int i=0; i<m_num_iter; i++){
             main_iteration();
             int minus = determine_core_point_lsh_sub(cd);
             index -= minus;
-            cout<<index<<" not core"<<endl;
-            merge_clusters_lsh_sub();
+            cout<<index<<"!core"<<endl;
+            int merged = merge_clusters_lsh_sub();
+			cout<<"merge "<<merged<<endl;
+
+			// heuristic way of termination
+			if(merged == 0){
+				break_counter += 1;
+			}
+			else{
+				break_counter = 0;
+			}
+			if(break_counter == 10)
+				break;
         }
 
         cell_label_to_point_label();
@@ -382,6 +394,17 @@ namespace clustering{
         float begin = get_clock();
         hash_construct_grid();
         cout<<get_clock() - begin<<endl;
+		
+		// for testing the data un-balance
+		unsigned int total_size = 0;
+		unsigned int max_size = 0;
+		for(std::unordered_map<HashType, Cell>::const_iterator iter = m_hash_grid.begin(); iter != m_hash_grid.end(); ++iter){
+			if(iter->second.data.size() > max_size)
+				max_size = iter->second.data.size();
+			total_size += iter->second.data.size();
+		}
+		cout<<"max_size : "<<max_size<<endl;
+		cout<<"average_size : "<<float(total_size) / float(m_hash_grid.size())<<endl;
 
         // reduced precision, prepare data structures
         begin = get_clock();
