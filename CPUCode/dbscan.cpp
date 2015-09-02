@@ -97,12 +97,13 @@ namespace clustering
 			else
 				got->second.push_back(i);
 		}
-	
+		/*	
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = final_result.begin(); iter != final_result.end(); ++iter){
 			cout<<"size : "<<iter->second.size()<<endl;
 		}
-		
-		const std::string result_root = "Clustering_Result_household/Cluster_";
+		*/
+
+		const std::string result_root = "Clustering_Result_real/Cluster_";
 		for(std::unordered_map<int, std::vector<int> >::const_iterator iter = final_result.begin(); iter != final_result.end(); ++iter){
 			int label = iter->first;
 			std::string filename = "";
@@ -120,11 +121,13 @@ namespace clustering
 			for(unsigned int i=0; i<iter->second.size(); i++){
 				int which = iter->second[i];
 				// here we output (which + 1) because we need to compare with the cuhk result
-				fout<<(which + 1);
+				fout<<(which + 1)<<endl;
+				/*
 				for(unsigned int j=0; j<cl_d.size2(); j++){
 					fout<<"\t"<<cl_d(which, j);
 				}
-				fout<<endl;
+				*/
+				//fout<<endl;
 			}
 			fout.close();
 		}

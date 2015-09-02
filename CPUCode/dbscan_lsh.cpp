@@ -340,6 +340,7 @@ namespace clustering{
 			cout<<"merge "<<merged<<endl;
 
 			// heuristic way of termination
+			
 			if(merged == 0){
 				break_counter += 1;
 			}
@@ -404,11 +405,15 @@ namespace clustering{
 			total_size += iter->second.data.size();
 		}
 		cout<<"max_size : "<<max_size<<endl;
-		cout<<"average_size : "<<float(total_size) / float(m_hash_grid.size())<<endl;
+		float avg = float(total_size) / float(m_hash_grid.size());
+		cout<<"average_size : "<<avg<<endl;
 
         // reduced precision, prepare data structures
         begin = get_clock();
-        reduced_precision_lsh(m_min_elems * 3);
+		// use a heuristic way to determine the maxNum
+		float ans = std::sqrt(float(avg)) * float(m_min_elems);
+        //reduced_precision_lsh( (unsigned int)(std::sqrt(float(m_min_elems) * float(max_size))) );
+		reduced_precision_lsh(ans);
         init_data_structure();
         cout<<get_clock() - begin<<endl;
 

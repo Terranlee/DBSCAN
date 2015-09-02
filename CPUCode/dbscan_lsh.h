@@ -6,6 +6,8 @@
 namespace clustering{
     class DBSCAN_LSH : public DBSCAN_Reduced{
     public:
+		
+		//unsigned int debug_value;
 
         DBSCAN_LSH(float eps, size_t min_elems, int num_iter);
         virtual ~DBSCAN_LSH();
