@@ -72,48 +72,49 @@ void test_kd(Labels& label_kd){
 
 }
 
-void test_grid(Labels& label_grid){
+void test_grid(float eps, int minPts, int dim, int length, std::string filename){
 
     //DBSCAN* dbs = new DBSCAN_Grid(20000, 4);   // the papameter for s1.txt
     //dbs->read_cluster_data(2, 5000, "../data/s1.txt");
 
-    DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
-    dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
+    //DBSCAN* dbs = new DBSCAN_Grid(10000, 4);
+    //dbs->read_cluster_data(2, 25000, "../data/5times_s1.txt");
 
     // high dimension
-    //DBSCAN* dbs = new DBSCAN_Grid(1250.0, 50);
-    //dbs->read_cluster_data(3, 500000, "../data/clustered_2M_3D.data");
+    DBSCAN_Grid dbs(eps, minPts);
+    dbs.read_cluster_data(dim, length, filename);
 
     cout<<"start execution of grid based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
-    dbs->fit();
+    dbs.fit();
     float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
 
-    dbs->reshape_labels();
-    dbs->output_result("output_grid");
+    dbs.reshape_labels();
+    //dbs->output_result("output_grid");
 
-    Labels lbg = dbs->get_labels();
-    label_grid.resize(lbg.size());
-    std::copy(lbg.begin(), lbg.end(), label_grid.begin());
+    Labels lbg = dbs.get_labels();
+    DBSCAN::get_max(lbg);
+    //label_grid.resize(lbg.size());
+    //std::copy(lbg.begin(), lbg.end(), label_grid.begin());
+    cout<<"make union : "<<dbs.debug_value<<endl;
     cout<<endl;
-    delete dbs;
 }
 
-void test_lsh(int iter, float eps, int minPts, int dim, int length, std::string filename){
+void test_lsh(int iter, float eps, int minPts, int dim, int length, std::string filename, int debug_value){
     // high dimension data
     DBSCAN_LSH dbs(eps, minPts, iter);
     dbs.read_cluster_data(dim, length, filename);
 	
 	// set the debug value
-	//dbs.debug_value = debug_value;
+	dbs.debug_value = debug_value;
 
     cout<<"start execution of lsh based DBSCAN"<<endl;
     float begin = DBSCAN::get_clock();
     dbs.fit();
     float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
-	
+	cout<<"make union : "<<dbs.debug_value<<endl;
     dbs.reshape_labels();
 	Labels lbr = dbs.get_labels();
 	DBSCAN::get_max(lbr);
@@ -126,7 +127,8 @@ int main(int argc, char** argv)
 {
 
 	if(argc != 7 && argc != 8){
-		cout<<"./test_dbscan iter eps minPts dim length filename [debug_value]"<<endl;
+		cout<<"./test_dbscan iter eps minPts dim length filename [maxNum]"<<endl;
+        cout<<"maxNum is the parameter for the second algorithm, set to sqrt(minPts*M) as default"<<endl;
 		exit(1);
 	}
 
@@ -136,18 +138,18 @@ int main(int argc, char** argv)
 	int dim = atoi(argv[4]);
 	int length = atoi(argv[5]);
 	std::string filename = std::string(argv[6]);
-/*	
-	int debug_value = 300;
+	
+	int debug_value = 0;
 	if(argc == 8)
 		debug_value = atoi(argv[7]);
-*/
+
     //Labels label_kd;
     //Labels label_grid;
     //Labels label_lsh;
 
     //test_kd(label_kd);
-    //test_grid(label_grid);
-    test_lsh(iter, eps, minPts, dim, length, filename);
+    //test_grid(eps, minPts, dim, length, filename);
+    test_lsh(iter, eps, minPts, dim, length, filename, debug_value);
 
     return 0;
 }

@@ -14,6 +14,7 @@ namespace clustering{
 
     DBSCAN_LSH::DBSCAN_LSH(float eps, size_t min_elems, int num_iter) : DBSCAN_Reduced(eps, min_elems){
         m_num_iter = num_iter;
+        debug_value = 0;
     }
     DBSCAN_LSH::~DBSCAN_LSH(){}
 	
@@ -411,9 +412,11 @@ namespace clustering{
         // reduced precision, prepare data structures
         begin = get_clock();
 		// use a heuristic way to determine the maxNum
-		float ans = std::sqrt(float(avg)) * float(m_min_elems);
+		float ans = std::sqrt(float(max_size) * float(m_min_elems));
         //reduced_precision_lsh( (unsigned int)(std::sqrt(float(m_min_elems) * float(max_size))) );
-		reduced_precision_lsh(ans);
+        if(debug_value == 0)
+            debug_value = (unsigned int)(ans);
+		reduced_precision_lsh(debug_value);
         init_data_structure();
         cout<<get_clock() - begin<<endl;
 
