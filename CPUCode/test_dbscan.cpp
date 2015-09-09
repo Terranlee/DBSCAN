@@ -97,7 +97,7 @@ void test_grid(float eps, int minPts, int dim, int length, std::string filename)
     DBSCAN::get_max(lbg);
     //label_grid.resize(lbg.size());
     //std::copy(lbg.begin(), lbg.end(), label_grid.begin());
-    cout<<"make union : "<<dbs.debug_value<<endl;
+    //cout<<"make union : "<<dbs.debug_value<<endl;
     cout<<endl;
 }
 
@@ -114,7 +114,7 @@ void test_lsh(int iter, float eps, int minPts, int dim, int length, std::string 
     dbs.fit();
     float end = DBSCAN::get_clock();
     cout<<"time is : "<<end - begin<<endl;
-	cout<<"make union : "<<dbs.debug_value<<endl;
+	//cout<<"make union : "<<dbs.debug_value<<endl;
     dbs.reshape_labels();
 	Labels lbr = dbs.get_labels();
 	DBSCAN::get_max(lbr);
